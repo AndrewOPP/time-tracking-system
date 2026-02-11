@@ -6,6 +6,7 @@ import {
   UserProjectStatus,
   UserProjectPosition,
   User,
+  Project,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
@@ -69,33 +70,11 @@ async function createProject(count: number, managers: User[]) {
   return prisma.project.findMany();
 }
 
-const createRelation = (userId: string, projectId: string) =>
-  prisma.userProject.create({
-    data: {
-      userId,
-      projectId,
-      status: UserProjectStatus.ACTIVE,
-      position: faker.helpers.arrayElement(
-        Object.values(UserProjectPosition).filter(p => p !== UserProjectPosition.PROJECT_MANAGER)
-      ),
-    },
-  });
-
-async function main() {
-  console.log('🌱 Seeding database...');
-
-  await cleanDatabase();
-
-  const activeUserIds = new Set<string>();
-
-  const managers = await createUsers(CONFIG.MANAGERS_COUNT);
-  const users = await createUsers(CONFIG.USERS_COUNT);
-
-  const projects = await createProject(CONFIG.PROJECTS_COUNT, managers);
-
+async function addUsersToProjects(projects: Project[], users: User[]) {
   const benchCount = Math.round(CONFIG.USERS_COUNT * CONFIG.BENCH_VALUE);
   const benchUsers = faker.helpers.arrayElements(users, benchCount);
   const activeUsers = users.filter(user => !benchUsers.includes(user));
+  const activeUserIds = new Set<string>();
 
   const pool = [...activeUsers];
 
@@ -122,11 +101,39 @@ async function main() {
     activeUserIds.add(user.id);
   }
 
+  return activeUserIds;
+}
+
+const createRelation = (userId: string, projectId: string) =>
+  prisma.userProject.create({
+    data: {
+      userId,
+      projectId,
+      status: UserProjectStatus.ACTIVE,
+      position: faker.helpers.arrayElement(
+        Object.values(UserProjectPosition).filter(p => p !== UserProjectPosition.PROJECT_MANAGER)
+      ),
+    },
+  });
+
+async function main() {
+  console.log('🌱 Seeding database...');
+
+  await cleanDatabase();
+
+  const managers = await createUsers(CONFIG.MANAGERS_COUNT);
+
+  const users = await createUsers(CONFIG.USERS_COUNT);
+
+  const projects = await createProject(CONFIG.PROJECTS_COUNT, managers);
+
+  const activeUsersSet = await addUsersToProjects(projects, users);
+
   const assignedManagerIds = new Set(
     projects.map(p => p.projectManagerId).filter(Boolean) as string[]
   );
 
-  const allToActivate = new Set([...activeUserIds, ...assignedManagerIds]);
+  const allToActivate = new Set([...activeUsersSet, ...assignedManagerIds]);
 
   await prisma.user.updateMany({
     where: { id: { in: Array.from(allToActivate) } },
