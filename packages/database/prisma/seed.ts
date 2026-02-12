@@ -18,16 +18,32 @@ const CONFIG = {
   PROJECTS_COUNT: 20,
   PM_PROJECTS_COUNT: Math.floor(20 * 0.9),
   BENCH_VALUE: 0.05,
+  MAX_TEAM_SIZE: 6,
 };
 
-const createUserData = () => ({
-  email: faker.internet.email(),
-  realName: faker.person.fullName(),
-  username: faker.internet.username(),
-  discordId: faker.string.uuid(),
-  status: UserStatus.INACTIVE,
-  workFormat: faker.helpers.arrayElement([UserWorkFormat.FULL_TIME, UserWorkFormat.PART_TIME]),
-});
+function createUserData() {
+  return {
+    email: faker.internet.email(),
+    realName: faker.person.fullName(),
+    username: faker.internet.username(),
+    discordId: faker.string.uuid(),
+    status: UserStatus.INACTIVE,
+    workFormat: faker.helpers.arrayElement([UserWorkFormat.FULL_TIME, UserWorkFormat.PART_TIME]),
+  };
+}
+
+function createRelation(userId: string, projectId: string) {
+  return prisma.userProject.create({
+    data: {
+      userId,
+      projectId,
+      status: UserProjectStatus.ACTIVE,
+      position: faker.helpers.arrayElement(
+        Object.values(UserProjectPosition).filter(p => p !== UserProjectPosition.PROJECT_MANAGER)
+      ),
+    },
+  });
+}
 
 async function cleanDatabase() {
   await prisma.userProject.deleteMany();
@@ -75,46 +91,38 @@ async function addUsersToProjects(projects: Project[], users: User[]) {
   const benchUsers = faker.helpers.arrayElements(users, benchCount);
   const activeUsers = users.filter(user => !benchUsers.includes(user));
   const activeUserIds = new Set<string>();
+  const projectMemberCount = new Map<string, number>();
 
-  const pool = [...activeUsers];
+  for (const project of projects) {
+    const teamSize = faker.number.int({ min: 1, max: CONFIG.MAX_TEAM_SIZE });
+    const team = faker.helpers.arrayElements(activeUsers, teamSize);
 
-  for (let i = 0; i < projects.length; i++) {
-    const project = projects[i];
-    const user = pool.pop();
-    if (user) {
+    for (const user of team as User[]) {
       await createRelation(user.id, project.id);
       activeUserIds.add(user.id);
     }
 
-    if (i % 3 === 0) {
-      const extraUser = faker.helpers.arrayElement(activeUsers);
-      if (user && extraUser.id !== user.id) {
-        await createRelation(extraUser.id, project.id);
-        activeUserIds.add(extraUser.id);
-      }
-    }
+    projectMemberCount.set(project.id, team.length);
   }
 
-  for (const user of pool) {
-    const randomProject = faker.helpers.arrayElement(projects);
-    await createRelation(user.id, randomProject.id);
-    activeUserIds.add(user.id);
+  const missedUsers = activeUsers.filter(user => !activeUserIds.has(user.id));
+
+  for (const user of missedUsers) {
+    const availableProjects = projects.filter(
+      project => (projectMemberCount.get(project.id) || 0) < CONFIG.MAX_TEAM_SIZE
+    );
+    if (availableProjects.length > 0) {
+      const randomProject = faker.helpers.arrayElement(availableProjects);
+      await createRelation(user.id, randomProject.id);
+      activeUserIds.add(user.id);
+
+      const currentCount = projectMemberCount.get(randomProject.id) || 0;
+      projectMemberCount.set(randomProject.id, currentCount + 1);
+    }
   }
 
   return activeUserIds;
 }
-
-const createRelation = (userId: string, projectId: string) =>
-  prisma.userProject.create({
-    data: {
-      userId,
-      projectId,
-      status: UserProjectStatus.ACTIVE,
-      position: faker.helpers.arrayElement(
-        Object.values(UserProjectPosition).filter(p => p !== UserProjectPosition.PROJECT_MANAGER)
-      ),
-    },
-  });
 
 async function main() {
   console.log('🌱 Seeding database...');
