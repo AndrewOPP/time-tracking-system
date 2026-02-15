@@ -1,0 +1,60 @@
+import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { loginWithProvider } from '../api/auth.api';
+import { ROUTES } from '@/shared/constants/routes';
+import { AUTH_STORAGE_KEYS, OAUTH_EVENT_TYPES, type AuthProvider } from '../types/auth.types';
+
+export function OAuthCallback() {
+  const [params] = useSearchParams();
+  const hasExchangedCode = useRef(false);
+
+  useEffect(() => {
+    const code = params.get('code');
+    const state = params.get('state');
+
+    const savedState = sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE);
+    const provider = sessionStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER);
+
+    if (!window.opener) {
+      window.location.href = ROUTES.AUTH.LOGIN;
+      return;
+    }
+
+    const isValid = code && state && state === savedState && provider;
+
+    if (!isValid) {
+      console.error('Validation failed:', { code, state, savedState, provider });
+      window.opener.postMessage({ type: OAUTH_EVENT_TYPES.ERROR }, window.location.origin);
+      window.close();
+      return;
+    }
+
+    const exchangeCode = async () => {
+      if (hasExchangedCode.current) return;
+      hasExchangedCode.current = true;
+
+      try {
+        await loginWithProvider(provider as AuthProvider, { code });
+        window.opener.postMessage({ type: OAUTH_EVENT_TYPES.SUCCESS }, window.location.origin);
+      } catch (error) {
+        console.error('OAuth exchange error:', error);
+        window.opener.postMessage({ type: OAUTH_EVENT_TYPES.ERROR }, window.location.origin);
+      } finally {
+        sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
+        sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
+        if (window.opener) window.close();
+      }
+    };
+
+    exchangeCode();
+  }, [params]);
+
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <p className="text-lg font-medium">Processing authorization...</p>
+        <p className="text-sm text-gray-500">Please wait</p>
+      </div>
+    </div>
+  );
+}

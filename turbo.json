@@ -41,5 +41,16 @@
       "cache": false
     }
   },
-  "globalEnv": ["NODE_ENV", "PORT", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "DISCORD_CLIENT_ID",
+    "DISCORD_CLIENT_SECRET",
+    "LINKEDIN_CLIENT_SECRET",
+    "LINKEDIN_CLIENT_ID",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET"
+  ]
 }
