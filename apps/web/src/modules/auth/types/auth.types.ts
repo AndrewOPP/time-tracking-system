@@ -1,3 +1,5 @@
+import { DiscordIcon, GithubIcon, GoogleIcon, LinkedInIcon } from '@components/ui/icons';
+
 export const AUTH_STORAGE_KEYS = {
   STATE: 'oauth_state',
   PROVIDER: 'oauth_provider',
@@ -24,6 +26,13 @@ export const AUTH_PROVIDERS = {
   DISCORD: 'discord',
 } as const;
 
+export const OAUTH_LIST = [
+  { provider: AUTH_PROVIDERS.GOOGLE, icon: GoogleIcon },
+  { provider: AUTH_PROVIDERS.DISCORD, icon: DiscordIcon },
+  { provider: AUTH_PROVIDERS.GITHUB, icon: GithubIcon },
+  { provider: AUTH_PROVIDERS.LINKEDIN, icon: LinkedInIcon },
+] as const;
+
 export type OAuthEventType = (typeof OAUTH_EVENT_TYPES)[keyof typeof OAUTH_EVENT_TYPES];
 export type AuthStorageKey = (typeof AUTH_STORAGE_KEYS)[keyof typeof AUTH_STORAGE_KEYS];
 export type AuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];
@@ -37,6 +46,7 @@ export interface AuthPayload {
 
 export interface OAuthLoginButtonProps {
   provider: AuthProvider;
+  className: string;
 }
 
 export type OAuthProviderConfig = {

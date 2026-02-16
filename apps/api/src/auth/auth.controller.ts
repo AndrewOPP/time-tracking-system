@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { OAuthProvider } from './types/oauth.types';
 
@@ -6,64 +6,28 @@ import { OAuthProvider } from './types/oauth.types';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('google')
-  async handleGoogleToken(@Body() body: { code: string }) {
-    const accessToken = await this.authService.exchangeCodeForToken(
-      OAuthProvider.GOOGLE,
-      body.code
-    );
-    if (accessToken) {
-      console.log('Google access token:', accessToken);
-      return {
-        status: 'success',
-        message: 'Token is received',
-      };
+  @Post(':provider')
+  async exchangeToken(@Param('provider') provider: string, @Body() body: { code: string }) {
+    if (!body.code) {
+      throw new BadRequestException('Authorization code is required');
     }
-  }
 
-  @Post('github')
-  async handleGithubToken(@Body() body: { code: string }) {
-    const accessToken = await this.authService.exchangeCodeForToken(
-      OAuthProvider.GITHUB,
-      body.code
-    );
-
-    if (accessToken) {
-      console.log('Github access token:', accessToken);
-      return {
-        status: 'success',
-        message: 'Token is received',
-      };
+    if (!Object.values(OAuthProvider).includes(provider as OAuthProvider)) {
+      throw new BadRequestException('Invalid OAuth provider');
     }
-  }
 
-  @Post('discord')
-  async handleDiscordToken(@Body() body: { code: string }) {
     const accessToken = await this.authService.exchangeCodeForToken(
-      OAuthProvider.DISCORD,
-      body.code
-    );
-    if (accessToken) {
-      console.log('Discord access token:', accessToken);
-      return {
-        status: 'success',
-        message: 'Token is received',
-      };
-    }
-  }
-
-  @Post('linkedin')
-  async handleLinkedinToken(@Body() body: { code: string }) {
-    const accessToken = await this.authService.exchangeCodeForToken(
-      OAuthProvider.LINKEDIN,
+      provider as OAuthProvider,
       body.code
     );
 
     if (accessToken) {
-      console.log('Linkedin access token:', accessToken);
+      console.log(`Access token received from ${provider}: ${accessToken}`);
+
       return {
         status: 'success',
-        message: 'Token is received',
+        provider,
+        message: 'Access token received',
       };
     }
   }

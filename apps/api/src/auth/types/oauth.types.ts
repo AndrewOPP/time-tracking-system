@@ -5,8 +5,9 @@ export enum OAuthProvider {
   GOOGLE = 'google',
 }
 
-export type OAuthConfig = {
+export interface OAuthConfig {
   tokenUrl: string;
   clientId: string;
   clientSecret: string;
-};
+  useFormData: boolean;
+}

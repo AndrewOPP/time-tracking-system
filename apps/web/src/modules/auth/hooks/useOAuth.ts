@@ -61,6 +61,10 @@ export function useOAuth(provider: AuthProvider) {
   }, [toast]);
 
   const openPopup = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
     authFinishedRef.current = false;
     const state = crypto.randomUUID();
 
