@@ -19,7 +19,6 @@ export default defineConfig([
     rules: {
       ...reactRefresh.configs.vite.rules,
       'react-refresh/only-export-components': 'warn',
-      'react/no-unsafe-setstate-in-useeffect': 'off',
     },
     languageOptions: {
       ecmaVersion: 2020,
