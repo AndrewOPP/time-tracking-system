@@ -10,7 +10,7 @@ import {
   type AuthProvider,
 } from '../types/auth.types';
 
-export function useOAuth(provider: AuthProvider) {
+export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
   const popupRef = useRef<Window | null>(null);
   const authFinishedRef = useRef(false);
@@ -22,7 +22,11 @@ export function useOAuth(provider: AuthProvider) {
         if (intervalRef.current) clearInterval(intervalRef.current);
 
         if (!authFinishedRef.current) {
-          toast({ variant: 'destructive', title: AUTH_NOTIFICATIONS.CONTENT.CANCELED });
+          setGlobalLoading(false);
+          toast({
+            variant: 'destructive',
+            title: AUTH_NOTIFICATIONS.CONTENT.CANCELED,
+          });
         }
       }
     }, 500);
@@ -32,20 +36,25 @@ export function useOAuth(provider: AuthProvider) {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
-      if (event.data.type === OAUTH_EVENT_TYPES.SUCCESS) {
+      const { type, error } = event.data;
+
+      if (type === OAUTH_EVENT_TYPES.SUCCESS) {
         authFinishedRef.current = true;
-
+        setGlobalLoading(false);
         toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
-
         popupRef.current?.close();
       }
 
-      if (event.data.type === OAUTH_EVENT_TYPES.ERROR) {
+      if (type === OAUTH_EVENT_TYPES.ERROR) {
         authFinishedRef.current = true;
+        setGlobalLoading(false);
 
+        const isCanceled = error === 'access_denied';
         toast({
           variant: 'destructive',
-          title: AUTH_NOTIFICATIONS.CONTENT.ERROR,
+          title: isCanceled
+            ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
+            : AUTH_NOTIFICATIONS.CONTENT.ERROR,
         });
 
         popupRef.current?.close();
@@ -57,29 +66,26 @@ export function useOAuth(provider: AuthProvider) {
     return () => {
       window.removeEventListener('message', handleMessage);
       if (intervalRef.current) clearInterval(intervalRef.current);
+      setGlobalLoading(false);
     };
-  }, [toast]);
+  }, [toast, setGlobalLoading]);
 
-  const openPopup = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
+  const openPopup = async () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
+    setGlobalLoading(true);
     authFinishedRef.current = false;
-    const state = crypto.randomUUID();
 
+    const state = crypto.randomUUID();
     sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE, state);
     sessionStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER, provider);
 
     const redirectUri = `${window.location.origin}${ROUTES.AUTH.CALLBACK}`;
-
     const config = oauthConfig[provider];
 
-    const url = `${config.authUrl}?response_type=code&client_id=${
-      config.clientId
-    }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(
-      config.scope
-    )}&state=${state}${config.extraParams ?? ''}`;
+    const url = `${config.authUrl}?response_type=code&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=${encodeURIComponent(config.scope)}&state=${state}${config.extraParams ?? ''}`;
 
     popupRef.current = window.open(url, 'oauth_popup', 'width=500,height=600');
     checkPopupClosed();

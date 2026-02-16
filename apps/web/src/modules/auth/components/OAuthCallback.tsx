@@ -11,6 +11,7 @@ export function OAuthCallback() {
   useEffect(() => {
     const code = params.get('code');
     const state = params.get('state');
+    const error = params.get('error');
 
     const savedState = sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE);
     const provider = sessionStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER);
@@ -20,11 +21,21 @@ export function OAuthCallback() {
       return;
     }
 
+    if (error) {
+      window.opener.postMessage({ type: OAUTH_EVENT_TYPES.ERROR, error }, window.location.origin);
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
+      window.close();
+      return;
+    }
+
     const isValid = code && state && state === savedState && provider;
 
     if (!isValid) {
       console.error('Validation failed:', { code, state, savedState, provider });
       window.opener.postMessage({ type: OAUTH_EVENT_TYPES.ERROR }, window.location.origin);
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
       window.close();
       return;
     }
@@ -36,13 +47,17 @@ export function OAuthCallback() {
       try {
         await loginWithProvider(provider as AuthProvider, { code });
         window.opener.postMessage({ type: OAUTH_EVENT_TYPES.SUCCESS }, window.location.origin);
-      } catch (error) {
-        console.error('OAuth exchange error:', error);
-        window.opener.postMessage({ type: OAUTH_EVENT_TYPES.ERROR }, window.location.origin);
+      } catch (err) {
+        console.error('OAuth exchange error:', err);
+
+        window.opener.postMessage(
+          { type: OAUTH_EVENT_TYPES.ERROR, error: 'server_error' },
+          window.location.origin
+        );
       } finally {
         sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
         sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
-        if (window.opener) window.close();
+        window.close();
       }
     };
 
@@ -52,8 +67,7 @@ export function OAuthCallback() {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
-        <p className="text-lg font-medium">Processing authorization...</p>
-        <p className="text-sm text-gray-500">Please wait</p>
+        <p className="text-sm text-gray-500">Please wait...</p>
       </div>
     </div>
   );

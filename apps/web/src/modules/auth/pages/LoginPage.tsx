@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { OAuthLoginButton } from '../components/OAuthLoginButton';
 import { OAUTH_LIST } from '../types/auth.types';
 import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
 
 export default function LoginPage() {
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#fafafa] font-sans antialiased">
       <div className="flex items-center gap-2 mb-8">
@@ -22,12 +25,14 @@ export default function LoginPage() {
         <div className="flex flex-col gap-3">
           {OAUTH_LIST.map(({ provider, icon }) => (
             <OAuthLoginButton
+              setGlobalLoading={setIsOAuthLoading}
               key={provider}
               provider={provider}
+              isGlobalLoading={isOAuthLoading}
               icon={icon}
               className="flex items-center justify-center gap-3 w-full py-3.5 border-2 cursor-pointer border-[#e5e5e5] rounded-xl hover:bg-[#f9f9f9] transition-all duration-200 active:scale-[0.98]"
             >
-              Sing in with {firstCharToUpperCase(provider)}
+              Sign in with {firstCharToUpperCase(provider)}
             </OAuthLoginButton>
           ))}
         </div>
