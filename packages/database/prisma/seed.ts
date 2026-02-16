@@ -7,19 +7,13 @@ import {
   UserProjectPosition,
   User,
   Project,
+  Technology,
+  TechnologyType,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import { CONFIG, TECHNOLOGIES } from './constants';
 
 const prisma = new PrismaClient();
-
-const CONFIG = {
-  USERS_COUNT: 35,
-  MANAGERS_COUNT: 5,
-  PROJECTS_COUNT: 20,
-  PM_PROJECTS_COUNT: Math.floor(20 * 0.9),
-  BENCH_VALUE: 0.05,
-  MAX_TEAM_SIZE: 6,
-};
 
 function createUserData() {
   return {
@@ -29,6 +23,14 @@ function createUserData() {
     discordId: faker.string.uuid(),
     status: UserStatus.INACTIVE,
     workFormat: faker.helpers.arrayElement([UserWorkFormat.FULL_TIME, UserWorkFormat.PART_TIME]),
+  };
+}
+
+function createTechnologyData(data: Omit<Technology, 'id'>) {
+  return {
+    name: data.name,
+    type: data.type,
+    image: data.image,
   };
 }
 
@@ -45,9 +47,91 @@ function createRelation(userId: string, projectId: string) {
   });
 }
 
+async function createUserTechs(users: User[], technologies: Technology[]) {
+  const userTechs: {
+    userId: string;
+    technologyId: string;
+    rating: number;
+  }[] = [];
+
+  const allUserProjects = await prisma.userProject.findMany({
+    select: {
+      userId: true,
+      position: true,
+    },
+  });
+
+  const userProjectsMap = new Map<string, UserProjectPosition[]>();
+
+  for (const userProject of allUserProjects) {
+    if (!userProjectsMap.has(userProject.userId)) {
+      userProjectsMap.set(userProject.userId, []);
+    }
+
+    userProjectsMap.get(userProject.userId)!.push(userProject.position);
+  }
+
+  for (const user of users) {
+    const roles = userProjectsMap.get(user.id) ?? [];
+
+    const isDeveloper =
+      roles.includes(UserProjectPosition.DEVELOPER) ||
+      roles.includes(UserProjectPosition.TECH_LEAD);
+
+    const isTechLead = roles.includes(UserProjectPosition.TECH_LEAD);
+    const isDesigner = roles.includes(UserProjectPosition.DESIGNER);
+
+    const randomTechs = faker.helpers.arrayElements(technologies, {
+      min: 3,
+      max: 5,
+    });
+
+    for (const tech of randomTechs) {
+      let minRating = 1;
+      let maxRating = 6;
+
+      if (
+        isDeveloper &&
+        (
+          [
+            TechnologyType.BACKEND,
+            TechnologyType.FRONTEND,
+            TechnologyType.GENERAL,
+          ] as TechnologyType[]
+        ).includes(tech.type)
+      ) {
+        minRating = isTechLead ? 8 : 5;
+        maxRating = 10;
+      }
+
+      if (isDesigner && tech.type === TechnologyType.DESIGN) {
+        minRating = 7;
+        maxRating = 10;
+      }
+
+      userTechs.push({
+        userId: user.id,
+        technologyId: tech.id,
+        rating: faker.number.int({
+          min: minRating,
+          max: maxRating,
+        }),
+      });
+    }
+  }
+
+  await prisma.userTechnology.createMany({
+    data: userTechs,
+    skipDuplicates: true,
+  });
+}
+
 async function cleanDatabase() {
   await prisma.userProject.deleteMany();
+  await prisma.userTechnology.deleteMany();
+
   await prisma.project.deleteMany();
+  await prisma.technology.deleteMany();
   await prisma.user.deleteMany();
 }
 
@@ -62,6 +146,17 @@ async function createUsers(count: number) {
   return prisma.user.findMany({
     where: { email: { in: usersData.map(user => user.email) } },
   });
+}
+
+async function createTechnologies() {
+  const technologiesData = TECHNOLOGIES.map(technology => createTechnologyData(technology));
+
+  await prisma.technology.createMany({
+    data: technologiesData,
+    skipDuplicates: true,
+  });
+
+  return prisma.technology.findMany();
 }
 
 async function createProject(count: number, managers: User[]) {
@@ -124,6 +219,32 @@ async function addUsersToProjects(projects: Project[], users: User[]) {
   return activeUserIds;
 }
 
+async function addTechnologiesToProjects(projects: Project[], technologies: Technology[]) {
+  if (!projects.length || !technologies.length) return;
+
+  const operations = projects.map(project => {
+    const techCount = faker.number.int({
+      min: 3,
+      max: Math.min(6, technologies.length),
+    });
+
+    const randomTechs = faker.helpers.arrayElements(technologies, techCount);
+
+    return prisma.project.update({
+      where: { id: project.id },
+      data: {
+        technologies: {
+          connect: randomTechs.map(tech => ({
+            id: tech.id,
+          })),
+        },
+      },
+    });
+  });
+
+  await Promise.all(operations);
+}
+
 async function main() {
   console.log('🌱 Seeding database...');
 
@@ -133,9 +254,15 @@ async function main() {
 
   const users = await createUsers(CONFIG.USERS_COUNT);
 
+  const technologies = await createTechnologies();
+
   const projects = await createProject(CONFIG.PROJECTS_COUNT, managers);
 
   const activeUsersSet = await addUsersToProjects(projects, users);
+
+  await createUserTechs(users, technologies);
+
+  await addTechnologiesToProjects(projects, technologies);
 
   const assignedManagerIds = new Set(
     projects.map(p => p.projectManagerId).filter(Boolean) as string[]
@@ -151,6 +278,7 @@ async function main() {
   console.table({
     'Total Users': CONFIG.USERS_COUNT,
     'Total Managers': CONFIG.MANAGERS_COUNT,
+    'Total Technologies': technologies.length,
     'Inactive (Bench)': CONFIG.USERS_COUNT + CONFIG.MANAGERS_COUNT - allToActivate.size,
     'Projects Created': projects.length,
   });

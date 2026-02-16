@@ -20,6 +20,34 @@ enum UserStatus {
   INACTIVE
 }
 
+enum TechnologyType {
+  BACKEND
+  FRONTEND
+  GENERAL
+  DESIGN
+  AI
+}
+
+model Technology {
+  id              String         @id @default(uuid())
+  name            String         @unique
+  type            TechnologyType
+  image           String? 
+  users           UserTechnology[]
+  projects        Project[]
+}
+
+model UserTechnology {
+  userId          String         @map("user_id")
+  technologyId    String         @map("technology_id")
+  rating          Int            @default(0) @db.SmallInt
+  user            User           @relation(fields: [userId], references: [id])
+  technology      Technology     @relation(fields: [technologyId], references: [id])
+
+  @@id([userId, technologyId])
+  @@map("user_technology")
+}
+
 model User {
   id              String         @id @default(uuid())
   email           String?        @unique
@@ -32,6 +60,7 @@ model User {
   workFormat      UserWorkFormat @map("work_format")
   projects        UserProject[]
   managedProjects Project[]      @relation("ProjectManager")
+  technologies    UserTechnology[]
 
   @@map("user")
 }
@@ -58,6 +87,7 @@ model Project {
 
   projectManager User?         @relation("ProjectManager", fields: [projectManagerId], references: [id], onDelete: SetNull)
   users          UserProject[]
+  technologies   Technology[]
 
   @@map("project")
 }
