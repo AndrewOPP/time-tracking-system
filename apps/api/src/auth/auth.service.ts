@@ -3,6 +3,7 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
+import { JwtService } from '@nestjs/jwt';
 import {
   AUTH_PROVIDERS,
   AuthProvider,
@@ -11,6 +12,7 @@ import {
   OAuthConfig,
 } from './types/oauth.types';
 import { PrismaService } from '@time-tracking-app/database/index';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +21,8 @@ export class AuthService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService
   ) {
     this.providers = this.createProviders();
   }
@@ -163,7 +166,7 @@ export class AuthService {
         break;
       case AUTH_PROVIDERS.GITHUB:
         result = {
-          id: data.id,
+          id: String(data.id),
           email: data.email,
           name: data.name || data.login || fallbackName,
           picture: data.avatar_url,
@@ -221,5 +224,36 @@ export class AuthService {
     // }
 
     return user;
+  }
+
+  async getTokens(userId: string, email: string, role: string) {
+    const jwtPayload = {
+      sub: userId,
+      email: email,
+      role: role,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '7d',
+      }),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
+  async updateRefreshTokenHash(userId: string, refreshToken: string) {
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(refreshToken, salt);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshTokenHash: hash },
+    });
   }
 }

@@ -23,7 +23,7 @@ function createUserData() {
     realName: faker.person.fullName(),
     username: faker.internet.username(),
     systemRole: UserRole.EMPLOYEE,
-    isActive: false,
+    isActive: true,
     provider: AuthProvider.GOOGLE,
     status: UserStatus.INACTIVE,
     workFormat: faker.helpers.arrayElement([UserWorkFormat.FULL_TIME, UserWorkFormat.PART_TIME]),
