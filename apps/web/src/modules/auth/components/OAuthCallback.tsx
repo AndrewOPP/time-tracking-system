@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { loginWithProvider } from '../api/auth.api';
 import { ROUTES } from '@/shared/constants/routes';
 import { AUTH_STORAGE_KEYS, OAUTH_EVENT_TYPES, type AuthProvider } from '../types/auth.types';
+import axios from 'axios';
 
 export function OAuthCallback() {
   const [params] = useSearchParams();
   const hasExchangedCode = useRef(false);
-
   useEffect(() => {
     const code = params.get('code');
     const state = params.get('state');
@@ -47,11 +47,15 @@ export function OAuthCallback() {
       try {
         await loginWithProvider(provider as AuthProvider, { code });
         window.opener.postMessage({ type: OAUTH_EVENT_TYPES.SUCCESS }, window.location.origin);
-      } catch (err) {
-        console.error('OAuth exchange error:', err);
+      } catch (err: unknown) {
+        let serverMessage = 'auth_failed';
+
+        if (axios.isAxiosError(err)) {
+          serverMessage = err.response?.data?.message || 'server_error';
+        }
 
         window.opener.postMessage(
-          { type: OAUTH_EVENT_TYPES.ERROR, error: 'server_error' },
+          { type: OAUTH_EVENT_TYPES.ERROR, error: serverMessage },
           window.location.origin
         );
       } finally {

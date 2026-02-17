@@ -55,6 +55,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
           title: isCanceled
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
+          description: event.data.error ? event.data.error : null,
         });
 
         popupRef.current?.close();
