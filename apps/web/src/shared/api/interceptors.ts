@@ -26,30 +26,28 @@ axiosPrivate.interceptors.response.use(
       prevRequest._retry = true;
 
       try {
-        // Сценарій 4: Запит на оновлення токена
         const response = await axiosPublic.get('/auth/refresh', {
           withCredentials: true,
         });
         const { accessToken, user } = response.data;
 
-        // Зберігаємо нові дані в Zustand
         useAuthStore.getState().setAuth(accessToken, user);
 
-        // Оновлюємо заголовок та повторюємо оригінальний запит
         prevRequest.headers = new AxiosHeaders(prevRequest.headers);
         prevRequest.headers.set('Authorization', `Bearer ${accessToken}`);
 
         return axiosPrivate(prevRequest);
       } catch (refreshError) {
-        // Сценарій 5: Рефреш токен прострочений або невалідний
-
         useAuthStore.getState().clearAuth();
         toast({
           variant: 'destructive',
           title: 'Authentication Error',
           description: 'Your session has expired. Please log in again.',
         });
-        // window.location.href = '/login';
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2500);
+
         return Promise.reject(refreshError);
       }
     }

@@ -14,12 +14,13 @@ import {
   IOAuthProfile,
   AuthProviders,
   OAuthConfig,
+  AuthError,
+  JWT_CONFIG,
+  CookieName,
 } from './types/oauth.types';
 import { Response } from 'express';
 import { PrismaService } from '@time-tracking-app/database/index';
 import * as bcrypt from 'bcrypt';
-
-// import { AuthProviders, OAuthConfig } from './types/oauth.types';
 
 @Injectable()
 export class AuthService {
@@ -219,21 +220,16 @@ export class AuthService {
           systemRole: 'EMPLOYEE',
         },
       });
-    } else {
-      console.log('I found user in database, his email is,', user.email);
     }
 
-    // if (!user.isActive) {
-    //   // Якщо юзер вже є, але адмін ще не натиснув "активувати"
-    //   throw new UnauthorizedException(
-    //     'Your account is under moderation. Please contact the administrator.'
-    //   );
-    // }
+    if (!user.isActive) {
+      throw new UnauthorizedException(AuthError.MODERATION);
+    }
 
     return user;
   }
 
-  async getTokens(userId: string, email: string, role: string) {
+  async getTokens(userId: string, email: string, role: string, res: Response) {
     const jwtPayload = {
       sub: userId,
       email: email,
@@ -243,13 +239,15 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '5s',
+        expiresIn: JWT_CONFIG.ACCESS_EXPIRES,
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: '10s',
+        expiresIn: JWT_CONFIG.REFRESH_EXPIRES,
       }),
     ]);
+
+    this.setRefreshCookie(res, refreshToken);
 
     return { accessToken, refreshToken };
   }
@@ -275,25 +273,18 @@ export class AuthService {
       });
 
       if (!user || !user.refreshTokenHash) {
-        throw new ForbiddenException('Access Denied');
+        throw new ForbiddenException(AuthError.ACCESS_DENIED);
       }
 
       const rtMatches = await bcrypt.compare(refreshToken, user.refreshTokenHash);
 
       if (!rtMatches) {
-        throw new ForbiddenException('Access Denied');
+        throw new ForbiddenException(AuthError.ACCESS_DENIED);
       }
 
-      const tokens = await this.getTokens(user.id, user.email, user.systemRole);
+      const tokens = await this.getTokens(user.id, user.email, user.systemRole, res);
 
       await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
-
-      res.cookie('refreshToken', tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
 
       return {
         accessToken: tokens.accessToken,
@@ -303,8 +294,36 @@ export class AuthService {
           role: user.systemRole,
         },
       };
-    } catch (error) {
-      throw new UnauthorizedException('Session expired. Please login again. Error:', error);
+    } catch {
+      throw new UnauthorizedException(AuthError.SESSION_EXPIRED);
     }
+  }
+
+  async logout(userId: string, res: Response) {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { refreshTokenHash: null },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      res.clearCookie(CookieName.REFRESH_TOKEN, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+    }
+
+    return { success: true };
+  }
+
+  private setRefreshCookie(res: Response, refreshToken: string) {
+    res.cookie(CookieName.REFRESH_TOKEN, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: JWT_CONFIG.REFRESH_MAX_AGE,
+    });
   }
 }

@@ -19,16 +19,12 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      // Перевіряємо токен за допомогою секрету для Access Token
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
       });
 
-      // Записуємо дані юзера в об'єкт запиту, щоб вони були доступні в контролері
       request['user'] = payload;
     } catch {
-      // Якщо токен прострочений або невалідний — викидаємо 401
-      // Саме цю помилку чекає твій Axios Interceptor!
       throw new UnauthorizedException('Token expired or invalid');
     }
 

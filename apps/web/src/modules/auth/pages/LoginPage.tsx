@@ -3,16 +3,29 @@ import { OAuthLoginButton } from '../components/OAuthLoginButton';
 import { OAUTH_LIST } from '../types/auth.types';
 import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
 import { axiosPrivate } from '@/shared/api';
+import { logOut } from '../api/auth.api';
+import { useAuthStore } from '../stores/auth.store';
 
 export default function LoginPage() {
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const clearAuth = useAuthStore(state => state.clearAuth);
   const handleTestApi = async () => {
     try {
-      // Цей запит пройде через твій інтерцептор у shared/api
       const res = await axiosPrivate.get('/health');
       console.log('API Response:', res.data);
     } catch (err) {
       console.error('API Error:', err);
+    }
+  };
+  const handleLogOutApi = async () => {
+    try {
+      const res = await logOut();
+      console.log('API Response:', res);
+    } catch (err) {
+      console.error('API Error:', err);
+    } finally {
+      clearAuth();
+      window.location.href = '/login';
     }
   };
   return (
@@ -52,6 +65,14 @@ export default function LoginPage() {
           >
             Перевірити Silent Refresh (через 5 сек)
           </button>
+          <div>
+            <button
+              onClick={handleLogOutApi}
+              className="text-sm text-rose-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>

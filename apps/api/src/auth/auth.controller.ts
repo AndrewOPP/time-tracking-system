@@ -7,16 +7,24 @@ import {
   Post,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
-import { AuthProviders } from './types/oauth.types';
+import { AuthProviders, RequestWithUser } from './types/oauth.types';
 import { Response, Request } from 'express';
 import { Res } from '@nestjs/common';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(req.user.sub, res);
+  }
 
   @Post(':provider')
   async exchangeToken(
@@ -35,20 +43,14 @@ export class AuthController {
     }
 
     const providerToken = await this.authService.exchangeCodeForToken(providerUpper, body.code);
+
     const profile = await this.authService.fetchUsersProfile(providerUpper, providerToken);
 
     const user = await this.authService.validateUser(providerUpper, profile);
 
-    const tokens = await this.authService.getTokens(user.id, user.email, user.systemRole);
+    const tokens = await this.authService.getTokens(user.id, user.email, user.systemRole, res);
 
     await this.authService.updateRefreshTokenHash(user.id, tokens.refreshToken);
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
 
     return {
       accessToken: tokens.accessToken,
@@ -62,8 +64,6 @@ export class AuthController {
 
   @Get('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    console.log('im here');
-
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');

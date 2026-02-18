@@ -46,7 +46,6 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
 
         toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
         popupRef.current?.close();
-        console.log(payload);
 
         setAuth(payload.accessToken, payload.user);
       }
@@ -55,13 +54,15 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
         authFinishedRef.current = true;
         setGlobalLoading(false);
 
-        const isCanceled = error === 'access_denied';
+        const isCanceled = error === 'access_denied' || error === 'user_cancelled_login';
+
         toast({
           variant: 'destructive',
           title: isCanceled
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
-          description: event.data.error ? event.data.error : null,
+          description:
+            event.data.error && isCanceled ? 'Access is denied by you' : event.data.error,
         });
 
         popupRef.current?.close();

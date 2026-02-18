@@ -25,18 +25,33 @@ export interface IOAuthNormalizeProfile {
   picture?: string;
 }
 
-// export const AUTH_PROVIDERS = {
-//   GOOGLE: 'GOOGLE',
-//   GITHUB: 'GITHUB',
-//   LINKEDIN: 'LINKEDIN',
-//   DISCORD: 'DISCORD',
-// } as const;
-
-// export type AuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];
-
 export enum AuthProviders {
   GOOGLE = 'GOOGLE',
   GITHUB = 'GITHUB',
   LINKEDIN = 'LINKEDIN',
   DISCORD = 'DISCORD',
+}
+
+export interface RequestWithUser extends Request {
+  user: {
+    sub: string;
+    email: string;
+    role: string;
+  };
+}
+
+export const JWT_CONFIG = {
+  ACCESS_EXPIRES: '15m',
+  REFRESH_EXPIRES: '7d',
+  REFRESH_MAX_AGE: 7 * 24 * 60 * 60 * 1000,
+} as const;
+
+export enum CookieName {
+  REFRESH_TOKEN = 'refreshToken',
+}
+
+export enum AuthError {
+  MODERATION = 'Your account is under moderation. Please contact the administrator.',
+  SESSION_EXPIRED = 'Session expired. Please login again.',
+  ACCESS_DENIED = 'Access Denied',
 }
