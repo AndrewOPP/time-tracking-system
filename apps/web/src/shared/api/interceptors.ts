@@ -1,7 +1,15 @@
-import { AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import {
+  AxiosError,
+  AxiosHeaders,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import { axiosPrivate, axiosPublic } from './api-instance';
 import { toast } from '@/shared/hooks/use-toast';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
+import { ROUTES } from '../constants/routes';
+import { getAuthErrorMessage } from '../utils/error-handler';
+import type { AuthNestApiError } from '@/modules/auth/types/auth.types';
 
 axiosPrivate.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -37,15 +45,18 @@ axiosPrivate.interceptors.response.use(
         prevRequest.headers.set('Authorization', `Bearer ${accessToken}`);
 
         return axiosPrivate(prevRequest);
-      } catch (refreshError) {
+      } catch (refreshError: unknown) {
+        const error = refreshError as AxiosError<AuthNestApiError>;
         useAuthStore.getState().clearAuth();
+        const apiErrorMessage = error?.response?.data?.message || 'AUTH_UNKNOWN_ERROR';
+
         toast({
           variant: 'destructive',
           title: 'Authentication Error',
-          description: 'Your session has expired. Please log in again.',
+          description: getAuthErrorMessage(apiErrorMessage),
         });
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = ROUTES.AUTH.LOGIN;
         }, 2500);
 
         return Promise.reject(refreshError);

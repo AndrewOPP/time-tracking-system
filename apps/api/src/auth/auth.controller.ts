@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
-import { AuthProviders, RequestWithUser } from './types/oauth.types';
+import { AuthError, AuthProviders, CookieName, RequestWithUser } from './types/oauth.types';
 import { Response, Request } from 'express';
 import { Res } from '@nestjs/common';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -33,13 +33,13 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ) {
     if (!body.code) {
-      throw new BadRequestException('Authorization code is required');
+      throw new BadRequestException(AuthError.AUTHORIZATION_REQUIRED);
     }
 
     const providerUpper = provider.toUpperCase() as AuthProviders;
 
     if (!Object.values(AuthProviders).includes(providerUpper as AuthProviders)) {
-      throw new BadRequestException('Invalid OAuth provider');
+      throw new BadRequestException(AuthError.INVALID_PROVIDER);
     }
 
     const providerToken = await this.authService.exchangeCodeForToken(providerUpper, body.code);
@@ -64,9 +64,9 @@ export class AuthController {
 
   @Get('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshToken = req.cookies['refreshToken'];
+    const refreshToken = req.cookies[CookieName.REFRESH_TOKEN];
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException(AuthError.TOKEN_NOT_FOUND);
     }
     return this.authService.refreshTokens(refreshToken, res);
   }

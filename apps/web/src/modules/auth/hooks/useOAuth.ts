@@ -11,6 +11,7 @@ import {
 } from '../types/auth.types';
 import { useAuthStore } from '../stores/auth.store';
 import { buildOAuthUrl } from '../utils/auth.utils';
+import { getAuthErrorMessage } from '@/shared/utils/error-handler';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
@@ -62,7 +63,9 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
           description:
-            event.data.error && isCanceled ? 'Access is denied by you' : event.data.error,
+            event.data.error && isCanceled
+              ? 'Access is denied by you'
+              : getAuthErrorMessage(event.data.error),
         });
 
         popupRef.current?.close();

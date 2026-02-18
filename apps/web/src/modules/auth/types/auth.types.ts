@@ -72,3 +72,9 @@ export interface BuildOAuthUrlParams {
   state: string;
   extraParams?: string;
 }
+
+export interface AuthNestApiError {
+  message: string;
+  error?: string;
+  statusCode: number;
+}

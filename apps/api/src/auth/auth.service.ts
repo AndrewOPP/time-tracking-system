@@ -17,6 +17,7 @@ import {
   AuthError,
   JWT_CONFIG,
   CookieName,
+  AUTH_ERROR_MESSAGES,
 } from './types/oauth.types';
 import { Response } from 'express';
 import { PrismaService } from '@time-tracking-app/database/index';
@@ -71,7 +72,7 @@ export class AuthService {
   private getEnvOrThrow(key: string): string {
     const value = this.configService.get<string>(key);
     if (!value) {
-      throw new InternalServerErrorException(`Environment variable ${key} is not defined`);
+      throw new InternalServerErrorException(AUTH_ERROR_MESSAGES.ENV_MISSING(key));
     }
     return value;
   }
@@ -80,7 +81,7 @@ export class AuthService {
     const config = this.providers[provider];
 
     if (!config) {
-      throw new InternalServerErrorException(`OAuth provider ${provider} is not configured`);
+      throw new InternalServerErrorException(AUTH_ERROR_MESSAGES.PROVIDER_NOT_CONFIGURED(provider));
     }
 
     return this.exchangeCode(code, config);
@@ -115,9 +116,8 @@ export class AuthService {
       const accessToken = response.data?.access_token;
 
       if (!accessToken) {
-        throw new UnauthorizedException(
-          `Failed to retrieve access token: ${response.data?.error_description || 'Invalid authorization code'}`
-        );
+        const details = response.data?.error_description || AuthError.INVALID_AUTH_CODE;
+        throw new UnauthorizedException(AUTH_ERROR_MESSAGES.TOKEN_RETRIEVAL_FAILED(details));
       }
 
       return accessToken;
@@ -126,12 +126,11 @@ export class AuthService {
         const message =
           error.response?.data?.error_description || error.response?.data?.error || error.message;
 
-        throw new UnauthorizedException(`OAuth request failed: ${message}`);
+        throw new UnauthorizedException(AUTH_ERROR_MESSAGES.OAUTH_REQUEST_FAILED(message));
       }
 
-      throw new InternalServerErrorException(
-        `OAuth request error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new InternalServerErrorException(AUTH_ERROR_MESSAGES.OAUTH_UNKNOWN_ERROR(errorMessage));
     }
   }
 
@@ -150,9 +149,7 @@ export class AuthService {
 
       return this.normalizeProfile(provider, response.data);
     } catch (error) {
-      throw new UnauthorizedException(
-        `Failed to fetch user profile from ${provider}, error: ${error}`
-      );
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.PROFILE_FETCH_FAILED(provider, error));
     }
   }
 
@@ -192,11 +189,11 @@ export class AuthService {
         };
         break;
       default:
-        throw new Error('Unsupported provider');
+        throw new Error(AuthError.INVALID_PROVIDER);
     }
 
     if (!result.id || !result.email) {
-      throw new UnauthorizedException(`Incomplete profile from ${provider}`);
+      throw new UnauthorizedException(AuthError.INCOMPLETE_PROFILE + provider);
     }
 
     return result as IOAuthNormalizeProfile;
@@ -306,7 +303,7 @@ export class AuthService {
         data: { refreshTokenHash: null },
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout DB Error:', error);
     } finally {
       res.clearCookie(CookieName.REFRESH_TOKEN, {
         httpOnly: true,

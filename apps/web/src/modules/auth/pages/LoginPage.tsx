@@ -5,6 +5,8 @@ import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
 import { axiosPrivate } from '@/shared/api';
 import { logOut } from '../api/auth.api';
 import { useAuthStore } from '../stores/auth.store';
+import { ROUTES } from '@/shared/constants/routes';
+import { Button } from '@components/ui';
 
 export default function LoginPage() {
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
@@ -25,7 +27,7 @@ export default function LoginPage() {
       console.error('API Error:', err);
     } finally {
       clearAuth();
-      window.location.href = '/login';
+      window.location.href = ROUTES.AUTH.LOGIN;
     }
   };
   return (
@@ -59,19 +61,21 @@ export default function LoginPage() {
           ))}
         </div>
         <div className="mt-6">
-          <button
+          <Button
+            variant="link"
             onClick={handleTestApi}
             className="text-sm text-blue-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
           >
             Перевірити Silent Refresh (через 5 сек)
-          </button>
+          </Button>
           <div>
-            <button
+            <Button
+              variant="link"
               onClick={handleLogOutApi}
               className="text-sm text-rose-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
             >
               Logout
-            </button>
+            </Button>
           </div>
         </div>
       </div>
