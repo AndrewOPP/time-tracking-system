@@ -9,13 +9,14 @@ import {
   OAUTH_EVENT_TYPES,
   type AuthProvider,
 } from '../types/auth.types';
+import { useAuthStore } from '../stores/auth.store';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
   const popupRef = useRef<Window | null>(null);
   const authFinishedRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const setAuth = useAuthStore(state => state.setAuth);
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
       if (!popupRef.current || popupRef.current.closed) {
@@ -36,13 +37,17 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
-      const { type, error } = event.data;
+      const { type, error, payload } = event.data;
 
       if (type === OAUTH_EVENT_TYPES.SUCCESS) {
         authFinishedRef.current = true;
         setGlobalLoading(false);
+
         toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
         popupRef.current?.close();
+        console.log(payload);
+
+        setAuth(payload.accessToken, payload.user);
       }
 
       if (type === OAUTH_EVENT_TYPES.ERROR) {
@@ -69,7 +74,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
       if (intervalRef.current) clearInterval(intervalRef.current);
       setGlobalLoading(false);
     };
-  }, [toast, setGlobalLoading]);
+  }, [toast, setGlobalLoading, setAuth]);
 
   const openPopup = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);

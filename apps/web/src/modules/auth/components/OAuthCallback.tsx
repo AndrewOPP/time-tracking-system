@@ -43,10 +43,12 @@ export function OAuthCallback() {
     const exchangeCode = async () => {
       if (hasExchangedCode.current) return;
       hasExchangedCode.current = true;
-
       try {
-        await loginWithProvider(provider as AuthProvider, { code });
-        window.opener.postMessage({ type: OAUTH_EVENT_TYPES.SUCCESS }, window.location.origin);
+        const response = await loginWithProvider(provider as AuthProvider, { code });
+        window.opener.postMessage(
+          { type: OAUTH_EVENT_TYPES.SUCCESS, payload: response },
+          window.location.origin
+        );
       } catch (err: unknown) {
         let serverMessage = 'auth_failed';
 

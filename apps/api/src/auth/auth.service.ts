@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
@@ -11,6 +16,7 @@ import {
   IOAuthProfile,
   OAuthConfig,
 } from './types/oauth.types';
+import { Response } from 'express';
 import { PrismaService } from '@time-tracking-app/database/index';
 import * as bcrypt from 'bcrypt';
 
@@ -236,11 +242,11 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '15m',
+        expiresIn: '5s',
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: '7d',
+        expiresIn: '10s',
       }),
     ]);
 
@@ -255,5 +261,49 @@ export class AuthService {
       where: { id: userId },
       data: { refreshTokenHash: hash },
     });
+  }
+
+  async refreshTokens(refreshToken: string, res: Response) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
+
+      if (!user || !user.refreshTokenHash) {
+        throw new ForbiddenException('Access Denied');
+      }
+
+      const rtMatches = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+
+      if (!rtMatches) {
+        throw new ForbiddenException('Access Denied');
+      }
+
+      const tokens = await this.getTokens(user.id, user.email, user.systemRole);
+
+      await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return {
+        accessToken: tokens.accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.systemRole,
+        },
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Session expired. Please login again. Error:', error);
+    }
   }
 }

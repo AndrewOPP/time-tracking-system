@@ -1,7 +1,16 @@
-import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AUTH_PROVIDERS, AuthProvider } from './types/oauth.types';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { Res } from '@nestjs/common';
 @Controller('auth')
 export class AuthController {
@@ -29,13 +38,12 @@ export class AuthController {
     const user = await this.authService.validateUser(providerUpper, profile);
 
     const tokens = await this.authService.getTokens(user.id, user.email, user.systemRole);
-    console.log(tokens);
 
     await this.authService.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -48,5 +56,16 @@ export class AuthController {
         role: user.systemRole,
       },
     };
+  }
+
+  @Get('refresh')
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log('im here');
+
+    const refreshToken = req.cookies['refreshToken'];
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+    return this.authService.refreshTokens(refreshToken, res);
   }
 }
