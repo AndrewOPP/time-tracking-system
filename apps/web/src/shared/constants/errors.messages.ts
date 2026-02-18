@@ -12,3 +12,9 @@ export const AUTH_ERROR_MAP: Record<string, string> = {
   AUTH_REQUEST_FAILED: 'OAuth request failed',
   AUTH_PROFILE_ERROR: 'Failed to fetch user profile',
 };
+
+export const AUTH_UI_FALLBACKS = {
+  UNKNOWN: 'An unknown error occurred',
+  INTERNAL: 'Internal Server Error. Please try again later.',
+  DEFAULT_AUTH_FAILED: 'Authentication failed. Please try again.',
+} as const;
