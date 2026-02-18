@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AUTH_PROVIDERS, AuthProvider } from './types/oauth.types';
+import { AuthProviders } from './types/oauth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -12,17 +12,17 @@ export class AuthController {
       throw new BadRequestException('Authorization code is required');
     }
 
-    if (!Object.values(AUTH_PROVIDERS).includes(provider as AuthProvider)) {
+    if (!Object.values(AuthProviders).includes(provider as AuthProviders)) {
       throw new BadRequestException('Invalid OAuth provider');
     }
 
     const accessToken = await this.authService.exchangeCodeForToken(
-      provider as AuthProvider,
+      provider as AuthProviders,
       body.code
     );
 
     if (accessToken) {
-      console.log(`Access token received from ${provider}: ${accessToken}`);
+      console.log(provider, 'accessToken', accessToken);
 
       return {
         status: 'success',

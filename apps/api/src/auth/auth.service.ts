@@ -3,11 +3,11 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
-import { AUTH_PROVIDERS, AuthProvider, OAuthConfig } from './types/oauth.types';
+import { AuthProviders, OAuthConfig } from './types/oauth.types';
 
 @Injectable()
 export class AuthService {
-  private readonly providers: Record<AuthProvider, OAuthConfig>;
+  private readonly providers: Record<AuthProviders, OAuthConfig>;
 
   constructor(
     private readonly httpService: HttpService,
@@ -16,27 +16,27 @@ export class AuthService {
     this.providers = this.createProviders();
   }
 
-  private createProviders(): Record<AuthProvider, OAuthConfig> {
+  private createProviders(): Record<AuthProviders, OAuthConfig> {
     return {
-      [AUTH_PROVIDERS.GITHUB]: {
+      [AuthProviders.GITHUB]: {
         tokenUrl: 'https://github.com/login/oauth/access_token',
         clientId: this.getEnvOrThrow('GITHUB_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('GITHUB_CLIENT_SECRET'),
         useFormData: false,
       },
-      [AUTH_PROVIDERS.DISCORD]: {
+      [AuthProviders.DISCORD]: {
         tokenUrl: 'https://discord.com/api/oauth2/token',
         clientId: this.getEnvOrThrow('DISCORD_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('DISCORD_CLIENT_SECRET'),
         useFormData: true,
       },
-      [AUTH_PROVIDERS.LINKEDIN]: {
+      [AuthProviders.LINKEDIN]: {
         tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
         clientId: this.getEnvOrThrow('LINKEDIN_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('LINKEDIN_CLIENT_SECRET'),
         useFormData: true,
       },
-      [AUTH_PROVIDERS.GOOGLE]: {
+      [AuthProviders.GOOGLE]: {
         tokenUrl: 'https://oauth2.googleapis.com/token',
         clientId: this.getEnvOrThrow('GOOGLE_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('GOOGLE_CLIENT_SECRET'),
@@ -53,7 +53,7 @@ export class AuthService {
     return value;
   }
 
-  async exchangeCodeForToken(provider: AuthProvider, code: string): Promise<string> {
+  async exchangeCodeForToken(provider: AuthProviders, code: string): Promise<string> {
     const config = this.providers[provider];
 
     if (!config) {
