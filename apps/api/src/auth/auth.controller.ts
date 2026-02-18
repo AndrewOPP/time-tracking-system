@@ -9,16 +9,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AUTH_PROVIDERS, AuthProvider } from './types/oauth.types';
+
+import { AuthProviders } from './types/oauth.types';
 import { Response, Request } from 'express';
 import { Res } from '@nestjs/common';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post(':provider')
   async exchangeToken(
-    @Param('provider') provider: AuthProvider,
+    @Param('provider') provider: AuthProviders,
     @Body() body: { code: string },
     @Res({ passthrough: true }) res: Response
   ) {
@@ -26,9 +28,9 @@ export class AuthController {
       throw new BadRequestException('Authorization code is required');
     }
 
-    const providerUpper = provider.toUpperCase() as AuthProvider;
+    const providerUpper = provider.toUpperCase() as AuthProviders;
 
-    if (!Object.values(AUTH_PROVIDERS).includes(providerUpper as AuthProvider)) {
+    if (!Object.values(AuthProviders).includes(providerUpper as AuthProviders)) {
       throw new BadRequestException('Invalid OAuth provider');
     }
 

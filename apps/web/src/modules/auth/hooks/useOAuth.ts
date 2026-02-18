@@ -10,6 +10,7 @@ import {
   type AuthProvider,
 } from '../types/auth.types';
 import { useAuthStore } from '../stores/auth.store';
+import { buildOAuthUrl } from '../utils/auth.utils';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
@@ -89,9 +90,14 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     const redirectUri = `${window.location.origin}${ROUTES.AUTH.CALLBACK}`;
     const config = oauthConfig[provider];
 
-    const url = `${config.authUrl}?response_type=code&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&scope=${encodeURIComponent(config.scope)}&state=${state}${config.extraParams ?? ''}`;
+    const url = buildOAuthUrl({
+      authUrl: config.authUrl,
+      clientId: config.clientId,
+      redirectUri,
+      scope: config.scope,
+      state,
+      extraParams: config.extraParams,
+    });
 
     popupRef.current = window.open(url, 'oauth_popup', 'width=500,height=600');
     checkPopupClosed();

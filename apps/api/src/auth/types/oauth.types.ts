@@ -25,11 +25,18 @@ export interface IOAuthNormalizeProfile {
   picture?: string;
 }
 
-export const AUTH_PROVIDERS = {
-  GOOGLE: 'GOOGLE',
-  GITHUB: 'GITHUB',
-  LINKEDIN: 'LINKEDIN',
-  DISCORD: 'DISCORD',
-} as const;
+// export const AUTH_PROVIDERS = {
+//   GOOGLE: 'GOOGLE',
+//   GITHUB: 'GITHUB',
+//   LINKEDIN: 'LINKEDIN',
+//   DISCORD: 'DISCORD',
+// } as const;
 
-export type AuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];
+// export type AuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];
+
+export enum AuthProviders {
+  GOOGLE = 'GOOGLE',
+  GITHUB = 'GITHUB',
+  LINKEDIN = 'LINKEDIN',
+  DISCORD = 'DISCORD',
+}

@@ -10,19 +10,20 @@ import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import {
-  AUTH_PROVIDERS,
-  AuthProvider,
   IOAuthNormalizeProfile,
   IOAuthProfile,
+  AuthProviders,
   OAuthConfig,
 } from './types/oauth.types';
 import { Response } from 'express';
 import { PrismaService } from '@time-tracking-app/database/index';
 import * as bcrypt from 'bcrypt';
 
+// import { AuthProviders, OAuthConfig } from './types/oauth.types';
+
 @Injectable()
 export class AuthService {
-  private readonly providers: Record<AuthProvider, OAuthConfig>;
+  private readonly providers: Record<AuthProviders, OAuthConfig>;
 
   constructor(
     private readonly httpService: HttpService,
@@ -33,30 +34,30 @@ export class AuthService {
     this.providers = this.createProviders();
   }
 
-  private createProviders(): Record<AuthProvider, OAuthConfig> {
+  private createProviders(): Record<AuthProviders, OAuthConfig> {
     return {
-      [AUTH_PROVIDERS.GITHUB]: {
+      [AuthProviders.GITHUB]: {
         tokenUrl: 'https://github.com/login/oauth/access_token',
         profileUrl: 'https://api.github.com/user',
         clientId: this.getEnvOrThrow('GITHUB_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('GITHUB_CLIENT_SECRET'),
         useFormData: false,
       },
-      [AUTH_PROVIDERS.DISCORD]: {
+      [AuthProviders.DISCORD]: {
         tokenUrl: 'https://discord.com/api/oauth2/token',
         profileUrl: 'https://discord.com/api/users/@me',
         clientId: this.getEnvOrThrow('DISCORD_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('DISCORD_CLIENT_SECRET'),
         useFormData: true,
       },
-      [AUTH_PROVIDERS.LINKEDIN]: {
+      [AuthProviders.LINKEDIN]: {
         tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
         profileUrl: 'https://api.linkedin.com/v2/userinfo',
         clientId: this.getEnvOrThrow('LINKEDIN_CLIENT_ID'),
         clientSecret: this.getEnvOrThrow('LINKEDIN_CLIENT_SECRET'),
         useFormData: true,
       },
-      [AUTH_PROVIDERS.GOOGLE]: {
+      [AuthProviders.GOOGLE]: {
         tokenUrl: 'https://oauth2.googleapis.com/token',
         profileUrl: 'https://www.googleapis.com/oauth2/v3/userinfo',
         clientId: this.getEnvOrThrow('GOOGLE_CLIENT_ID'),
@@ -74,7 +75,7 @@ export class AuthService {
     return value;
   }
 
-  async exchangeCodeForToken(provider: AuthProvider, code: string): Promise<string> {
+  async exchangeCodeForToken(provider: AuthProviders, code: string): Promise<string> {
     const config = this.providers[provider];
 
     if (!config) {
@@ -133,7 +134,7 @@ export class AuthService {
     }
   }
 
-  async fetchUsersProfile(provider: AuthProvider, accessToken: string) {
+  async fetchUsersProfile(provider: AuthProviders, accessToken: string) {
     const config = this.providers[provider];
 
     try {
@@ -154,15 +155,15 @@ export class AuthService {
     }
   }
 
-  private normalizeProfile(provider: AuthProvider, data: IOAuthProfile): IOAuthNormalizeProfile {
+  private normalizeProfile(provider: AuthProviders, data: IOAuthProfile): IOAuthNormalizeProfile {
     const email = data.email;
     const fallbackName = email ? email.split('@')[0] : 'User';
 
     let result: Partial<IOAuthNormalizeProfile>;
 
     switch (provider) {
-      case AUTH_PROVIDERS.GOOGLE:
-      case AUTH_PROVIDERS.LINKEDIN:
+      case AuthProviders.GOOGLE:
+      case AuthProviders.LINKEDIN:
         result = {
           id: data.sub,
           email: data.email,
@@ -170,7 +171,7 @@ export class AuthService {
           picture: data.picture,
         };
         break;
-      case AUTH_PROVIDERS.GITHUB:
+      case AuthProviders.GITHUB:
         result = {
           id: String(data.id),
           email: data.email,
@@ -178,7 +179,7 @@ export class AuthService {
           picture: data.avatar_url,
         };
         break;
-      case AUTH_PROVIDERS.DISCORD:
+      case AuthProviders.DISCORD:
         result = {
           id: data.id,
           email: data.email,
@@ -200,7 +201,7 @@ export class AuthService {
     return result as IOAuthNormalizeProfile;
   }
 
-  async validateUser(provider: AuthProvider, profile: IOAuthNormalizeProfile) {
+  async validateUser(provider: AuthProviders, profile: IOAuthNormalizeProfile) {
     let user = await this.prisma.user.findUnique({
       where: { email: profile.email },
     });

@@ -63,3 +63,12 @@ export interface OAuthLoginButtonProps {
   icon?: string;
   children?: React.ReactNode;
 }
+
+export interface BuildOAuthUrlParams {
+  authUrl: string;
+  clientId: string;
+  redirectUri: string;
+  scope: string;
+  state: string;
+  extraParams?: string;
+}
