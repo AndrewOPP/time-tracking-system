@@ -226,11 +226,10 @@ export class AuthService {
     return user;
   }
 
-  async getTokens(userId: string, email: string, role: string, res: Response) {
+  async getTokens(userId: string, email: string, res: Response) {
     const jwtPayload = {
       sub: userId,
       email: email,
-      role: role,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -279,7 +278,7 @@ export class AuthService {
         throw new ForbiddenException(AuthError.ACCESS_DENIED);
       }
 
-      const tokens = await this.getTokens(user.id, user.email, user.systemRole, res);
+      const tokens = await this.getTokens(user.id, user.email, res);
 
       await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 

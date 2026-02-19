@@ -4,12 +4,12 @@ import {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios';
-import { axiosPrivate, axiosPublic } from './api-instance';
+import { axiosPrivate } from './api-instance';
 import { toast } from '@/shared/hooks/use-toast';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
-import { ROUTES } from '../constants/routes';
 import { getAuthErrorMessage } from '../utils/error-handler';
 import type { AuthNestApiError } from '@/modules/auth/types/auth.types';
+import { tokenRefresh } from '@/modules/auth/api/auth.api';
 
 axiosPrivate.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -34,12 +34,10 @@ axiosPrivate.interceptors.response.use(
       prevRequest._retry = true;
 
       try {
-        const response = await axiosPublic.get('/auth/refresh', {
-          withCredentials: true,
-        });
+        const response = await tokenRefresh();
         const { accessToken, user } = response.data;
 
-        useAuthStore.getState().setAuth(accessToken, user);
+        useAuthStore.getState().setAuth(user, accessToken);
 
         prevRequest.headers = new AxiosHeaders(prevRequest.headers);
         prevRequest.headers.set('Authorization', `Bearer ${accessToken}`);
@@ -56,7 +54,7 @@ axiosPrivate.interceptors.response.use(
           description: getAuthErrorMessage(apiErrorMessage),
         });
         setTimeout(() => {
-          window.location.href = ROUTES.AUTH.LOGIN;
+          // window.location.href = ROUTES.AUTH.LOGIN;
         }, 2500);
 
         return Promise.reject(refreshError);

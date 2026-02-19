@@ -1,6 +1,7 @@
 import { ComponentExample } from '@components/component-example';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/card';
+import { Navigation } from '@/modules/auth/components/Navigation';
 
 export function HomePage() {
   const [backendResponse, setBackendResponse] = useState<string>('');
@@ -21,6 +22,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen">
+      <Navigation />
       <div className="flex flex-col items-center justify-center pt-20 px-4">
         <h1 className="text-6xl font-bold text-center mb-6">Welcome to Viso Academy!</h1>
 

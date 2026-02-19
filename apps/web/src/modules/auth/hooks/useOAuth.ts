@@ -18,7 +18,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
   const popupRef = useRef<Window | null>(null);
   const authFinishedRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const setAuth = useAuthStore(state => state.setAuth);
+  const { setAuth } = useAuthStore();
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
       if (!popupRef.current || popupRef.current.closed) {
@@ -43,12 +43,15 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
 
       if (type === OAUTH_EVENT_TYPES.SUCCESS) {
         authFinishedRef.current = true;
-        setGlobalLoading(false);
 
-        toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+
+        setGlobalLoading(false);
         popupRef.current?.close();
 
-        setAuth(payload.accessToken, payload.user);
+        setAuth(payload.user, payload.accessToken);
       }
 
       if (type === OAUTH_EVENT_TYPES.ERROR) {

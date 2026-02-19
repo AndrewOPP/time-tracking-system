@@ -17,7 +17,6 @@ export function OAuthCallback() {
     const provider = sessionStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER);
 
     if (!window.opener) {
-      window.location.href = ROUTES.AUTH.LOGIN;
       return;
     }
 

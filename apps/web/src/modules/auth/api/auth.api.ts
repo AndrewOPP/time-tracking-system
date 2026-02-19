@@ -6,16 +6,26 @@ export const loginWithProvider = async (provider: AuthProvider, payload: AuthPay
     const { data } = await axiosPublic.post(`/auth/${provider}`, payload);
     return data;
   } catch (error) {
-    console.log(`Error with ${provider} auth:`, error);
-    throw error;
+    console.error(`Login with ${provider} failed:`, error);
   }
 };
+
 export const logOut = async () => {
   try {
     const { data } = await axiosPrivate.post(`/auth/logout`);
     return data;
   } catch (error) {
-    console.log(`Error with logout:`, error);
-    throw error;
+    console.error('Logout failed:', error);
+  }
+};
+
+export const tokenRefresh = async () => {
+  try {
+    const response = await axiosPublic.get('/auth/refresh', {
+      withCredentials: true,
+    });
+    return response;
+  } catch (error) {
+    console.error('Token refresh failed:', error);
   }
 };
