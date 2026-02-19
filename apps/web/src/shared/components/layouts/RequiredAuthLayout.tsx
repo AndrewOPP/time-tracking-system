@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { ROUTES } from '@/shared/constants/routes';
+
 // import { useEffect } from 'react';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export default function RequiredAuthLayout({ allowedRoles }: Props) {
-  const { user, status } = useAuthStore();
+  const { user } = useAuthStore();
   // const location = useLocation();
 
   // const isUnauthorized = !isInitializing && !user;
@@ -20,15 +21,13 @@ export default function RequiredAuthLayout({ allowedRoles }: Props) {
   //   }
   // }, [isUnauthorized, location.pathname, location.search]);
 
-  if (status === 'loading') {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  }
-  if (status === 'unauthenticated') {
-    // return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
+  if (!user) {
+    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user!.role)) {
-    // return <Navigate to="/" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Відправляємо на головну або показуємо сторінку "403 No Access"
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   return <Outlet />;

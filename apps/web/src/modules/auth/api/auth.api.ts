@@ -20,12 +20,8 @@ export const logOut = async () => {
 };
 
 export const tokenRefresh = async () => {
-  try {
-    const response = await axiosPublic.get('/auth/refresh', {
-      withCredentials: true,
-    });
-    return response;
-  } catch (error) {
-    console.error('Token refresh failed:', error);
-  }
+  const response = await axiosPublic.get('/auth/refresh', {
+    withCredentials: true,
+  });
+  return response;
 };

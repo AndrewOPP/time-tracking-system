@@ -35,6 +35,7 @@ axiosPrivate.interceptors.response.use(
 
       try {
         const response = await tokenRefresh();
+
         const { accessToken, user } = response.data;
 
         useAuthStore.getState().setAuth(user, accessToken);

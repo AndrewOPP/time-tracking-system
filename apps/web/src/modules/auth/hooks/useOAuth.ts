@@ -21,7 +21,9 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
   const { setAuth } = useAuthStore();
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
+      console.log(33333);
       if (!popupRef.current || popupRef.current.closed) {
+        console.log(12341232113);
         if (intervalRef.current) clearInterval(intervalRef.current);
 
         if (!authFinishedRef.current) {

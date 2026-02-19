@@ -4,36 +4,38 @@ import { Toaster } from '@/shared/components/ui';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './modules/auth/stores/auth.store';
 import { tokenRefresh } from './modules/auth/api/auth.api';
-import { useInitAuth } from '@hooks/useInitAuth';
 
 export function App() {
-  const { setStatus, setAuth } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { setAuth } = useAuthStore();
+  const [isLoading, setIsthLoading] = useState(true);
 
   const init = async () => {
     try {
-      console.log('test');
-    } catch {
-      console.log('err');
+      const res = await tokenRefresh();
+      console.log(res);
+      if (res) {
+        setAuth(res.data.user, res.data.accessToken);
+      }
     } finally {
-      setIsLoading(false);
+      setIsthLoading(false);
     }
   };
 
   useEffect(() => {
     init();
-  }, []); // П
+  }, []);
 
-  // useInitAuth();
-  // console.log(12313123);
+  if (isLoading) {
+    return <div>Is loading</div>;
+  }
 
   return (
     <>
-      {/* <Toaster /> */}
-      {/* <BrowserRouter>
+      <Toaster />
+
+      <BrowserRouter>
         <AppRouter />
-      </BrowserRouter> */}
-      <div>1231</div>
+      </BrowserRouter>
     </>
   );
 }
