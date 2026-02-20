@@ -9,6 +9,8 @@ import {
   Project,
   Technology,
   TechnologyType,
+  UserRole,
+  AuthProvider,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import { CONFIG, TECHNOLOGIES } from './constants';
@@ -20,7 +22,9 @@ function createUserData() {
     email: faker.internet.email(),
     realName: faker.person.fullName(),
     username: faker.internet.username(),
-    discordId: faker.string.uuid(),
+    systemRole: UserRole.EMPLOYEE,
+    isActive: true,
+    provider: AuthProvider.GOOGLE,
     status: UserStatus.INACTIVE,
     workFormat: faker.helpers.arrayElement([UserWorkFormat.FULL_TIME, UserWorkFormat.PART_TIME]),
   };

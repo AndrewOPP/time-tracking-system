@@ -9,14 +9,16 @@ import {
   OAUTH_EVENT_TYPES,
   type AuthProvider,
 } from '../types/auth.types';
+import { useAuthStore } from '../stores/auth.store';
 import { buildOAuthUrl } from '../utils/auth.utils';
+import { getAuthErrorMessage } from '@/shared/utils/error-handler';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
   const popupRef = useRef<Window | null>(null);
   const authFinishedRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const setAuth = useAuthStore(state => state.setAuth);
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
       if (!popupRef.current || popupRef.current.closed) {
@@ -37,25 +39,33 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
-      const { type, error } = event.data;
+      const { type, error, payload } = event.data;
 
       if (type === OAUTH_EVENT_TYPES.SUCCESS) {
         authFinishedRef.current = true;
         setGlobalLoading(false);
+
         toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
         popupRef.current?.close();
+
+        setAuth(payload.accessToken, payload.user);
       }
 
       if (type === OAUTH_EVENT_TYPES.ERROR) {
         authFinishedRef.current = true;
         setGlobalLoading(false);
 
-        const isCanceled = error === 'access_denied';
+        const isCanceled = error === 'access_denied' || error === 'user_cancelled_login';
+
         toast({
           variant: 'destructive',
           title: isCanceled
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
+          description:
+            event.data.error && isCanceled
+              ? 'Access is denied by you'
+              : getAuthErrorMessage(event.data.error),
         });
 
         popupRef.current?.close();
@@ -69,7 +79,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
       if (intervalRef.current) clearInterval(intervalRef.current);
       setGlobalLoading(false);
     };
-  }, [toast, setGlobalLoading]);
+  }, [toast, setGlobalLoading, setAuth]);
 
   const openPopup = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);

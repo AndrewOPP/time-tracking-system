@@ -27,6 +27,20 @@ enum TechnologyType {
   DESIGN
   AI
 }
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+  DISCORD
+  LINKEDIN
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  HR
+  ACCOUNTANT
+  ADMIN
+}
 
 model Technology {
   id              String         @id @default(uuid())
@@ -49,11 +63,18 @@ model UserTechnology {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  email           String?        @unique
-  realName        String?        @map("real_name")
-  username        String?
-  discordId       String?        @map("discord_id")
+  id               String         @id @default(uuid())
+  email            String         @unique
+  realName         String?        @map("real_name")
+  username         String?
+
+    // 🔐 AUTH FIELDS
+  systemRole       UserRole       @default(EMPLOYEE)
+  isActive         Boolean        @default(false)
+  refreshTokenHash String?        @map("refresh_token_hash")
+  provider         AuthProvider 
+  providerId       String?        @unique 
+
   status          UserStatus
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")

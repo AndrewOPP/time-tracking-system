@@ -1,16 +1,21 @@
-import axios from 'axios';
 import type { AuthPayload, AuthProvider } from '../types/auth.types';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_PUBLIC_API_URL,
-});
+import { axiosPrivate, axiosPublic } from '@/shared/api';
 
 export const loginWithProvider = async (provider: AuthProvider, payload: AuthPayload) => {
   try {
-    const { data } = await api.post(`/auth/${provider}`, payload);
+    const { data } = await axiosPublic.post(`/auth/${provider}`, payload);
     return data;
   } catch (error) {
     console.log(`Error with ${provider} auth:`, error);
+    throw error;
+  }
+};
+export const logOut = async () => {
+  try {
+    const { data } = await axiosPrivate.post(`/auth/logout`);
+    return data;
+  } catch (error) {
+    console.log(`Error with logout:`, error);
     throw error;
   }
 };
