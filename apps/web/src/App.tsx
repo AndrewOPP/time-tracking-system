@@ -4,6 +4,7 @@ import { Toaster } from '@/shared/components/ui';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './modules/auth/stores/auth.store';
 import { tokenRefresh } from './modules/auth/api/auth.api';
+import Loader from '@components/Loader';
 
 export function App() {
   const { setAuth } = useAuthStore();
@@ -12,10 +13,11 @@ export function App() {
   const init = async () => {
     try {
       const res = await tokenRefresh();
-      console.log(res);
       if (res) {
         setAuth(res.data.user, res.data.accessToken);
       }
+    } catch {
+      return null;
     } finally {
       setIsthLoading(false);
     }
@@ -26,13 +28,12 @@ export function App() {
   }, []);
 
   if (isLoading) {
-    return <div>Is loading</div>;
+    return <Loader />;
   }
 
   return (
     <>
       <Toaster />
-
       <BrowserRouter>
         <AppRouter />
       </BrowserRouter>

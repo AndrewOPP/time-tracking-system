@@ -7,6 +7,7 @@ import axios from 'axios';
 
 export function OAuthCallback() {
   const [params] = useSearchParams();
+
   const hasExchangedCode = useRef(false);
   useEffect(() => {
     const code = params.get('code');
@@ -15,8 +16,6 @@ export function OAuthCallback() {
 
     const savedState = sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE);
     const provider = sessionStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER);
-    console.log(savedState, 'savedState');
-    console.log(provider, 'provider');
 
     if (!window.opener) {
       window.location.href = ROUTES.LOGIN;
@@ -47,6 +46,7 @@ export function OAuthCallback() {
       hasExchangedCode.current = true;
       try {
         const response = await loginWithProvider(provider as AuthProvider, { code });
+
         window.opener.postMessage(
           { type: OAUTH_EVENT_TYPES.SUCCESS, payload: response },
           window.location.origin

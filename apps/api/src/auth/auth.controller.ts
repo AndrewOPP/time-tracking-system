@@ -58,6 +58,7 @@ export class AuthController {
         id: user.id,
         email: user.email,
         role: user.systemRole,
+        isActive: user.isActive,
       },
     };
   }

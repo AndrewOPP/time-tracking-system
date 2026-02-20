@@ -11,6 +11,7 @@ export const AUTH_ERROR_MAP: Record<string, string> = {
   AUTH_TOKEN_ERROR: 'Failed to retrieve access token',
   AUTH_REQUEST_FAILED: 'OAuth request failed',
   AUTH_PROFILE_ERROR: 'Failed to fetch user profile',
+  AUTH_NO_PERMISSION: 'You do not have permissions to visit this page',
 };
 
 export const AUTH_UI_FALLBACKS = {

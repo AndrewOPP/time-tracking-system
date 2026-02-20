@@ -10,25 +10,37 @@ import LoginPage from '@/modules/auth/pages/LoginPage';
 import { OAuthCallback } from '@/modules/auth/components/OAuthCallback';
 import NotFoundPage from '@components/NotFoundPage';
 import { UserSystemRole } from '../types/user';
+import CheckIsActiveLayout from '@components/layouts/CheckIsActiveLayout';
 
 export const AppRouter = () => {
   return (
     <Routes>
+      <Route path={ROUTES.OAUTH_CALLBACK} element={<OAuthCallback />} />
+
       <Route element={<PublicOnlyLayout />}>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-        <Route path={ROUTES.OAUTH_CALLBACK} element={<OAuthCallback />} />
-      </Route>
-
-      <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.EMPLOYEE]} />}>
-        <Route path="/employee/*" element={<EmployeeRoutes />} />
-      </Route>
-
-      <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.MANAGER]} />}>
-        <Route path="/manager/*" element={<ManagerRoutes />} />
       </Route>
 
       <Route element={<RequiredAuthLayout />}>
-        <Route path="/*" index element={<GeneralRoutes />} />
+        <Route element={<CheckIsActiveLayout />}>
+          <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.EMPLOYEE]} />}>
+            <Route path={ROUTES.EMPLOYEE.ROOT + '/*'} element={<EmployeeRoutes />} />
+          </Route>
+
+          <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.MANAGER]} />}>
+            <Route path={ROUTES.MANAGER.ROOT + '/*'} element={<ManagerRoutes />} />
+          </Route>
+
+          <Route
+            element={
+              <RequiredAuthLayout
+                allowedRoles={[UserSystemRole.EMPLOYEE, UserSystemRole.MANAGER]}
+              />
+            }
+          >
+            <Route path="/*" element={<GeneralRoutes />} />
+          </Route>
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

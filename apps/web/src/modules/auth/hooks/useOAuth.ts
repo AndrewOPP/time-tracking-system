@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '../stores/auth.store';
 import { buildOAuthUrl } from '../utils/auth.utils';
 import { getAuthErrorMessage } from '@/shared/utils/error-handler';
+import { AUTH_ERROR_MAP } from '@/shared/constants/errors.messages';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
@@ -21,9 +22,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
   const { setAuth } = useAuthStore();
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
-      console.log(33333);
       if (!popupRef.current || popupRef.current.closed) {
-        console.log(12341232113);
         if (intervalRef.current) clearInterval(intervalRef.current);
 
         if (!authFinishedRef.current) {
@@ -52,6 +51,14 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
 
         setGlobalLoading(false);
         popupRef.current?.close();
+
+        if (!payload) {
+          toast({
+            variant: 'destructive',
+            title: AUTH_NOTIFICATIONS.CONTENT.ERROR,
+            description: AUTH_ERROR_MAP.AUTH_MODERATION_REQUIRED,
+          });
+        }
 
         setAuth(payload.user, payload.accessToken);
       }
@@ -93,12 +100,12 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     authFinishedRef.current = false;
 
     const state = crypto.randomUUID();
+
     sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE, state);
     sessionStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER, provider);
 
     const redirectUri = `${window.location.origin}${ROUTES.OAUTH_CALLBACK}`;
     const config = oauthConfig[provider];
-    console.log(redirectUri);
 
     const url = buildOAuthUrl({
       authUrl: config.authUrl,
