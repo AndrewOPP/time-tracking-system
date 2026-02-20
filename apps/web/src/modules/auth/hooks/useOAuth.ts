@@ -96,8 +96,9 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE, state);
     sessionStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER, provider);
 
-    const redirectUri = `${window.location.origin}${ROUTES.AUTH.CALLBACK}`;
+    const redirectUri = `${window.location.origin}${ROUTES.OAUTH_CALLBACK}`;
     const config = oauthConfig[provider];
+    console.log(redirectUri);
 
     const url = buildOAuthUrl({
       authUrl: config.authUrl,

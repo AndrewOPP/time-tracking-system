@@ -19,17 +19,7 @@ export default function LoginPage() {
       console.error('API Error:', err);
     }
   };
-  // const handleLogOutApi = async () => {
-  //   try {
-  //     const res = await logOut();
-  //     console.log('API Response:', res);
-  //   } catch (err) {
-  //     console.error('API Error:', err);
-  //   } finally {
-  //     clearAuth();
-  //     window.location.href = ROUTES.AUTH.LOGIN;
-  //   }
-  // };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#fafafa] font-sans antialiased">
       <div className="flex items-center gap-2 mb-8">
@@ -68,15 +58,7 @@ export default function LoginPage() {
           >
             Перевірити Silent Refresh (через 5 сек)
           </Button>
-          <div>
-            <Button
-              variant="link"
-              // onClick={handleLogOutApi}
-              className="text-sm text-rose-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
-            >
-              Logout
-            </Button>
-          </div>
+          <div></div>
         </div>
       </div>
     </div>

@@ -19,7 +19,7 @@ export function OAuthCallback() {
     console.log(provider, 'provider');
 
     if (!window.opener) {
-      window.location.href = ROUTES.AUTH.LOGIN;
+      window.location.href = ROUTES.LOGIN;
       return;
     }
 

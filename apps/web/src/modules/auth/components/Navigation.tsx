@@ -12,7 +12,7 @@ export const Navigation = () => {
   const handleLogout = async () => {
     try {
       await logOut();
-      navigate(ROUTES.AUTH.LOGIN);
+      navigate(ROUTES.LOGIN);
     } catch {
       return null;
     } finally {
@@ -20,16 +20,15 @@ export const Navigation = () => {
     }
   };
 
-  if (!user) return null; // Не показуємо навігацію гостям
+  if (!user) return null;
 
   return (
     <nav className="flex items-center justify-between p-4 bg-slate-900 text-white shadow-md">
       <div className="flex gap-6">
-        {/* Загальні посилання для всіх (Employee, Manager і т.д.) */}
         <Link to="/bashboard" className="hover:text-blue-400 transition">
           Dashboard
         </Link>
-        <Link to={ROUTES.HOME} className="hover:text-blue-400 transition">
+        <Link to={ROUTES.ROOT} className="hover:text-blue-400 transition">
           home
         </Link>
 
@@ -43,8 +42,6 @@ export const Navigation = () => {
         >
           Тайм-трекінг
         </Link>
-
-        {/* Сценарій 6: Посилання тільки для Менеджерів */}
       </div>
 
       <div className="flex items-center gap-4">
