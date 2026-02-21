@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-
 import { ROUTES } from '../constants/routes';
 import PublicOnlyLayout from '@/shared/components/layouts/PublicOnlyLayout';
 import RequiredAuthLayout from '@/shared/components/layouts/RequiredAuthLayout';
@@ -11,6 +10,7 @@ import { OAuthCallback } from '@/modules/auth/components/OAuthCallback';
 import NotFoundPage from '@components/NotFoundPage';
 import { UserSystemRole } from '../types/user';
 import CheckIsActiveLayout from '@components/layouts/CheckIsActiveLayout';
+import MainLayout from '@components/layouts/MainLayout';
 
 export const AppRouter = () => {
   return (
@@ -23,22 +23,24 @@ export const AppRouter = () => {
 
       <Route element={<RequiredAuthLayout />}>
         <Route element={<CheckIsActiveLayout />}>
-          <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.EMPLOYEE]} />}>
-            <Route path={ROUTES.EMPLOYEE.ROOT + '/*'} element={<EmployeeRoutes />} />
-          </Route>
+          <Route element={<MainLayout />}>
+            <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.EMPLOYEE]} />}>
+              <Route path={ROUTES.EMPLOYEE.ROOT + '/*'} element={<EmployeeRoutes />} />
+            </Route>
 
-          <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.MANAGER]} />}>
-            <Route path={ROUTES.MANAGER.ROOT + '/*'} element={<ManagerRoutes />} />
-          </Route>
+            <Route element={<RequiredAuthLayout allowedRoles={[UserSystemRole.MANAGER]} />}>
+              <Route path={ROUTES.MANAGER.ROOT + '/*'} element={<ManagerRoutes />} />
+            </Route>
 
-          <Route
-            element={
-              <RequiredAuthLayout
-                allowedRoles={[UserSystemRole.EMPLOYEE, UserSystemRole.MANAGER]}
-              />
-            }
-          >
-            <Route path="/*" element={<GeneralRoutes />} />
+            <Route
+              element={
+                <RequiredAuthLayout
+                  allowedRoles={[UserSystemRole.EMPLOYEE, UserSystemRole.MANAGER]}
+                />
+              }
+            >
+              <Route path="/*" element={<GeneralRoutes />} />
+            </Route>
           </Route>
         </Route>
       </Route>

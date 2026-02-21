@@ -15,14 +15,14 @@ export const Navigation = () => {
   const handleLogout = async () => {
     try {
       await logOut();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      clearAuth();
       navigate(ROUTES.LOGIN, {
         replace: true,
         state: { from: null },
       });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      clearAuth();
     }
   };
 
