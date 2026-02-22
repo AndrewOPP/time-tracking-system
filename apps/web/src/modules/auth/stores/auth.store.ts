@@ -7,9 +7,32 @@ export const useAuthStore = create<AuthState>()(
     set => ({
       accessToken: null,
       user: null,
-      setAuth: (accessToken, user) => set({ accessToken, user }),
-      clearAuth: () => set({ accessToken: null, user: null }),
+      intendedUrl: null,
+      isInitializing: true,
+      setAuth: (user, token) =>
+        set({
+          user,
+          accessToken: token,
+          isInitializing: false,
+        }),
+      clearAuth: () =>
+        set({
+          user: null,
+          accessToken: null,
+          intendedUrl: null,
+          isInitializing: false,
+        }),
+
+      setIsInitializing: (value: boolean) =>
+        set({
+          isInitializing: value,
+        }),
+
+      setIntendedUrl: (value: string) =>
+        set({
+          intendedUrl: value,
+        }),
     }),
-    { name: 'AuthStore' }
+    { name: 'auth-storage' }
   )
 );

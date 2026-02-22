@@ -3,10 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { loginWithProvider } from '../api/auth.api';
 import { ROUTES } from '@/shared/constants/routes';
 import { AUTH_STORAGE_KEYS, OAUTH_EVENT_TYPES, type AuthProvider } from '../types/auth.types';
-import axios from 'axios';
 
 export function OAuthCallback() {
   const [params] = useSearchParams();
+
   const hasExchangedCode = useRef(false);
   useEffect(() => {
     const code = params.get('code');
@@ -17,7 +17,7 @@ export function OAuthCallback() {
     const provider = sessionStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER);
 
     if (!window.opener) {
-      window.location.href = ROUTES.AUTH.LOGIN;
+      window.location.href = ROUTES.LOGIN;
       return;
     }
 
@@ -43,28 +43,24 @@ export function OAuthCallback() {
     const exchangeCode = async () => {
       if (hasExchangedCode.current) return;
       hasExchangedCode.current = true;
-      try {
-        const response = await loginWithProvider(provider as AuthProvider, { code });
+
+      const { data, error } = await loginWithProvider(provider as AuthProvider, { code });
+
+      if (error) {
         window.opener.postMessage(
-          { type: OAUTH_EVENT_TYPES.SUCCESS, payload: response },
+          { type: OAUTH_EVENT_TYPES.ERROR, error: error },
           window.location.origin
         );
-      } catch (err: unknown) {
-        let serverMessage = 'auth_failed';
-
-        if (axios.isAxiosError(err)) {
-          serverMessage = err.response?.data?.message || 'server_error';
-        }
-
+      } else {
         window.opener.postMessage(
-          { type: OAUTH_EVENT_TYPES.ERROR, error: serverMessage },
+          { type: OAUTH_EVENT_TYPES.SUCCESS, payload: data },
           window.location.origin
         );
-      } finally {
-        sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
-        sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
-        window.close();
       }
+
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.STATE);
+      sessionStorage.removeItem(AUTH_STORAGE_KEYS.PROVIDER);
+      window.close();
     };
 
     exchangeCode();

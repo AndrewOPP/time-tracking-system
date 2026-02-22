@@ -48,7 +48,7 @@ export class AuthController {
 
     const user = await this.authService.validateUser(providerUpper, profile);
 
-    const tokens = await this.authService.getTokens(user.id, user.email, user.systemRole, res);
+    const tokens = await this.authService.getTokens(user.id, user.email, res);
 
     await this.authService.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
@@ -58,6 +58,7 @@ export class AuthController {
         id: user.id,
         email: user.email,
         role: user.systemRole,
+        isActive: user.isActive,
       },
     };
   }

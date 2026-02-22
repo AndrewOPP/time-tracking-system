@@ -8,17 +8,19 @@ import {
   AUTH_STORAGE_KEYS,
   OAUTH_EVENT_TYPES,
   type AuthProvider,
+  type OAuthMessage,
 } from '../types/auth.types';
 import { useAuthStore } from '../stores/auth.store';
 import { buildOAuthUrl } from '../utils/auth.utils';
 import { getAuthErrorMessage } from '@/shared/utils/error-handler';
+import { AUTH_ERROR_MAP } from '@/shared/constants/errors.messages';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
   const { toast } = useToast();
   const popupRef = useRef<Window | null>(null);
   const authFinishedRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const setAuth = useAuthStore(state => state.setAuth);
+  const { setAuth } = useAuthStore();
   const checkPopupClosed = () => {
     intervalRef.current = setInterval(() => {
       if (!popupRef.current || popupRef.current.closed) {
@@ -36,26 +38,37 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
   };
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent<OAuthMessage>) => {
       if (event.origin !== window.location.origin) return;
 
-      const { type, error, payload } = event.data;
+      const data = event.data;
 
-      if (type === OAUTH_EVENT_TYPES.SUCCESS) {
+      if (data.type === OAUTH_EVENT_TYPES.SUCCESS) {
         authFinishedRef.current = true;
-        setGlobalLoading(false);
 
-        toast({ title: AUTH_NOTIFICATIONS.CONTENT.SUCCESS });
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+
+        setGlobalLoading(false);
         popupRef.current?.close();
 
-        setAuth(payload.accessToken, payload.user);
+        if (!data.payload) {
+          toast({
+            variant: 'destructive',
+            title: AUTH_NOTIFICATIONS.CONTENT.ERROR,
+            description: AUTH_ERROR_MAP.AUTH_MODERATION_REQUIRED,
+          });
+        } else {
+          setAuth(data.payload.user, data.payload.accessToken);
+        }
       }
 
-      if (type === OAUTH_EVENT_TYPES.ERROR) {
+      if (data.type === OAUTH_EVENT_TYPES.ERROR) {
         authFinishedRef.current = true;
         setGlobalLoading(false);
 
-        const isCanceled = error === 'access_denied' || error === 'user_cancelled_login';
+        const isCanceled = data.error === 'access_denied' || data.error === 'user_cancelled_login';
 
         toast({
           variant: 'destructive',
@@ -63,9 +76,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
           description:
-            event.data.error && isCanceled
-              ? 'Access is denied by you'
-              : getAuthErrorMessage(event.data.error),
+            data.error && isCanceled ? 'Access is denied by you' : getAuthErrorMessage(data.error),
         });
 
         popupRef.current?.close();
@@ -88,10 +99,11 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
     authFinishedRef.current = false;
 
     const state = crypto.randomUUID();
+
     sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE, state);
     sessionStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER, provider);
 
-    const redirectUri = `${window.location.origin}${ROUTES.AUTH.CALLBACK}`;
+    const redirectUri = `${window.location.origin}${ROUTES.OAUTH_CALLBACK}`;
     const config = oauthConfig[provider];
 
     const url = buildOAuthUrl({

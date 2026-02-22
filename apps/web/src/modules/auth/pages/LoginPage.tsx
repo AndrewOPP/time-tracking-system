@@ -2,34 +2,10 @@ import { useState } from 'react';
 import { OAuthLoginButton } from '../components/OAuthLoginButton';
 import { OAUTH_LIST } from '../types/auth.types';
 import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
-import { axiosPrivate } from '@/shared/api';
-import { logOut } from '../api/auth.api';
-import { useAuthStore } from '../stores/auth.store';
-import { ROUTES } from '@/shared/constants/routes';
-import { Button } from '@components/ui';
 
 export default function LoginPage() {
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
-  const clearAuth = useAuthStore(state => state.clearAuth);
-  const handleTestApi = async () => {
-    try {
-      const res = await axiosPrivate.get('/health');
-      console.log('API Response:', res.data);
-    } catch (err) {
-      console.error('API Error:', err);
-    }
-  };
-  const handleLogOutApi = async () => {
-    try {
-      const res = await logOut();
-      console.log('API Response:', res);
-    } catch (err) {
-      console.error('API Error:', err);
-    } finally {
-      clearAuth();
-      window.location.href = ROUTES.AUTH.LOGIN;
-    }
-  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#fafafa] font-sans antialiased">
       <div className="flex items-center gap-2 mb-8">
@@ -59,24 +35,6 @@ export default function LoginPage() {
               Sign in with {firstCharToUpperCase(provider)}
             </OAuthLoginButton>
           ))}
-        </div>
-        <div className="mt-6">
-          <Button
-            variant="link"
-            onClick={handleTestApi}
-            className="text-sm text-blue-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
-          >
-            Перевірити Silent Refresh (через 5 сек)
-          </Button>
-          <div>
-            <Button
-              variant="link"
-              onClick={handleLogOutApi}
-              className="text-sm text-rose-500 underline cursor-pointer hover:opacity-50 transition-all duration-200"
-            >
-              Logout
-            </Button>
-          </div>
         </div>
       </div>
     </div>
