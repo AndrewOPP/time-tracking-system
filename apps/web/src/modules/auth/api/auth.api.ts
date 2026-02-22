@@ -37,7 +37,6 @@ export const tokenRefresh = async () => {
     return { data: response.data, error: null };
   } catch (err: unknown) {
     const errorMsg = extractErrorMessage(err);
-    console.error('Token refresh failed:', errorMsg);
     return { data: null, error: errorMsg };
   }
 };

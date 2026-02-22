@@ -10,20 +10,17 @@ export function App() {
   const { setAuth } = useAuthStore();
   const [isLoading, setIsthLoading] = useState(true);
 
-  const init = async () => {
-    try {
-      const res = await tokenRefresh();
-      if (res) {
-        setAuth(res.data.user, res.data.accessToken);
-      }
-    } catch {
-      return null;
-    } finally {
-      setIsthLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const init = async () => {
+      const { data } = await tokenRefresh();
+
+      if (data) {
+        setAuth(data.user, data.accessToken);
+      }
+
+      setIsthLoading(false);
+    };
+
     init();
   }, []);
 
