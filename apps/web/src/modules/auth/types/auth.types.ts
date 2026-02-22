@@ -1,3 +1,4 @@
+import type { User } from '@/shared/types/user';
 import { DiscordIcon, GithubIcon, GoogleIcon, LinkedInIcon } from '@components/ui/icons';
 
 export const AUTH_PROVIDERS = {
@@ -78,3 +79,7 @@ export interface AuthNestApiError {
   error?: string;
   statusCode: number;
 }
+
+export type OAuthMessage =
+  | { type: 'oauth_success'; payload: { user: User; accessToken: string } | undefined }
+  | { type: 'oauth_error'; error: string };

@@ -8,11 +8,11 @@ export default function CheckIsActiveLayout() {
   const { user, clearAuth } = useAuthStore();
 
   const logout = async () => {
-    try {
-      await logOut();
-    } finally {
-      clearAuth();
+    const { error } = await logOut();
+    if (error) {
+      console.error('Server logout error:', error);
     }
+    clearAuth();
   };
 
   if (user && !user.isActive) {

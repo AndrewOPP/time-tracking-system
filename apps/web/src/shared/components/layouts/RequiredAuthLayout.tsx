@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { ROUTES } from '@/shared/constants/routes';
 import { useToast } from '@hooks/use-toast';
@@ -12,35 +12,29 @@ interface Props {
 export default function RequiredAuthLayout({ allowedRoles }: Props) {
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const location = useLocation();
+  const [wasLoggedIn] = useState(() => !!user);
 
-  const wasLoggedIn = useRef(!!user);
+  const hasUser = !!user;
+  const hasAccess = !allowedRoles || (hasUser && allowedRoles.includes(user.role));
+  const isLogout = wasLoggedIn && !hasUser;
 
   useEffect(() => {
-    if (user && allowedRoles && !allowedRoles.includes(user.role)) {
+    if (hasUser && !hasAccess) {
       toast({
         title: 'Access denied',
         description: AUTH_ERROR_MAP.AUTH_NO_PERMISSION,
         variant: 'destructive',
       });
-      navigate(ROUTES.ROOT, { replace: true });
     }
+  }, [hasUser, hasAccess, toast]);
 
-    if (!user) {
-      const isLogout = wasLoggedIn.current;
+  if (!hasUser) {
+    return <Navigate to={ROUTES.LOGIN} replace state={isLogout ? null : { from: location }} />;
+  }
 
-      navigate(ROUTES.LOGIN, {
-        replace: true,
-        state: isLogout ? null : { from: location },
-      });
-    }
-
-    wasLoggedIn.current = !!user;
-  }, [user, allowedRoles, toast, navigate, location]);
-
-  if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
-    return null;
+  if (!hasAccess) {
+    return <Navigate to={ROUTES.ROOT} replace />;
   }
 
   return <Outlet />;

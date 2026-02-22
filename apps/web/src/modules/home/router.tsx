@@ -3,6 +3,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import DashboardPage from './pages/DashboardPage';
 import { UserSystemRole } from '@/shared/types/user';
+import HomePage from './pages/HomePage';
 
 export const GeneralRoutes = () => {
   const { user } = useAuthStore();
@@ -24,6 +25,7 @@ export const GeneralRoutes = () => {
       />
 
       <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+      <Route path={'/home'} element={<HomePage />} />
 
       <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
     </Routes>

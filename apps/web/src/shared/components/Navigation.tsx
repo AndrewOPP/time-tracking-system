@@ -6,6 +6,8 @@ import { Button } from '@/shared/components/ui/button';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
 import { logOut } from '../../modules/auth/api/auth.api';
 import { cn } from '@/shared/lib/utils';
+import { UserSystemRole } from '../types/user';
+import type { navItem } from '../types/navigationTypes';
 
 export const Navigation = () => {
   const { user, clearAuth } = useAuthStore();
@@ -13,27 +15,58 @@ export const Navigation = () => {
   const location = useLocation();
 
   const handleLogout = async () => {
-    try {
-      await logOut();
-      navigate(ROUTES.LOGIN, {
-        replace: true,
-        state: { from: null },
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      clearAuth();
+    const { error } = await logOut();
+    if (error) {
+      console.error('Server logout error:', error);
     }
+    clearAuth();
+    navigate(ROUTES.LOGIN, {
+      replace: true,
+      state: { from: null },
+    });
   };
 
   if (!user) return null;
 
   const navItems = [
     { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
-    { label: 'Manager Dashboard', path: ROUTES.MANAGER.MANAGER_DASHBOARD, icon: Settings },
-    { label: 'Time Tracking', path: ROUTES.MANAGER.MANAGER_TRACKING, icon: Timer },
-    { label: 'Employee Profile', path: ROUTES.EMPLOYEE.EMPLOYEE_PROFILE, icon: PersonStanding },
+    {
+      label: 'Manager Dashboard',
+      path: ROUTES.MANAGER.MANAGER_DASHBOARD,
+      icon: Settings,
+      systemRole: UserSystemRole.MANAGER,
+    },
+    {
+      label: 'Time Tracking',
+      path: ROUTES.MANAGER.MANAGER_TRACKING,
+      icon: Timer,
+      systemRole: UserSystemRole.MANAGER,
+    },
+    {
+      label: 'Employee Profile',
+      path: ROUTES.EMPLOYEE.EMPLOYEE_PROFILE,
+      icon: PersonStanding,
+      systemRole: UserSystemRole.EMPLOYEE,
+    },
   ];
+
+  const generateNavItem = (item: navItem, isActive: boolean) => {
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={cn(
+          'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
+          isActive
+            ? 'bg-white text-black shadow-sm'
+            : 'text-gray-600 hover:bg-gray-200 hover:text-black'
+        )}
+      >
+        <item.icon className={cn('h-5 w-5', isActive ? 'text-indigo-600' : 'text-gray-500')} />
+        {item.label}
+      </Link>
+    );
+  };
 
   return (
     <aside className="sticky top-0 h-screen w-64 bg-[#ebebeb] border-r border-gray-300 flex flex-col shrink-0 z-40">
@@ -42,23 +75,13 @@ export const Navigation = () => {
       <nav className="flex-1 px-4 space-y-1">
         {navItems.map(item => {
           const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
-                isActive
-                  ? 'bg-white text-black shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-200 hover:text-black'
-              )}
-            >
-              <item.icon
-                className={cn('h-5 w-5', isActive ? 'text-indigo-600' : 'text-gray-500')}
-              />
-              {item.label}
-            </Link>
-          );
+          if (item.systemRole && item.systemRole === user.role) {
+            return generateNavItem(item, isActive);
+          }
+
+          if (!item.systemRole) {
+            return generateNavItem(item, isActive);
+          }
         })}
       </nav>
 
