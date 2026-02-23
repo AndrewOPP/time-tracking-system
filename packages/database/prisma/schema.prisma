@@ -67,6 +67,7 @@ model User {
   email            String         @unique
   realName         String?        @map("real_name")
   username         String?
+  avatarUrl        String?        @map("avatar_url")
 
     // 🔐 AUTH FIELDS
   systemRole       UserRole       @default(EMPLOYEE)

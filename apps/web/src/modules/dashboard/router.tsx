@@ -1,9 +1,10 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
-import DashboardPage from './pages/DashboardPage';
+
 import { UserSystemRole } from '@/shared/types/user';
 import HomePage from './pages/HomePage';
+import { DashboardPage } from './pages/DashboardPage';
 
 export const GeneralRoutes = () => {
   const { user } = useAuthStore();

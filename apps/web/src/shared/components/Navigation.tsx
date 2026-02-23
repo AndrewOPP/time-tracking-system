@@ -4,10 +4,11 @@ import { LayoutDashboard, Settings, Timer, LogOut, UserCircle, PersonStanding } 
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/components/ui/button';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
-import { logOut } from '../../modules/auth/api/auth.api';
+import { getUserProjects, logOut } from '../../modules/auth/api/auth.api';
 import { cn } from '@/shared/lib/utils';
 import { UserSystemRole } from '../types/user';
 import type { navItem } from '../types/navigationTypes';
+import { axiosPrivate } from '../api';
 
 export const Navigation = () => {
   const { user, clearAuth } = useAuthStore();
@@ -27,6 +28,21 @@ export const Navigation = () => {
   };
 
   if (!user) return null;
+
+  const testApi = async () => {
+    const projects = await getUserProjects();
+    console.log(projects);
+  };
+  const testProjectsDetails = async () => {
+    try {
+      const projectDetails = await axiosPrivate.get(
+        '/projects/63d0a349-3c7e-4199-9732-25d77efe78fd'
+      );
+      console.log(projectDetails);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const navItems = [
     { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
@@ -69,10 +85,13 @@ export const Navigation = () => {
   };
 
   return (
-    <aside className="sticky top-0 h-screen w-64 bg-[#ebebeb] border-r border-gray-300 flex flex-col shrink-0 z-40">
-      <div className="h-12" />
+    <aside className="h-screen w-64 bg-[#FAFAFA] border-r border-#E5E5E5 flex flex-col shrink-0 z-40">
+      {/* 🌟 1. ДОБАВИЛИ ШАПКУ САЙДБАРА НА 56px */}
+      {/* Она идеально совпадет с правым хедером контента */}
+      <div className="h-[56px] flex items-center px-4 shrink-0 border-b-1 border-[#E5E5E5]"></div>
 
-      <nav className="flex-1 px-4 space-y-1">
+      {/* 🌟 2. ДОБАВИЛИ pt-4 (отступ сверху) и overflow-y-auto */}
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
         {navItems.map(item => {
           const isActive = location.pathname === item.path;
           if (item.systemRole && item.systemRole === user.role) {
@@ -83,9 +102,12 @@ export const Navigation = () => {
             return generateNavItem(item, isActive);
           }
         })}
+        <Button onClick={() => testApi()}>Test API</Button>
+        <Button onClick={() => testProjectsDetails()}>Test Projects Details</Button>
       </nav>
 
-      <div className="p-4 border-t border-gray-300 bg-[#ebebeb]">
+      {/* Нижняя часть с профилем остается без изменений */}
+      <div className="p-4 border-t border-[#E5E5E5] bg-[#FAFAFA]">
         <div className="flex items-center gap-3 px-3 py-4 mb-2">
           <UserCircle className="h-6 w-6 text-gray-400 shrink-0" />
           <div className="overflow-hidden">

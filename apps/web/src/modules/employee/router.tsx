@@ -2,8 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants/routes';
 
 import EmployeeProfilePage from './pages/EmployeeProfilePage';
-
-import DashboardPage from '../home/pages/DashboardPage';
+import { DashboardPage } from '../dashboard/pages/DashboardPage';
 
 export const EmployeeRoutes = () => (
   <Routes>

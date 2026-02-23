@@ -40,3 +40,15 @@ export const tokenRefresh = async () => {
     return { data: null, error: errorMsg };
   }
 };
+export const getUserProjects = async () => {
+  try {
+    const response = await axiosPrivate.get('/projects', {
+      withCredentials: true,
+    });
+
+    return { data: response.data, error: null };
+  } catch (err: unknown) {
+    const errorMsg = extractErrorMessage(err);
+    return { data: null, error: errorMsg };
+  }
+};
