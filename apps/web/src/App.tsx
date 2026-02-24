@@ -7,6 +7,7 @@ import { tokenRefresh } from './modules/auth/api/auth.api';
 import Loader from '@components/Loader';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { TooltipProvider } from '@ui/tooltip';
 
 export function App() {
   const { setAuth } = useAuthStore();
@@ -14,9 +15,8 @@ export function App() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Чтобы запросы не перезапрашивались автоматически при фокусе на окно
         refetchOnWindowFocus: false,
-        // Количество попыток при ошибке
+
         retry: 1,
       },
     },
@@ -43,9 +43,11 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
-      <BrowserRouter>
-        <AppRouter />
-      </BrowserRouter>
+      <TooltipProvider delayDuration={300}>
+        <BrowserRouter>
+          <AppRouter />
+        </BrowserRouter>
+      </TooltipProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );

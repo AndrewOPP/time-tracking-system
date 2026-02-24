@@ -3,31 +3,25 @@ import { Card, CardContent, CardFooter } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
 import type { Project } from '../types/project.api';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/shared/constants/routes';
+import { statusConfig } from '@/shared/config/projectStatusConfig';
 
-// Оставляем конфиг статусов
-const statusConfig: Record<string, { bg: string; dot: string; label: string }> = {
-  COMPLETED: { bg: 'bg-[#E5EFFF]', dot: 'bg-blue-500', label: 'Completed' },
-  IN_PROGRESS: { bg: 'bg-[#E5F6E5]', dot: 'bg-green-500', label: 'In progress' },
-  NOT_STARTED: { bg: 'bg-gray-100', dot: 'bg-gray-400', label: 'Not Started' },
-  PAUSED: { bg: 'bg-[#FFF0E5]', dot: 'bg-orange-500', label: 'Paused' },
-};
-
-// Добавляем интерфейс для пропсов
 interface ProjectCardProps {
   project: Project;
 }
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   const currentStatus = statusConfig[project.status] || statusConfig.NOT_STARTED;
-  console.log(project.totalTeamMembers);
-  console.log(project.teamAvatars);
-
+  const navigate = useNavigate();
   return (
-    <Card className="w-full max-w-[320px] rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden">
+    <Card
+      onClick={() => navigate(`${ROUTES.PROJECTS}/${project.id}`)}
+      className="w-full max-w-[320px] rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+    >
       <CardContent className="">
         <div className="flex gap-4 items-center">
           <div className="w-[68px] h-[68px] bg-[#1C1C1C] rounded-[14px] flex items-center justify-center shrink-0">
-            {/* Если есть лого, показываем картинку, иначе плейсхолдер */}
             {project.logo ? (
               <img
                 src={project.logo}

@@ -28,7 +28,6 @@ export class ProjectsService {
           avatarUrl: true,
           status: true,
           users: {
-            take: 5,
             select: {
               user: {
                 select: { id: true, avatarUrl: true },
@@ -71,6 +70,7 @@ export class ProjectsService {
               id: true,
               realName: true,
               username: true,
+              avatarUrl: true,
             },
           },
           technologies: {
@@ -81,7 +81,7 @@ export class ProjectsService {
           },
           users: {
             include: {
-              user: { select: { id: true, realName: true, username: true } },
+              user: { select: { id: true, realName: true, username: true, avatarUrl: true } },
             },
           },
         },
@@ -103,17 +103,20 @@ export class ProjectsService {
         name: project.name,
         logo: project.avatarUrl || project.emoji,
         status: project.status,
+        description: project.description,
         startDate: project.startDate,
         domain: project.technologies.map(t => t.name).join(', '),
         pm: project.projectManager
           ? {
               name: project.projectManager.realName || project.projectManager.username,
+              avatarUrl: project.projectManager.avatarUrl || null,
             }
           : null,
         team: project.users.map(u => ({
           id: u.user.id,
           name: u.user.realName || u.user.username,
           position: u.position,
+          avatarUrl: u.user.avatarUrl || null,
         })),
       };
 

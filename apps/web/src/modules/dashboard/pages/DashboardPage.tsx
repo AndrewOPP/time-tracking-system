@@ -1,9 +1,11 @@
 import { PageHeader } from '@components/PageHeader';
 import { ProjectCard } from '../components/ProjectCard';
 import { useProjects } from '../hooks/useProjects';
+import { ProjectCardSkeleton } from '../components/ProjectCardSkeleton';
+import { Button } from '@components/ui';
 
 export const DashboardPage = () => {
-  const { data: projects, isLoading, isError } = useProjects();
+  const { data: projects, isLoading, isError, refetch, isRefetching } = useProjects();
 
   return (
     <div className="w-full">
@@ -13,9 +15,26 @@ export const DashboardPage = () => {
       />
 
       <div className="px-4">
-        {isLoading && <p>Loading projects...</p>}
-
-        {isError && <p className="text-red-500">Failed to load projects. Please try again.</p>}
+        {isLoading && (
+          <div className="flex flex-wrap gap-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <ProjectCardSkeleton key={index} />
+            ))}
+          </div>
+        )}
+        {isError && (
+          <div className="text-red-500">
+            <p>Failed to load projects. Please try again.</p>
+            <Button
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              variant="default"
+              className="mt-2 cursor-pointer hover:bg-[#646464]"
+            >
+              {isRefetching ? 'Retrying...' : 'Retry'}
+            </Button>
+          </div>
+        )}
 
         {!isLoading && !isError && projects?.length === 0 && (
           <div className="text-center text-slate-500 mt-10">You have no projects yet.</div>
