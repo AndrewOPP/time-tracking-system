@@ -3,8 +3,9 @@ import { fetchProjectById, fetchProjects } from '../types/project.api';
 
 export const useProjects = () => {
   return useQuery({
-    queryKey: ['projects'], // Уникальный ключ для кэширования
+    queryKey: ['projects'],
     queryFn: fetchProjects,
+    staleTime: 3 * 60 * 1000,
   });
 };
 
@@ -16,7 +17,7 @@ export const useProjectById = (id: string | undefined) => {
       if (!id) throw new Error('Project ID is required');
       return fetchProjectById(id);
     },
-
+    staleTime: 3 * 60 * 1000,
     enabled: !!id,
   });
 };

@@ -9,18 +9,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TooltipProvider } from '@ui/tooltip';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+
+      retry: 1,
+    },
+  },
+});
+
 export function App() {
   const { setAuth } = useAuthStore();
   const [isLoading, setIsthLoading] = useState(true);
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-
-        retry: 1,
-      },
-    },
-  });
 
   useEffect(() => {
     const init = async () => {
