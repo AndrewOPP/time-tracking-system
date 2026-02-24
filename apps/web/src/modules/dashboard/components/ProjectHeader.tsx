@@ -3,7 +3,7 @@ import { Card } from '@ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@ui/tooltip';
-import type { ProjectDetails } from '../types/project.api';
+import type { ProjectDetails } from '../types/project.api.types';
 
 interface ProjectHeaderProps {
   project: ProjectDetails;

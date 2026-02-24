@@ -2,7 +2,7 @@ import { Clock } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
-import type { Project } from '../types/project.api';
+import type { Project } from '../types/project.api.types';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants/routes';
 import { statusConfig } from '@/shared/config/projectStatusConfig';

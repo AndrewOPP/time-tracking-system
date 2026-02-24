@@ -3,7 +3,7 @@ import { Card } from '@ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@ui/avatar';
 import { cn } from '@/shared/lib/utils';
 import { formatToEnglishDate } from '../utils/formatToEnglishDate';
-import type { ProjectDetails } from '../types/project.api';
+import type { ProjectDetails } from '../types/project.api.types';
 
 interface ProjectSidebarProps {
   project: ProjectDetails;

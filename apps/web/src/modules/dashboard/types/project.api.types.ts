@@ -1,5 +1,3 @@
-import { axiosPrivate } from '@/shared/api';
-
 export interface TeamMember {
   id: string;
   name: string;
@@ -31,15 +29,3 @@ export interface ProjectDetails {
   totalTeamMembers: number;
   totalLoggedHours: number;
 }
-
-export const fetchProjects = async (): Promise<Project[]> => {
-  const { data } = await axiosPrivate.get<Project[]>('/projects');
-  return data;
-};
-
-export const fetchProjectById = async (id: string): Promise<ProjectDetails> => {
-  // throw Error('test error');
-
-  const { data } = await axiosPrivate.get<ProjectDetails>(`/projects/${id}`);
-  return data;
-};

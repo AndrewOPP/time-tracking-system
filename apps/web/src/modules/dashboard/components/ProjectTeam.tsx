@@ -1,7 +1,7 @@
 import { Users } from 'lucide-react';
 import { Card } from '@ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@ui/avatar';
-import type { TeamMember } from '../types/project.api';
+import type { TeamMember } from '../types/project.api.types';
 
 interface ProjectTeamProps {
   team?: TeamMember[];
