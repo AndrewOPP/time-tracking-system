@@ -1,7 +1,5 @@
 import { useParams } from 'react-router-dom';
-
 import { useProjectById } from '../hooks/useProjects';
-import { isAxiosError } from 'axios';
 import { ProjectSidebar } from '../components/ProjectSidebar';
 import { ProjectHeader } from '../components/ProjectHeader';
 import { ProjectDescription } from '../components/ProjectDescription';
@@ -10,6 +8,7 @@ import BackButton from '../components/BackButton';
 import { ROUTES } from '@/shared/constants/routes';
 import { statusConfig } from '@/shared/config/projectStatusConfig';
 import { ProjectStatus } from '@/shared/constants/projectStatus';
+import { getAppErrorMessage } from '@/shared/utils/error-handler';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,14 +20,10 @@ export const ProjectDetailsPage = () => {
   }
 
   if (isError || !project) {
-    const errorMessage = isAxiosError(error)
-      ? error.response?.data?.message || 'Error during the project details loading'
-      : error?.message || 'Error during the project details loading';
-
     return (
       <div className="p-8">
-        <BackButton title="Back to projects" route={ROUTES.DASHBOARD_PROJECTS} />
-        <p className="text-red-500 mt-4">{errorMessage}</p>
+        <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
+        <p className="text-red-500 mt-4">{getAppErrorMessage(error?.message)}</p>
       </div>
     );
   }
@@ -38,7 +33,7 @@ export const ProjectDetailsPage = () => {
 
   return (
     <div className="w-full pb-10">
-      <BackButton title="Back to projects" route={ROUTES.DASHBOARD_PROJECTS} />
+      <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
       <div className="px-4 flex flex-col lg:flex-row gap-6 items-start">
         <ProjectSidebar project={project} currentStatus={currentStatus} />
 

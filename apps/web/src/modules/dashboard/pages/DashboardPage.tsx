@@ -3,9 +3,10 @@ import { ProjectCard } from '../components/ProjectCard';
 import { useProjects } from '../hooks/useProjects';
 import { ProjectCardSkeleton } from '../components/ProjectCardSkeleton';
 import { Button } from '@components/ui';
+import { getAppErrorMessage } from '@/shared/utils/error-handler';
 
 export const DashboardPage = () => {
-  const { data: projects, isLoading, isError, refetch, isRefetching } = useProjects();
+  const { data: projects, isLoading, isError, refetch, isRefetching, error } = useProjects();
 
   return (
     <div className="w-full">
@@ -24,7 +25,7 @@ export const DashboardPage = () => {
         )}
         {isError && (
           <div className="text-red-500">
-            <p>Failed to load projects. Please try again.</p>
+            <p>{getAppErrorMessage(error.message)}</p>
             <Button
               onClick={() => refetch()}
               disabled={isRefetching}

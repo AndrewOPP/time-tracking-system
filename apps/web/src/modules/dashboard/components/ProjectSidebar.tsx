@@ -63,7 +63,6 @@ export const ProjectSidebar = ({ project, currentStatus }: ProjectSidebarProps) 
               <Globe className="w-4 h-4" /> Domain
             </span>
             <span className="font-medium text-slate-900">
-              {/* domain content will be changed in the future */}
               {project.domain?.split(',').slice(0, 3).join(', ') || '—'}
             </span>
           </div>

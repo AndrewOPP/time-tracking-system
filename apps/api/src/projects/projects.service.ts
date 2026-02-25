@@ -4,8 +4,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-
 import { PrismaService } from '@time-tracking-app/database/index';
+import { ProjectError } from './types/projects.types';
 
 @Injectable()
 export class ProjectsService {
@@ -54,13 +54,15 @@ export class ProjectsService {
       return formattedProjects;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Failed to load project list');
+
+      throw new InternalServerErrorException(ProjectError.LIST_FETCH_FAILED);
     }
   }
 
   async getUserProjectById(userId: string, projectIdToFind: string) {
     const projectId = projectIdToFind;
     const currentUserId = userId;
+
     try {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
@@ -74,10 +76,7 @@ export class ProjectsService {
             },
           },
           technologies: {
-            select: {
-              name: true,
-              type: true,
-            },
+            select: { name: true, type: true },
           },
           users: {
             include: {
@@ -88,14 +87,14 @@ export class ProjectsService {
       });
 
       if (!project) {
-        throw new NotFoundException(`Project with id ${projectId} was not found.`);
+        throw new NotFoundException(`${ProjectError.NOT_FOUND}:${projectId}`);
       }
 
       const isParticipant = project.users.some(user => user.userId === currentUserId);
       const isPM = project.projectManagerId === currentUserId;
 
       if (!isParticipant && !isPM) {
-        throw new ForbiddenException('You do not have access to this project');
+        throw new ForbiddenException(ProjectError.ACCESS_DENIED);
       }
 
       const projectDetails = {
@@ -127,7 +126,8 @@ export class ProjectsService {
       }
 
       console.error(error);
-      throw new InternalServerErrorException('Error during the project details fetching');
+
+      throw new InternalServerErrorException(ProjectError.DETAILS_FETCH_FAILED);
     }
   }
 }

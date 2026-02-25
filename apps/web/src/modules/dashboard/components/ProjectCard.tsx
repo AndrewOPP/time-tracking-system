@@ -16,7 +16,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   const navigate = useNavigate();
   return (
     <Card
-      onClick={() => navigate(`${ROUTES.PROJECTS}/${project.id}`)}
+      onClick={() => navigate(`${ROUTES.DASHBOARD}/${project.id}`)}
       className="w-full max-w-[320px] rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
     >
       <CardContent className="">

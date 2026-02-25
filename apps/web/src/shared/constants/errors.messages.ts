@@ -12,10 +12,20 @@ export const AUTH_ERROR_MAP: Record<string, string> = {
   AUTH_REQUEST_FAILED: 'OAuth request failed',
   AUTH_PROFILE_ERROR: 'Failed to fetch user profile',
   AUTH_NO_PERMISSION: 'You do not have permissions to visit this page',
+  AUTH_LOGOUT_FAILED: 'Logout error, try again',
+  AUTH_DEFAULT_FAILED: 'Login error, try again',
+  AUTH_REFRESH_FAILED: 'Auth refresh failed, try again',
 };
 
-export const AUTH_UI_FALLBACKS = {
+export const AUTH_UI_FALLBACKS: Record<string, string> = {
   UNKNOWN: 'An unknown error occurred',
   INTERNAL: 'Internal Server Error. Please try again later.',
   DEFAULT_AUTH_FAILED: 'Authentication failed. Please try again.',
-} as const;
+};
+
+export const PROJECT_ERROR_MAP: Record<string, string> = {
+  PROJECT_LIST_FETCH_FAILED: 'Failed to load project list. Please try again.',
+  PROJECT_NOT_FOUND: 'The requested project was not found.',
+  PROJECT_ACCESS_DENIED: 'You do not have access to this project.',
+  PROJECT_DETAILS_FETCH_FAILED: 'Error occurred while fetching project details.',
+};
