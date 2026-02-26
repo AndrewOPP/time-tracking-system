@@ -12,7 +12,7 @@ import {
 } from '../types/auth.types';
 import { useAuthStore } from '../stores/auth.store';
 import { buildOAuthUrl } from '../utils/auth.utils';
-import { getAuthErrorMessage } from '@/shared/utils/error-handler';
+import { getAppErrorMessage } from '@/shared/utils/error-handler';
 import { AUTH_ERROR_MAP } from '@/shared/constants/errors.messages';
 
 export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) => void) {
@@ -76,7 +76,7 @@ export function useOAuth(provider: AuthProvider, setGlobalLoading: (v: boolean) 
             ? AUTH_NOTIFICATIONS.CONTENT.CANCELED
             : AUTH_NOTIFICATIONS.CONTENT.ERROR,
           description:
-            data.error && isCanceled ? 'Access is denied by you' : getAuthErrorMessage(data.error),
+            data.error && isCanceled ? 'Access is denied by you' : getAppErrorMessage(data.error),
         });
 
         popupRef.current?.close();

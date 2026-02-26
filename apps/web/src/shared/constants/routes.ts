@@ -8,6 +8,9 @@ export const ROUTES = {
   HR_DASHBOARD: '/hr/dashboard',
   ACCOUNTANT_DASHBOARD: '/accountant/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',
+  PROJECT_DETAILS: '/dashboard/project',
+  DASHBOARD_PROJECTS: '/dashboard/:id',
+  PROJECTS: '/projects',
 
   EMPLOYEE: {
     ROOT: '/employee',

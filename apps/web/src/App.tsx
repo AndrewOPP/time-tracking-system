@@ -5,6 +5,19 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from './modules/auth/stores/auth.store';
 import { tokenRefresh } from './modules/auth/api/auth.api';
 import Loader from '@components/Loader';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { TooltipProvider } from '@ui/tooltip';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+
+      retry: 1,
+    },
+  },
+});
 
 export function App() {
   const { setAuth } = useAuthStore();
@@ -29,12 +42,15 @@ export function App() {
   }
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Toaster />
-      <BrowserRouter>
-        <AppRouter />
-      </BrowserRouter>
-    </>
+      <TooltipProvider delayDuration={300}>
+        <BrowserRouter>
+          <AppRouter />
+        </BrowserRouter>
+      </TooltipProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 

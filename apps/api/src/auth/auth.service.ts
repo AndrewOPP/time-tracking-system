@@ -211,6 +211,7 @@ export class AuthService {
           realName: profile.name,
           provider: provider,
           providerId: profile.id,
+          avatarUrl: profile.picture || null,
           isActive: false,
           status: 'INACTIVE',
           workFormat: 'FULL_TIME',

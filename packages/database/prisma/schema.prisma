@@ -67,6 +67,7 @@ model User {
   email            String         @unique
   realName         String?        @map("real_name")
   username         String?
+  avatarUrl        String?        @map("avatar_url")
 
     // 🔐 AUTH FIELDS
   systemRole       UserRole       @default(EMPLOYEE)
@@ -97,6 +98,7 @@ enum ProjectStatus {
 model Project {
   id               String        @id @default(uuid())
   name             String
+  description      String?
   emoji            String?
   status           ProjectStatus
   startDate        DateTime?     @map("start_date")

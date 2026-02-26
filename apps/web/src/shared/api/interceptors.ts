@@ -2,7 +2,7 @@ import { AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } fro
 import { axiosPrivate } from './api-instance';
 import { toast } from '@/shared/hooks/use-toast';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
-import { getAuthErrorMessage } from '../utils/error-handler';
+import { getAppErrorMessage } from '../utils/error-handler';
 import { tokenRefresh } from '@/modules/auth/api/auth.api';
 
 axiosPrivate.interceptors.request.use(
@@ -23,19 +23,17 @@ axiosPrivate.interceptors.response.use(
   (response: AxiosResponse) => response,
   async error => {
     const prevRequest = error?.config;
-    console.log(12321312);
     if (error?.response?.status === 401 && !prevRequest?._retry) {
       prevRequest._retry = true;
 
       const { data, error: refreshError } = await tokenRefresh();
-      console.log(data);
       if (refreshError || !data) {
         useAuthStore.getState().clearAuth();
 
         toast({
           variant: 'destructive',
           title: 'Session Expired',
-          description: getAuthErrorMessage(refreshError || 'AUTH_UNKNOWN_ERROR'),
+          description: getAppErrorMessage(refreshError || 'AUTH_UNKNOWN_ERROR'),
         });
 
         return Promise.reject(error);

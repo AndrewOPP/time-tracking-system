@@ -1,13 +1,18 @@
-import { AUTH_ERROR_MAP, AUTH_UI_FALLBACKS } from '../constants/errors.messages';
+import { AUTH_ERROR_MAP, PROJECT_ERROR_MAP } from '../constants/errors.messages';
 
-export const getAuthErrorMessage = (error: string): string => {
-  if (!error) return AUTH_UI_FALLBACKS.UNKNOWN;
+const GLOBAL_ERROR_MAP: Record<string, string> = {
+  ...AUTH_ERROR_MAP,
+  ...PROJECT_ERROR_MAP,
+};
 
-  if (!error.startsWith('AUTH_')) {
-    return AUTH_UI_FALLBACKS.INTERNAL;
+export const getAppErrorMessage = (error: string | null | undefined): string => {
+  if (!error) return 'An unknown error occurred.';
+
+  if (!error.startsWith('AUTH_') && !error.startsWith('PROJECT_')) {
+    return 'An internal server error occurred.';
   }
 
   const [errorCode] = error.split(':');
 
-  return AUTH_ERROR_MAP[errorCode] || AUTH_UI_FALLBACKS.DEFAULT_AUTH_FAILED;
+  return GLOBAL_ERROR_MAP[errorCode] || 'Operation failed. Please try again.';
 };

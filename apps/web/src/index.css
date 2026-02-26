@@ -117,6 +117,21 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+@keyframes text-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-text-flow {
+  animation: text-flow 25s ease infinite;
+  background-size: 200% auto;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

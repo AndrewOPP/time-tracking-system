@@ -4,7 +4,7 @@ import PublicOnlyLayout from '@/shared/components/layouts/PublicOnlyLayout';
 import RequiredAuthLayout from '@/shared/components/layouts/RequiredAuthLayout';
 import { EmployeeRoutes } from '@/modules/employee/router';
 import { ManagerRoutes } from '@/modules/manager/router';
-import { GeneralRoutes } from '@/modules/home/router';
+import { GeneralRoutes } from '@/modules/dashboard/router';
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import { OAuthCallback } from '@/modules/auth/components/OAuthCallback';
 import NotFoundPage from '@components/NotFoundPage';

@@ -56,25 +56,38 @@ export const Navigation = () => {
         key={item.path}
         to={item.path}
         className={cn(
-          'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
+          'flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all group',
           isActive
-            ? 'bg-white text-black shadow-sm'
-            : 'text-gray-600 hover:bg-gray-200 hover:text-black'
+            ? 'bg-gray-100 text-slate-900 font-semibold'
+            : 'text-gray-500 font-medium hover:bg-gray-50 hover:text-slate-900'
         )}
       >
-        <item.icon className={cn('h-5 w-5', isActive ? 'text-indigo-600' : 'text-gray-500')} />
+        <item.icon
+          className={cn(
+            'h-5 w-5 transition-colors',
+            isActive ? 'text-slate-900' : 'text-gray-400 group-hover:text-slate-600'
+          )}
+        />
         {item.label}
       </Link>
     );
   };
 
   return (
-    <aside className="sticky top-0 h-screen w-64 bg-[#ebebeb] border-r border-gray-300 flex flex-col shrink-0 z-40">
-      <div className="h-12" />
-
-      <nav className="flex-1 px-4 space-y-1">
+    <aside className="h-screen w-64 bg-[#FAFAFA] border-r border-[#E5E5E5] flex flex-col shrink-0 z-40">
+      <div className="h-[56px] flex items-center justify-center px-4 shrink-0 border-b border-[#E5E5E5]">
+        <span
+          onClick={() => navigate(ROUTES.ROOT)}
+          className=" cursor-pointer font-extrabold text-3xl uppercase tracking-widest bg-gradient-to-r from-slate-900 via-gray-300 to-slate-900 bg-clip-text text-transparent animate-text-flow"
+        >
+          VISO Time
+        </span>
+      </div>
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
         {navItems.map(item => {
-          const isActive = location.pathname === item.path;
+          const isActive =
+            location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+
           if (item.systemRole && item.systemRole === user.role) {
             return generateNavItem(item, isActive);
           }
@@ -85,7 +98,7 @@ export const Navigation = () => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-300 bg-[#ebebeb]">
+      <div className="p-4 border-t border-[#E5E5E5] bg-[#FAFAFA]">
         <div className="flex items-center gap-3 px-3 py-4 mb-2">
           <UserCircle className="h-6 w-6 text-gray-400 shrink-0" />
           <div className="overflow-hidden">
@@ -98,7 +111,7 @@ export const Navigation = () => {
 
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full justify-start text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           onClick={handleLogout}
         >
           <LogOut className="mr-3 h-4 w-4" />
