@@ -12,15 +12,12 @@ export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserProjects(id: string) {
-    const currenntUserId = id;
+    const userId = id;
 
     try {
       const projects = await this.prisma.project.findMany({
         where: {
-          OR: [
-            { users: { some: { userId: currenntUserId } } },
-            { projectManagerId: currenntUserId },
-          ],
+          OR: [{ users: { some: { userId: userId } } }, { projectManagerId: userId }],
         },
         select: {
           id: true,
@@ -59,9 +56,9 @@ export class ProjectsService {
     }
   }
 
-  async getUserProjectById(userId: string, projectIdToFind: string) {
+  async getUserProjectById(id: string, projectIdToFind: string) {
     const projectId = projectIdToFind;
-    const currentUserId = userId;
+    const userId = id;
 
     try {
       const project = await this.prisma.project.findUnique({
@@ -90,8 +87,8 @@ export class ProjectsService {
         throw new NotFoundException(`${ProjectError.NOT_FOUND}:${projectId}`);
       }
 
-      const isParticipant = project.users.some(user => user.userId === currentUserId);
-      const isPM = project.projectManagerId === currentUserId;
+      const isParticipant = project.users.some(user => user.userId === userId);
+      const isPM = project.projectManagerId === userId;
 
       if (!isParticipant && !isPM) {
         throw new ForbiddenException(ProjectError.ACCESS_DENIED);
@@ -104,7 +101,7 @@ export class ProjectsService {
         status: project.status,
         description: project.description,
         startDate: project.startDate,
-        domain: project.technologies.map(t => t.name).join(', '),
+        domain: project.technologies.map(t => t.name),
         pm: project.projectManager
           ? {
               name: project.projectManager.realName || project.projectManager.username,
@@ -126,7 +123,6 @@ export class ProjectsService {
       }
 
       console.error(error);
-
       throw new InternalServerErrorException(ProjectError.DETAILS_FETCH_FAILED);
     }
   }

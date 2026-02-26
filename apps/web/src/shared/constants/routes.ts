@@ -9,7 +9,7 @@ export const ROUTES = {
   ACCOUNTANT_DASHBOARD: '/accountant/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',
   PROJECT_DETAILS: '/dashboard/project',
-  DASHBOARD_PROJECTS: '/dashboard/projects',
+  DASHBOARD_PROJECTS: '/dashboard/:id',
   PROJECTS: '/projects',
 
   EMPLOYEE: {

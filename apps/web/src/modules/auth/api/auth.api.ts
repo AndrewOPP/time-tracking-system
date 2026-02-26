@@ -5,7 +5,6 @@ import { axiosPrivate, axiosPublic } from '@/shared/api';
 export const loginWithProvider = async (provider: AuthProvider, payload: AuthPayload) => {
   try {
     const { data } = await axiosPublic.post(`/auth/${provider}`, payload);
-    console.log(data);
     return { data, error: null };
   } catch (err: unknown) {
     console.log(err);

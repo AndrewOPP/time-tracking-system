@@ -26,7 +26,7 @@ export const GeneralRoutes = () => {
       />
 
       <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-      <Route path={ROUTES.DASHBOARD + '/:id'} element={<ProjectDetailsPage />} />
+      <Route path={ROUTES.DASHBOARD_PROJECTS} element={<ProjectDetailsPage />} />
       <Route path={'/home'} element={<HomePage />} />
 
       <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />

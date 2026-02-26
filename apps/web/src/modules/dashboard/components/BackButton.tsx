@@ -6,7 +6,7 @@ interface BackButtonProps {
   route: string;
 }
 
-export default function BackButton({ title, route }: BackButtonProps) {
+export function BackButton({ title, route }: BackButtonProps) {
   const navigate = useNavigate();
   return (
     <div className="px-4 py-6 mb-2">

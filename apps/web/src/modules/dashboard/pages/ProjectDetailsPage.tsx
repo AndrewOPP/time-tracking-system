@@ -4,11 +4,12 @@ import { ProjectSidebar } from '../components/ProjectSidebar';
 import { ProjectHeader } from '../components/ProjectHeader';
 import { ProjectDescription } from '../components/ProjectDescription';
 import { ProjectTeam } from '../components/ProjectTeam';
-import BackButton from '../components/BackButton';
 import { ROUTES } from '@/shared/constants/routes';
 import { statusConfig } from '@/shared/config/projectStatusConfig';
 import { ProjectStatus } from '@/shared/constants/projectStatus';
 import { getAppErrorMessage } from '@/shared/utils/error-handler';
+import { BackButton } from '../components/BackButton';
+import ProjectDetailsSkeleton from '../components/ProjectDetailsSkeleton';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +17,7 @@ export const ProjectDetailsPage = () => {
   const { data: project, isError, isLoading, error } = useProjectById(id);
 
   if (isLoading) {
-    return <div className="p-8">Loading project details...</div>;
+    return <ProjectDetailsSkeleton />;
   }
 
   if (isError || !project) {

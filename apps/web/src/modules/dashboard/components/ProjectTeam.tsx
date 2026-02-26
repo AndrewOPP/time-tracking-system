@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@ui/avatar';
 import type { TeamMember } from '../types/project.api.types';
 
 interface ProjectTeamProps {
-  team?: TeamMember[];
+  team: TeamMember[];
 }
 
 export const ProjectTeam = ({ team }: ProjectTeamProps) => {
@@ -16,7 +16,7 @@ export const ProjectTeam = ({ team }: ProjectTeamProps) => {
       </div>
 
       <div className="flex flex-col gap-4">
-        {team && team.length > 0 ? (
+        {team.length > 0 ? (
           team.map(member => (
             <div key={member.id} className="flex items-center gap-3">
               <Avatar className="w-8 h-8">
