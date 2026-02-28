@@ -20,6 +20,8 @@ export const ROUTES = {
 
   MANAGER: {
     ROOT: '/manager',
+    AI_CHAT: '/ai-chat',
+    MANAGER_AI_CHAT: '/manager/ai-chat',
     DASHBOARD: 'dashboard',
     MANAGER_DASHBOARD: '/manager/dashboard',
     TIME_TRACKING: 'time-tracking',

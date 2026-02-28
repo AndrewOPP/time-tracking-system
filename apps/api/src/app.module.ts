@@ -5,6 +5,7 @@ import { PrismaModule } from '@time-tracking-app/database';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { AppController } from './app.controller';
+import { AichatModule } from './aichat/aichat.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AppController } from './app.controller';
     PrismaModule,
     AuthModule,
     ProjectsModule,
+    AichatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

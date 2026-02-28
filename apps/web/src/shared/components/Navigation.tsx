@@ -1,5 +1,13 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Settings, Timer, LogOut, UserCircle, PersonStanding } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Settings,
+  Timer,
+  LogOut,
+  UserCircle,
+  PersonStanding,
+  Bot,
+} from 'lucide-react';
 
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/components/ui/button';
@@ -40,6 +48,12 @@ export const Navigation = () => {
       label: 'Time Tracking',
       path: ROUTES.MANAGER.MANAGER_TRACKING,
       icon: Timer,
+      systemRole: UserSystemRole.MANAGER,
+    },
+    {
+      label: 'AI Assistant',
+      path: ROUTES.MANAGER.MANAGER_AI_CHAT,
+      icon: Bot,
       systemRole: UserSystemRole.MANAGER,
     },
     {
