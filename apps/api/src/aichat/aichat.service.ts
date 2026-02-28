@@ -18,7 +18,8 @@ import {
 export class AichatService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generateResponseStream(messages: UIMessage[]): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async generateResponseStream(messages: UIMessage[]): Promise<any> {
     try {
       const result = streamText({
         model: openai('gpt-4o-mini'),
