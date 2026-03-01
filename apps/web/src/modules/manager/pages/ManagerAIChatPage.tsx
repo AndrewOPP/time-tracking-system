@@ -39,7 +39,7 @@ export function ManagerAIChatPage() {
     const container = scrollContainerRef.current;
     if (!container) return true;
 
-    const threshold = 80; // px
+    const threshold = 80;
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
   }, []);
 
