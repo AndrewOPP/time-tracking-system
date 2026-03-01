@@ -2,7 +2,7 @@ interface Props {
   onLogout: () => void;
 }
 
-export default function UserIsNotActive({ onLogout }: Props) {
+export function UserIsNotActive({ onLogout }: Props) {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-[#fafafa]">
       <div className="w-full max-w-[440px] bg-white p-10 rounded-[32px] border border-[#f0f0f0] shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center">

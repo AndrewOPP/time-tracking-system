@@ -132,6 +132,32 @@
   background-size: 200% auto;
 }
 
+.fade-in-word {
+  opacity: 0;
+  transform: translateY(4px);
+  animation: fadeInWord 0.25s ease forwards;
+}
+
+@keyframes fadeInWord {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-block {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: fadeInBlock 0.35s ease forwards;
+}
+
+@keyframes fadeInBlock {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

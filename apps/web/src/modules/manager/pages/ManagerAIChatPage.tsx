@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { ChatSuggestions } from '../components/ChatPageComponents/ChatSuggestions';
@@ -7,12 +7,20 @@ import { UserMessage } from '../components/ChatPageComponents/UserMessage';
 import { ErrorMessage } from '../components/ChatPageComponents/ErrorMessage';
 import { LoadingIndicator } from '../components/ChatPageComponents/LoadingIndicator';
 import { ChatInput } from '../components/ChatPageComponents/ChatInput';
+import { useChatStore } from '../stores/useChatStore';
 
 export function ManagerAIChatPage() {
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const { savedMessages, setSavedMessages } = useChatStore();
   const [input, setInput] = useState('');
 
+  const isInitialRender = useRef(true);
+  const shouldAutoScrollRef = useRef(true);
+
   const { messages, sendMessage, status, error, regenerate } = useChat({
+    messages: savedMessages ?? [],
     transport: new DefaultChatTransport({
       api: import.meta.env.VITE_PUBLIC_API_URL + '/chat',
     }),
@@ -21,25 +29,68 @@ export function ManagerAIChatPage() {
   const isLoading = status === 'submitted' || status === 'streaming';
   const isReady = status === 'ready';
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    if (status === 'ready' && messages.length > 0) {
+      setSavedMessages(messages);
+    }
+  }, [status]);
+
+  const isUserAtBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return true;
+
+    const threshold = 80; // px
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  }, []);
+
+  const handleScroll = () => {
+    shouldAutoScrollRef.current = isUserAtBottom();
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const handleSubmitForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      sendMessage({ text: input });
-      setInput('');
+    if (!shouldAutoScrollRef.current) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: isInitialRender.current ? 'auto' : 'auto',
+    });
+
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
     }
+  }, [messages]);
+
+  const handleSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!input.trim()) return;
+
+    sendMessage({ text: input });
+    setInput('');
+
+    requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
+    });
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white font-sans text-slate-900">
-      <div className="flex-1 overflow-y-auto px-4 pt-8 pb-4">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto px-4 pt-8 pb-4 ${
+          isLoading ? 'pointer-events-none select-none' : ''
+        }`}
+      >
         <div className="max-w-3xl mx-auto h-full flex flex-col">
           {messages.length === 0 ? (
             <ChatSuggestions onSelect={text => sendMessage({ text })} />
@@ -52,6 +103,7 @@ export function ManagerAIChatPage() {
                   .join('');
 
                 const isTyping = message.role === 'assistant' && !textContent && isLoading;
+
                 return (
                   <div key={message.id} className="flex flex-col w-full">
                     {message.role === 'user' ? (

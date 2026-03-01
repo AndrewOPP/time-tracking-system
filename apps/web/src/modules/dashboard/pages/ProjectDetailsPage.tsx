@@ -9,7 +9,7 @@ import { statusConfig } from '@/shared/config/projectStatusConfig';
 import { ProjectStatus } from '@/shared/constants/projectStatus';
 import { getAppErrorMessage } from '@/shared/utils/error-handler';
 import { BackButton } from '../components/BackButton';
-import ProjectDetailsSkeleton from '../components/ProjectDetailsSkeleton';
+import { ProjectDetailsSkeleton } from '../components/ProjectDetailsSkeleton';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();

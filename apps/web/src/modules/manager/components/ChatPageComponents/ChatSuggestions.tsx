@@ -1,8 +1,4 @@
-const SUGGESTIONS = [
-  { id: '01', text: 'Find developers with React experience' },
-  { id: '02', text: 'Which employees are currently available?' },
-  { id: '03', text: 'Find available backend developers' },
-];
+import { SUGGESTIONS } from '../../constants/constants';
 
 export function ChatSuggestions({ onSelect }: { onSelect: (text: string) => void }) {
   return (

@@ -5,7 +5,7 @@ import { Input } from '@components/ui';
 interface ChatInputProps {
   input: string;
   setInput: (val: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
   isDisabled: boolean;
 }
 

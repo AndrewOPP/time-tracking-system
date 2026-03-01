@@ -3,7 +3,7 @@ import { OAuthLoginButton } from '../components/OAuthLoginButton';
 import { OAUTH_LIST } from '../types/auth.types';
 import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
 
-export default function LoginPage() {
+export function LoginPage() {
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
   return (

@@ -1,3 +1,3 @@
-export default function EmployeeProfilePage() {
+export function EmployeeProfilePage() {
   return <div>EmployeeProfilePage</div>;
 }

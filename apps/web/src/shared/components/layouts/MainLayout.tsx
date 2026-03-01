@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Navigation } from '@components/Navigation';
 
-export default function MainLayout() {
+export function MainLayout() {
   return (
     <div className="flex h-screen bg-white text-slate-900 overflow-hidden">
       <Navigation />

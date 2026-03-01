@@ -21,9 +21,13 @@ export class AichatService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async generateResponseStream(messages: UIMessage[]): Promise<any> {
     try {
+      const MAX_MESSAGES = 6;
+
+      const trimmedMessages = messages.slice(-MAX_MESSAGES);
+
       const result = streamText({
         model: openai('gpt-4o-mini'),
-        messages: await convertToModelMessages(messages),
+        messages: await convertToModelMessages(trimmedMessages),
         system: HR_SYSTEM_PROMPT,
         stopWhen: stepCountIs(6),
         tools: {
@@ -80,7 +84,7 @@ export class AichatService {
       where: { type },
       select: { name: true },
     });
-    return techs.map(t => t.name);
+    return techs.map(tech => tech.name);
   }
 
   private async handleFindEmployeeByName({ name }: FindEmployeeByNameArgs) {
@@ -171,7 +175,7 @@ export class AichatService {
     });
     return {
       notFound: true,
-      alternatives: availableUsers.map(u => ({ name: u.realName || u.username })),
+      alternatives: availableUsers.map(user => ({ name: user.realName || user.username })),
     };
   }
 }

@@ -2,7 +2,7 @@ import { Skeleton } from '@components/ui/skeleton';
 import { BackButton } from './BackButton';
 import { ROUTES } from '@/shared/constants/routes';
 
-export default function ProjectDetailsSkeleton() {
+export function ProjectDetailsSkeleton() {
   return (
     <div className="w-full pb-10">
       <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
