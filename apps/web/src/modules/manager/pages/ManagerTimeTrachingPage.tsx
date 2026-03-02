@@ -1,3 +1,3 @@
-export default function ManagerTimeTrachingPage() {
+export function ManagerTimeTrachingPage() {
   return <div>ManagerTimeTrachingPage</div>;
 }

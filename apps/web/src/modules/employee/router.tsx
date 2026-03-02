@@ -1,8 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants/routes';
-
-import EmployeeProfilePage from './pages/EmployeeProfilePage';
 import { DashboardPage } from '../dashboard/pages/DashboardPage';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
 
 export const EmployeeRoutes = () => (
   <Routes>

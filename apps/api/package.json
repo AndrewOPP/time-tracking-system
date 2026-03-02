@@ -14,6 +14,9 @@
     "clean": "rm -rf dist node_modules .turbo"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.34",
+    "@ai-sdk/openai": "^3.0.37",
+    "@google/genai": "^1.43.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.13",
     "@nestjs/config": "^4.0.3",
@@ -21,6 +24,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.1.13",
     "@time-tracking-app/database": "workspace:*",
+    "ai": "^6.0.105",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

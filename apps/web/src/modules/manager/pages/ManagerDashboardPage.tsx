@@ -1,6 +1,6 @@
 import { PageHeader } from '@components/PageHeader';
 
-export default function ManagerDashboardPage() {
+export function ManagerDashboardPage() {
   return (
     <div>
       <PageHeader

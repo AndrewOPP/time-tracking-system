@@ -1,16 +1,19 @@
 import { Routes, Route } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import PublicOnlyLayout from '@/shared/components/layouts/PublicOnlyLayout';
+
 import RequiredAuthLayout from '@/shared/components/layouts/RequiredAuthLayout';
 import { EmployeeRoutes } from '@/modules/employee/router';
 import { ManagerRoutes } from '@/modules/manager/router';
 import { GeneralRoutes } from '@/modules/dashboard/router';
-import LoginPage from '@/modules/auth/pages/LoginPage';
+
 import { OAuthCallback } from '@/modules/auth/components/OAuthCallback';
-import NotFoundPage from '@components/NotFoundPage';
+
 import { UserSystemRole } from '../types/user';
-import CheckIsActiveLayout from '@components/layouts/CheckIsActiveLayout';
-import MainLayout from '@components/layouts/MainLayout';
+import { CheckIsActiveLayout } from '@components/layouts/CheckIsActiveLayout';
+import { LoginPage } from '@/modules/auth/pages/LoginPage';
+import { PublicOnlyLayout } from '@components/layouts/PublicOnlyLayout';
+import { MainLayout } from '@components/layouts/MainLayout';
+import { NotFoundPage } from '@components/NotFoundPage';
 
 export const AppRouter = () => {
   return (

@@ -3,7 +3,7 @@ import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { ROUTES } from '@/shared/constants/routes';
 import { UserSystemRole } from '@/shared/types/user';
 
-export default function PublicOnlyLayout() {
+export function PublicOnlyLayout() {
   const { user } = useAuthStore();
   const location = useLocation();
 
