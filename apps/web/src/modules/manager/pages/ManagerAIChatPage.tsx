@@ -8,11 +8,11 @@ import { ErrorMessage } from '../components/ChatPageComponents/ErrorMessage';
 import { LoadingIndicator } from '../components/ChatPageComponents/LoadingIndicator';
 import { ChatInput } from '../components/ChatPageComponents/ChatInput';
 import { useChatStore } from '../stores/useChatStore';
+import { useAuthStore } from '@/modules/auth/stores/auth.store';
 
 export function ManagerAIChatPage() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
+  const accessToken = useAuthStore(state => state.accessToken);
   const { savedMessages, setSavedMessages } = useChatStore();
   const [input, setInput] = useState('');
 
@@ -23,6 +23,9 @@ export function ManagerAIChatPage() {
     messages: savedMessages ?? [],
     transport: new DefaultChatTransport({
       api: import.meta.env.VITE_PUBLIC_API_URL + '/chat',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     }),
   });
 
@@ -33,7 +36,7 @@ export function ManagerAIChatPage() {
     if (status === 'ready' && messages.length > 0) {
       setSavedMessages(messages);
     }
-  }, [status]);
+  }, [status, messages, setSavedMessages]);
 
   const isUserAtBottom = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -55,7 +58,7 @@ export function ManagerAIChatPage() {
 
     container.scrollTo({
       top: container.scrollHeight,
-      behavior: isInitialRender.current ? 'auto' : 'auto',
+      behavior: 'auto',
     });
 
     if (isInitialRender.current) {
@@ -124,8 +127,6 @@ export function ManagerAIChatPage() {
               {isLoading &&
                 messages.length > 0 &&
                 messages[messages.length - 1].role === 'user' && <LoadingIndicator />}
-
-              <div ref={messagesEndRef} className="h-2" />
             </div>
           )}
         </div>

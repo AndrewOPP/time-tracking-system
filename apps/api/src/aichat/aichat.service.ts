@@ -13,10 +13,14 @@ import {
   GetTechByCategoryArgs,
   SearchEmployeesArgs,
 } from './dto/ai-chat.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AichatService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService
+  ) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async generateResponseStream(messages: UIMessage[]): Promise<any> {
@@ -26,7 +30,7 @@ export class AichatService {
       const trimmedMessages = messages.slice(-MAX_MESSAGES);
 
       const result = streamText({
-        model: openai('gpt-4o-mini'),
+        model: openai(this.configService.getOrThrow('AI_MODEL')),
         messages: await convertToModelMessages(trimmedMessages),
         system: HR_SYSTEM_PROMPT,
         stopWhen: stepCountIs(6),
@@ -38,6 +42,7 @@ export class AichatService {
               properties: {
                 type: { type: 'string', enum: Object.values(TechnologyType) },
               },
+              required: ['type'],
             }),
             execute: args => this.handleGetTechByCategory(args),
           }),
@@ -110,7 +115,9 @@ export class AichatService {
         })),
       };
     } catch (error) {
-      return { error: 'Database error, error' + error };
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to retrieve employees: ${errorMessage}`);
+      return { error: 'Could not retrieve employees at the moment. Please try again later.' };
     }
   }
 
@@ -157,9 +164,10 @@ export class AichatService {
         status: user.projects.length > 0 ? 'Busy' : 'Available',
       }));
     } catch (error) {
-      console.log(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to map user projects: ${errorMessage}`);
 
-      return { error: 'Database unavailable, error:' + error };
+      return { error: 'Could not retrieve employees at the moment. Please try again later.' };
     }
   }
 

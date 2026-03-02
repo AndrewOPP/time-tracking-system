@@ -22,7 +22,7 @@ export function AssistantMessage({
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 3000);
     } catch (err) {
-      console.error('Не удалось скопировать текст: ', err);
+      console.error('Error copying text: ', err);
     }
   };
   const blocks = useMemo(() => {
@@ -73,7 +73,7 @@ export function AssistantMessage({
       </div>
 
       {isReady && (
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-transparent text-slate-400">
+        <div className="flex items-center gap-4 mt-3 pb-3 border-t border-transparent text-slate-400">
           <button
             className="cursor-pointer flex items-center gap-1.5 hover:text-slate-600 transition-colors"
             onClick={() =>
