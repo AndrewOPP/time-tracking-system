@@ -49,6 +49,7 @@ export class AuthController {
     const user = await this.authService.validateUser(providerUpper, profile);
 
     const tokens = await this.authService.getTokens(user.id, user.email, user.systemRole, res);
+    console.log(tokens.accessToken);
 
     await this.authService.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
