@@ -6,8 +6,6 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { AppController } from './app.controller';
 import { AichatModule } from './aichat/aichat.module';
-import { TimeLogsController } from './timeLogs/timeLogs.controller';
-import { TimeLogsService } from './timeLogs/timeLogs.service';
 import { TimeLogsModule } from './timeLogs/timeLogs.module';
 
 @Module({
@@ -21,7 +19,7 @@ import { TimeLogsModule } from './timeLogs/timeLogs.module';
     AichatModule,
     TimeLogsModule,
   ],
-  controllers: [AppController, TimeLogsController],
-  providers: [AppService, TimeLogsService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

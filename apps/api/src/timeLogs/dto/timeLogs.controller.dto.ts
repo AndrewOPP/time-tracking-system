@@ -36,7 +36,9 @@ export class CreateTimeLogDto {
 
 export class UpdateTimeLogDto extends PartialType(CreateTimeLogDto) {}
 
-export class BulkSaveTimeLogDto extends CreateTimeLogDto {
+import { OmitType } from '@nestjs/mapped-types';
+
+export class BulkSaveTimeLogDto extends OmitType(CreateTimeLogDto, ['projectId'] as const) {
   @IsOptional()
   @IsUUID()
   id?: string;

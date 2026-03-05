@@ -35,12 +35,13 @@ export class TimeLogsController {
     return this.timeLogsService.createLog(req.user, createTimeLogDto);
   }
 
-  @Post('bulk')
+  @Post('bulk/:projectId')
   createBulk(
     @Req() req: RequestWithUser,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
     @Body(new ParseArrayPipe({ items: BulkSaveTimeLogDto })) createDtos: BulkSaveTimeLogDto[]
   ) {
-    return this.timeLogsService.createBulk(req.user, createDtos);
+    return this.timeLogsService.createBulk(req.user, projectId, createDtos);
   }
 
   @Get('me')

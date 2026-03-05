@@ -12,6 +12,7 @@ import {
 import { user } from './types/timeLogs.types';
 import { Prisma, PrismaService } from '@time-tracking-app/database/index';
 import { TIME_LOG_ERRORS } from './constants/timeLogs.constants';
+import { runSerializable } from './utils/runSerializable';
 
 // I will add pagination for getManagerDashboard and findLogsByPeriod in the future.
 
@@ -20,12 +21,13 @@ export class TimeLogsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async _checkDailyHoursLimit(
+    tx: Prisma.TransactionClient,
     userId: string,
     date: Date,
     hoursToAdd: number,
     excludeLogId?: string
   ) {
-    const aggregate = await this.prisma.timeLog.aggregate({
+    const aggregate = await tx.timeLog.aggregate({
       where: {
         userId,
         date,
@@ -46,93 +48,87 @@ export class TimeLogsService {
     const userId = user.sub;
     const targetDate = new Date(timeLog.date);
 
-    const project = await this.prisma.project.findUnique({
-      where: {
-        id: timeLog.projectId,
-      },
-      include: {
-        users: {
-          where: { userId: userId },
+    const log = await runSerializable(this.prisma, async tx => {
+      const project = await tx.project.findUnique({
+        where: { id: timeLog.projectId },
+        include: { users: { where: { userId } } },
+      });
+
+      if (!project) {
+        throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
+      }
+
+      if (project.users.length === 0) {
+        throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
+      }
+
+      await this._checkDailyHoursLimit(tx, userId, targetDate, Number(timeLog.hours));
+
+      return tx.timeLog.create({
+        data: {
+          hours: timeLog.hours,
+          userId,
+          projectId: timeLog.projectId,
+          date: targetDate,
+          description: timeLog.description,
         },
-      },
+      });
     });
-
-    if (!project) {
-      throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
-    }
-
-    if (project.users.length === 0) {
-      throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
-    }
-
-    await this._checkDailyHoursLimit(userId, targetDate, Number(timeLog.hours));
-
-    const newLog = await this.prisma.timeLog.create({
-      data: {
-        hours: timeLog.hours,
-        userId: userId,
-        projectId: timeLog.projectId,
-        date: targetDate,
-        description: timeLog.description,
-      },
-    });
-
-    return newLog;
+    return log;
   }
 
   async updateLog(user: user, logId: string, updateTimeLogData: UpdateTimeLogDto) {
     const userId = user.sub;
 
-    const targetLog = await this.prisma.timeLog.findUnique({
-      where: {
-        id: logId,
-      },
-    });
+    const updatedLog = await runSerializable(this.prisma, async tx => {
+      const targetLog = await tx.timeLog.findUnique({ where: { id: logId } });
 
-    if (!targetLog) {
-      throw new NotFoundException(TIME_LOG_ERRORS.LOG.NOT_FOUND);
-    }
+      if (!targetLog) {
+        throw new NotFoundException(TIME_LOG_ERRORS.LOG.NOT_FOUND);
+      }
 
-    if (targetLog.userId !== userId) {
-      throw new ForbiddenException(TIME_LOG_ERRORS.LOG.FORBIDDEN_EDIT);
-    }
+      if (targetLog.userId !== userId) {
+        throw new ForbiddenException(TIME_LOG_ERRORS.LOG.FORBIDDEN_EDIT);
+      }
 
-    if (updateTimeLogData.projectId && updateTimeLogData.projectId !== targetLog.projectId) {
-      const projectAccess = await this.prisma.project.findUnique({
-        where: { id: updateTimeLogData.projectId },
-        include: { users: { where: { userId } } },
+      if (updateTimeLogData.projectId && updateTimeLogData.projectId !== targetLog.projectId) {
+        const projectAccess = await tx.project.findUnique({
+          where: { id: updateTimeLogData.projectId },
+          include: { users: { where: { userId } } },
+        });
+
+        if (!projectAccess) {
+          throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
+        }
+
+        if (projectAccess.users.length === 0) {
+          throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED_UPDATE);
+        }
+      }
+
+      if ('hours' in updateTimeLogData || 'date' in updateTimeLogData) {
+        const targetDate = updateTimeLogData.date
+          ? new Date(updateTimeLogData.date)
+          : targetLog.date;
+
+        const targetHours = updateTimeLogData.hours ?? Number(targetLog.hours);
+
+        await this._checkDailyHoursLimit(tx, userId, targetDate, targetHours, logId);
+      }
+
+      const dataToUpdate: Prisma.TimeLogUncheckedUpdateInput = {
+        hours: updateTimeLogData.hours,
+        projectId: updateTimeLogData.projectId,
+        description: updateTimeLogData.description,
+        date: updateTimeLogData.date ? new Date(updateTimeLogData.date) : undefined,
+      };
+
+      return tx.timeLog.update({
+        where: { id: logId },
+        data: dataToUpdate,
       });
-
-      if (!projectAccess) {
-        throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
-      }
-
-      if (projectAccess.users.length === 0) {
-        throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED_UPDATE);
-      }
-    }
-
-    if ('hours' in updateTimeLogData || 'date' in updateTimeLogData) {
-      const targetDate = updateTimeLogData.date ? new Date(updateTimeLogData.date) : targetLog.date;
-      const targetHours = updateTimeLogData.hours ?? Number(targetLog.hours);
-
-      await this._checkDailyHoursLimit(userId, targetDate, targetHours, logId);
-    }
-
-    const dataToUpdate: Prisma.TimeLogUncheckedUpdateInput = {
-      hours: updateTimeLogData.hours,
-      projectId: updateTimeLogData.projectId,
-      description: updateTimeLogData.description,
-    };
-
-    if (updateTimeLogData.date) {
-      dataToUpdate.date = new Date(updateTimeLogData.date);
-    }
-
-    const updatedLog = await this.prisma.timeLog.update({
-      where: { id: logId },
-      data: dataToUpdate,
     });
+
     return updatedLog;
   }
 
@@ -190,88 +186,85 @@ export class TimeLogsService {
     return logs;
   }
 
-  async createBulk(user: user, logsToSave: BulkSaveTimeLogDto[]) {
+  async createBulk(user: user, projectId: string, logsToSave: BulkSaveTimeLogDto[]) {
     if (!logsToSave || logsToSave.length === 0) {
       return { message: TIME_LOG_ERRORS.MESSAGES.BULK_EMPTY };
     }
 
     const userId = user.sub;
-    const targetProjectId = logsToSave[0].projectId;
 
-    const projectAccess = await this.prisma.project.findUnique({
-      where: { id: targetProjectId },
-      include: {
-        users: { where: { userId: userId } },
-      },
-    });
+    return await runSerializable(this.prisma, async tx => {
+      const projectAccess = await tx.project.findUnique({
+        where: { id: projectId },
+        include: { users: { where: { userId } } },
+      });
 
-    if (!projectAccess) {
-      throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
-    }
-    if (projectAccess.users.length === 0) {
-      throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
-    }
-
-    const uniqueDates = [...new Set(logsToSave.map(log => log.date))].map(date => new Date(date));
-
-    const existingLogs = await this.prisma.timeLog.findMany({
-      where: {
-        userId: userId,
-        date: { in: uniqueDates },
-      },
-    });
-
-    const hoursPerDay = new Map<string, number>();
-    const incomingIds = logsToSave.map(log => log.id).filter(id => id);
-
-    for (const log of existingLogs) {
-      if (incomingIds.includes(log.id)) {
-        continue;
+      if (!projectAccess) {
+        throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
       }
-      const dateStr = log.date.toISOString().split('T')[0];
-      const currentHours = hoursPerDay.get(dateStr) || 0;
-      hoursPerDay.set(dateStr, currentHours + Number(log.hours));
-    }
 
-    for (const log of logsToSave) {
-      const dateStr = new Date(log.date).toISOString().split('T')[0];
-      const currentTotal = hoursPerDay.get(dateStr) || 0;
-      const newTotal = currentTotal + log.hours;
-
-      if (newTotal > 24) {
-        throw new BadRequestException(TIME_LOG_ERRORS.LOG.LIMIT_EXCEEDED_DATE(dateStr, newTotal));
+      if (projectAccess.users.length === 0) {
+        throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
       }
-      hoursPerDay.set(dateStr, newTotal);
-    }
 
-    const transactionQueries = logsToSave.map(log => {
-      const logDate = new Date(log.date);
+      const uniqueDates = [...new Set(logsToSave.map(log => log.date))].map(date => new Date(date));
 
-      if (log.id) {
-        return this.prisma.timeLog.update({
-          where: { id: log.id, userId: userId },
-          data: {
-            hours: log.hours,
-            description: log.description,
-            projectId: targetProjectId,
-          },
-        });
-      } else {
-        return this.prisma.timeLog.create({
-          data: {
-            userId: userId,
-            projectId: targetProjectId,
-            date: logDate,
-            hours: log.hours,
-            description: log.description,
-          },
-        });
+      const existingLogs = await tx.timeLog.findMany({
+        where: { userId, date: { in: uniqueDates } },
+      });
+
+      const hoursPerDay = new Map<string, number>();
+      const incomingIds = logsToSave.map(log => log.id).filter(id => id);
+
+      for (const log of existingLogs) {
+        if (incomingIds.includes(log.id)) continue;
+
+        const dateStr = log.date.toISOString().split('T')[0];
+
+        hoursPerDay.set(dateStr, (hoursPerDay.get(dateStr) || 0) + Number(log.hours));
       }
+
+      for (const log of logsToSave) {
+        const dateStr = new Date(log.date).toISOString().split('T')[0];
+
+        const currentTotal = hoursPerDay.get(dateStr) || 0;
+        const newTotal = currentTotal + log.hours;
+
+        if (newTotal > 24) {
+          throw new BadRequestException(TIME_LOG_ERRORS.LOG.LIMIT_EXCEEDED_DATE(dateStr, newTotal));
+        }
+
+        hoursPerDay.set(dateStr, newTotal);
+      }
+
+      for (const log of logsToSave) {
+        const logDate = new Date(log.date);
+
+        if (log.id) {
+          await tx.timeLog.update({
+            where: { id: log.id, userId },
+            data: {
+              hours: log.hours,
+              date: logDate,
+              description: log.description,
+              projectId,
+            },
+          });
+        } else {
+          await tx.timeLog.create({
+            data: {
+              userId,
+              projectId,
+              date: logDate,
+              hours: log.hours,
+              description: log.description,
+            },
+          });
+        }
+      }
+
+      return { message: TIME_LOG_ERRORS.MESSAGES.BULK_SUCCESS };
     });
-
-    await this.prisma.$transaction(transactionQueries);
-
-    return { message: TIME_LOG_ERRORS.MESSAGES.BULK_SUCCESS };
   }
 
   async findMissingDays(userId: string, from: string, to: string) {
