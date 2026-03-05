@@ -6,6 +6,12 @@ export interface OAuthConfig {
   useFormData: boolean;
 }
 
+export enum Role {
+  USER = 'USER',
+  MANAGER = 'MANAGER',
+  ADMIN = 'ADMIN',
+}
+
 export interface IOAuthProfile {
   id: string;
   email: string;

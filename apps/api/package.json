@@ -22,6 +22,7 @@
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.13",
     "@nestjs/jwt": "^11.0.2",
+    "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.13",
     "@time-tracking-app/database": "workspace:*",
     "ai": "^6.0.105",

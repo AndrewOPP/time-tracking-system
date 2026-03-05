@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { AppController } from './app.controller';
 import { AichatModule } from './aichat/aichat.module';
+import { TimeLogsModule } from './timeLogs/timeLogs.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AichatModule } from './aichat/aichat.module';
     AuthModule,
     ProjectsModule,
     AichatModule,
+    TimeLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

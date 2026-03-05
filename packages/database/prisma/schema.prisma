@@ -84,6 +84,8 @@ model User {
   managedProjects Project[]      @relation("ProjectManager")
   technologies    UserTechnology[]
 
+  timeLogs        TimeLog[]
+
   @@map("user")
 }
 
@@ -111,6 +113,8 @@ model Project {
   projectManager User?         @relation("ProjectManager", fields: [projectManagerId], references: [id], onDelete: SetNull)
   users          UserProject[]
   technologies   Technology[]
+
+  timeLogs       TimeLog[]
 
   @@map("project")
 }
@@ -146,4 +150,26 @@ model UserProject {
 
   @@unique([userId, projectId])
   @@map("user_project")
+}
+
+model TimeLog {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date 
+  hours       Decimal  @db.Decimal(3, 1) 
+  description String   @db.Text
+
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId   String   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+
+  @@index([userId, date])
+  @@index([projectId, date])
+
+  @@map("time_log")
 }
