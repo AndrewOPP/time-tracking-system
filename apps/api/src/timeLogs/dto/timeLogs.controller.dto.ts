@@ -10,7 +10,7 @@ import {
   MaxLength,
   IsOptional,
 } from 'class-validator';
-
+import { OmitType } from '@nestjs/mapped-types';
 import { IsValidDateRange } from '../utils/dateValidation.decorator';
 
 export class CreateTimeLogDto {
@@ -35,8 +35,6 @@ export class CreateTimeLogDto {
 }
 
 export class UpdateTimeLogDto extends PartialType(CreateTimeLogDto) {}
-
-import { OmitType } from '@nestjs/mapped-types';
 
 export class BulkSaveTimeLogDto extends OmitType(CreateTimeLogDto, ['projectId'] as const) {
   @IsOptional()
