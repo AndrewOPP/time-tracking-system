@@ -7,9 +7,12 @@ import { ProjectsModule } from './projects/projects.module';
 import { AppController } from './app.controller';
 import { AichatModule } from './aichat/aichat.module';
 import { TimeLogsModule } from './timeLogs/timeLogs.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -18,6 +21,7 @@ import { TimeLogsModule } from './timeLogs/timeLogs.module';
     ProjectsModule,
     AichatModule,
     TimeLogsModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
