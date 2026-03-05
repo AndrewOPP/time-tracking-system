@@ -33,7 +33,7 @@ export class TimeLogsReminderService {
           const message = `Don't forget to track your hours for this week! Visit your profile to see your time logs`;
           await this.sendNotificationStub(user.email, message);
           this.logger.info(
-            `Reminder was sent to employee "${user.realName}" [id: ${user.id}]. Message: "${message}"`
+            `Reminder was sent to employee "${user.realName || user.email}" [id: ${user.id}]. Message: "${message}"`
           );
           successCount++;
         } catch (error) {

@@ -8,7 +8,7 @@ export class TimeLogsCronService {
 
   constructor(private readonly reminderService: TimeLogsReminderService) {}
 
-  @Cron('30 17 * * 5')
+  @Cron('30 17 * * 5', { timeZone: 'Europe/Kyiv' })
   async weeklyReminders() {
     await this.runJob();
   }

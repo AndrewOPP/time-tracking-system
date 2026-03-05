@@ -15,8 +15,14 @@ import * as winston from 'winston';
         winston.format.timestamp({
           format: 'YYYY-MM-DD HH:mm:ss',
         }),
-        winston.format.printf(({ timestamp, level, message }) => {
-          return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+        winston.format.printf(({ timestamp, level, message, stack }) => {
+          let logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+
+          if (stack) {
+            logMessage += `\n${stack}`;
+          }
+
+          return logMessage;
         })
       ),
     }),
