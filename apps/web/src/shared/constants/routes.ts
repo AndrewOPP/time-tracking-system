@@ -15,7 +15,9 @@ export const ROUTES = {
   EMPLOYEE: {
     ROOT: '/employee',
     PROFILE: 'profile',
+    TIME_LOGS: 'my-time-logs',
     EMPLOYEE_PROFILE: '/employee/profile',
+    EMPLOYEE_TIME_LOGS: '/employee/my-time-logs',
   },
 
   MANAGER: {

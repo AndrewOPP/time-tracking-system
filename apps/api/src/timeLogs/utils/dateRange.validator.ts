@@ -18,14 +18,12 @@ export class IsValidDateRangeConstraint implements ValidatorConstraintInterface 
 
     const fromDate = new Date(dto.from);
     const toDate = new Date(dto.to);
-    const now = new Date();
 
     if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
       return false;
     }
 
     if (fromDate > toDate) return false;
-    if (toDate > now) return false;
 
     const diffInDays = (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -35,7 +33,6 @@ export class IsValidDateRangeConstraint implements ValidatorConstraintInterface 
   defaultMessage(args: ValidationArguments): string {
     const dto = args.object as DateRangeDto;
     if (new Date(dto.from) > new Date(dto.to)) return 'Start date cannot be after end date';
-    if (new Date(dto.to) > new Date()) return 'End date cannot be in the future';
     return 'Date range cannot exceed 90 days';
   }
 }
