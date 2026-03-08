@@ -17,11 +17,20 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
   const updateLogHandler = (logId: string) => {
     updateLogMutation.mutate({ id: logId, updateLog: { description: 'Updated' } });
   };
+
   const deleteLogHandler = (logId: string) => {
     deleteLogMutation.mutate({ id: logId });
   };
 
   const hasEntries = dayData.entries.length > 0;
+
+  const isWeekend = dayData.dayName === 'Saturday' || dayData.dayName === 'Sunday';
+
+  const borderClass = isWeekend ? 'border-dashed  border-gray-300' : 'border-solid border-gray-200';
+  const titleColor = isWeekend ? 'text-gray-500' : 'text-gray-900';
+  const emptyText = isWeekend
+    ? 'Add working hours if needed. Thank you for your time and contribution!'
+    : 'Please enter work hours for today!';
 
   return (
     <div
@@ -31,32 +40,34 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
         animationFillMode: 'both',
       }}
     >
-      <div className="h-[72px] py-4 px-6 flex items-center justify-between border border-gray-200 rounded-t-[12px] bg-gray-50/50">
+      <div
+        className={`h-[72px] bg-[#F9FAFB] py-4 px-6 flex items-center justify-between border ${borderClass} rounded-t-[12px] `}
+      >
         <div className="flex items-center gap-4">
-          <span className="bg-gray-200/80 text-gray-800 font-semibold px-2 py-1 rounded-md text-sm min-w-[3rem] text-center">
+          <span className="bg-[#6F6F6F1A] text-gray-800 font-semibold px-2 py-1 rounded-md text-sm min-w-[3rem] text-center">
             {dayData.totalHours.toFixed(1)}
           </span>
-          <span className="font-bold text-gray-900 text-base">
-            {dayData.dayName} <span className="font-normal text-gray-500">| {dayData.dateStr}</span>
+          <span className={`font-bold text-base ${titleColor}`}>
+            {dayData.dayName} | {dayData.dateStr}
           </span>
         </div>
 
         <button
           onClick={() => onTrackClick?.(dayData.fullDate)}
-          className="flex items-center gap-2 bg-[#509665] hover:bg-[#438255] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#509665] hover:bg-[#4E916B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Clock className="w-4 h-4" />
           Track hours
         </button>
       </div>
 
-      <div className="border-x border-b border-gray-200 rounded-b-[12px] bg-white flex flex-col">
+      <div className={`border-x border-b ${borderClass} rounded-b-[12px] bg-white flex flex-col`}>
         {!hasEntries ? (
           <div className="min-h-[74px] py-[28px] px-[24px] flex items-center gap-[16px]">
             <span className="text-gray-900 font-semibold text-sm min-w-[3rem] text-center">
               0.0
             </span>
-            <span className="text-gray-400 text-sm">Please enter work hours for today!</span>
+            <span className="text-[#6F6F6F] text-sm">{emptyText}</span>
           </div>
         ) : (
           <div className="flex flex-col">
@@ -66,7 +77,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
               return (
                 <div
                   key={entry.id}
-                  className={`min-h-[74px] py-[28px] px-[24px] flex items-start gap-[16px] group ${
+                  className={`min-h-[74px] py-[28px] px-[24px] flex items-center gap-[16px] group ${
                     !isLast ? 'border-b border-gray-100' : ''
                   }`}
                 >
@@ -78,7 +89,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
                     <h4 className="font-semibold text-gray-900 text-sm">
                       {entry.project?.name || 'Unknown Project'}
                     </h4>
-                    <p className="text-gray-500 text-sm mt-1 leading-snug">{entry.description}</p>
+                    <p className="text-[#6F6F6F] text-sm mt-1 leading-snug">{entry.description}</p>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-400 mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
