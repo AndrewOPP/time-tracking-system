@@ -44,9 +44,6 @@ export default function MyTimeLogsPage() {
 
   // Робимо паралельний запит за весь місяць
   const { timeLogs: monthLogs } = useLogDates(monthFromStr, monthToStr);
-  console.log(monthFromStr, 'monthFromStr');
-  console.log(monthToStr, 'monthToStr');
-  console.log(monthLogs, 'monthLogs');
 
   const groupedLogsByDays = useMemo(() => {
     return groupLogsToDays(fromStr, toStr, timeLogs || []);
