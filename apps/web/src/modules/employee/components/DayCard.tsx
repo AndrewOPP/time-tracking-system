@@ -1,6 +1,6 @@
 import { Clock, Pencil, Trash2 } from 'lucide-react';
 import type { DayGroup } from '../types/timeLogs';
-import { useDeleteLogMutation, useUpdateLogMutation } from '../hooks/useMutations';
+import { useDialogStore } from '../store/useDialogStore';
 
 interface DayCardProps {
   dayData: DayGroup;
@@ -11,16 +11,7 @@ interface DayCardProps {
 }
 
 export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
-  const updateLogMutation = useUpdateLogMutation();
-  const deleteLogMutation = useDeleteLogMutation();
-
-  const updateLogHandler = (logId: string) => {
-    updateLogMutation.mutate({ id: logId, updateLog: { description: 'Updated' } });
-  };
-
-  const deleteLogHandler = (logId: string) => {
-    deleteLogMutation.mutate({ id: logId });
-  };
+  const { openDialog } = useDialogStore();
 
   const hasEntries = dayData.entries.length > 0;
 
@@ -54,7 +45,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
 
         <button
           onClick={() => onTrackClick?.(dayData.fullDate)}
-          className="flex items-center gap-2 bg-[#509665] hover:bg-[#4E916B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#509665] hover:bg-[#4E916B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           <Clock className="w-4 h-4" />
           Track hours
@@ -94,13 +85,14 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
 
                   <div className="flex items-center gap-3 text-gray-400 mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => updateLogHandler(entry.id)}
+                      onClick={() => openDialog('TRACK_TIME', { log: entry })}
                       className="hover:text-gray-800 transition-colors p-1 cursor-pointer"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
+
                     <button
-                      onClick={() => deleteLogHandler(entry.id)}
+                      onClick={() => openDialog('DELETE_LOG', { log: entry })}
                       className="hover:text-red-600 transition-colors p-1 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />

@@ -8,9 +8,12 @@ import { DayCard } from '../components/DayCard';
 import { DayCardSkeleton } from '../components/DayCardSkeleton';
 import { CustomCalendar } from '../components/CustomCalendar';
 import { WeekNavigation } from '../components/WeekNavigation';
+import { LogTimeModal } from '../components/LogTimeModal';
+import { useDialogStore } from '../store/useDialogStore';
 
 export default function MyTimeLogsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { openDialog } = useDialogStore();
 
   const dateParam = searchParams.get('date');
   const activeDate = useMemo(() => (dateParam ? new Date(dateParam) : new Date()), [dateParam]);
@@ -81,7 +84,12 @@ export default function MyTimeLogsPage() {
           ) : (
             <div className="flex flex-col">
               {groupedLogsByDays.map((day, index) => (
-                <DayCard key={day.fullDate} dayData={day} index={index} />
+                <DayCard
+                  key={day.fullDate}
+                  dayData={day}
+                  index={index}
+                  onTrackClick={() => openDialog('TRACK_TIME', { date: day.fullDate })}
+                />
               ))}
             </div>
           )}
@@ -99,6 +107,9 @@ export default function MyTimeLogsPage() {
           </div>
         </div>
       </div>
+
+      <LogTimeModal />
+      {/* <DeleteLogAlert /> */}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { logDelete, logUpdate } from '../api/myTimeLogs.api';
+import { logCreate, logDelete, logUpdate } from '../api/myTimeLogs.api';
 import type { TimeLog } from '../types/timeLogs';
 
 export const useUpdateLogMutation = () => {
@@ -36,6 +36,21 @@ export const useDeleteLogMutation = () => {
         if (!oldData) return oldData;
 
         return oldData.filter(log => deletedLog.id !== log.id);
+      });
+    },
+  });
+};
+
+export const useCreateLogMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logCreate,
+    onSuccess: createdLog => {
+      queryClient.setQueriesData({ queryKey: ['timeLogs'] }, (oldData: TimeLog[] | undefined) => {
+        if (!oldData) return oldData;
+        // Возвращаем новый массив, разворачивая старый и добавляя новый лог в конец
+        return [...oldData, createdLog];
       });
     },
   });

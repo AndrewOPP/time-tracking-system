@@ -66,6 +66,14 @@ export class TimeLogCommandsService {
           date: targetDate,
           description: timeLog.description,
         },
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
     });
   }

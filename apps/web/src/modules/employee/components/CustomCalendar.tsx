@@ -57,7 +57,7 @@ export const CustomCalendar = ({
 
         month_grid: 'w-full border-collapse table-fixed',
         weekdays: 'w-full',
-        weekday: 'text-gray-900 font-bold text-[0.85rem] text-center pb-3 capitalize',
+        weekday: 'h-10 w-10 text-gray-900 font-bold text-[16px] text-center pb-3 capitalize',
         week: 'w-full',
         day: 'p-0 text-center py-0.5',
 
@@ -66,7 +66,7 @@ export const CustomCalendar = ({
 
         selected: '[&>button]:!bg-[#4E916B] [&>button]:!text-white  [&>button]:after:!bg-white',
         today: '[&>button]:bg-gray-100 [&>button]:font-bold [&>button]:text-gray-900',
-        outside: '[&>button]:text-gray-300 [&>button]:opacity-50',
+        outside: '[&>button]:text-[#E0E1E2]',
       }}
     />
   );

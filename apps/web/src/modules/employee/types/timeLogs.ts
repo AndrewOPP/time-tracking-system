@@ -5,10 +5,17 @@ export interface ProjectMin {
 export interface TimeLog {
   id: string;
   date: string;
-  hours: number; // Тут вже перетворені з рядка числа
+  hours: number;
   description: string;
   projectId: string;
   project: ProjectMin;
+}
+
+export interface CreateLog {
+  date: string;
+  hours: number;
+  description: string;
+  projectId: string;
 }
 
 export interface UpdateLog {
@@ -18,9 +25,9 @@ export interface UpdateLog {
 }
 
 export interface DayGroup {
-  fullDate: string; // '2026-03-01'
-  dayName: string; // 'Sunday'
-  dateStr: string; // 'Mar 1'
-  totalHours: number; // 8.5
-  entries: TimeLog[]; // Array of logs for this day
+  fullDate: string;
+  dayName: string;
+  dateStr: string;
+  totalHours: number;
+  entries: TimeLog[];
 }
