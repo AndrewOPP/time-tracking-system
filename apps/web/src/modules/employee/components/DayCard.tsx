@@ -1,5 +1,5 @@
 import { Clock, Pencil, Trash2 } from 'lucide-react';
-import type { DayGroup } from '../types/timeLogs';
+import { DialogType, type DayGroup } from '../types/timeLogs';
 import { useDialogStore } from '../store/useDialogStore';
 
 interface DayCardProps {
@@ -68,7 +68,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
               return (
                 <div
                   key={entry.id}
-                  className={`min-h-[74px] py-[28px] px-[24px] flex items-center gap-[16px] group ${
+                  className={`max-h-[74px] py-[28px] px-[24px] flex items-center gap-[16px] group ${
                     !isLast ? 'border-b border-gray-100' : ''
                   }`}
                 >
@@ -85,14 +85,14 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
 
                   <div className="flex items-center gap-3 text-gray-400 mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => openDialog('TRACK_TIME', { log: entry })}
+                      onClick={() => openDialog(DialogType.TRACK_TIME, { log: entry })}
                       className="hover:text-gray-800 transition-colors p-1 cursor-pointer"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
 
                     <button
-                      onClick={() => openDialog('DELETE_TIME_LOG', { log: entry })}
+                      onClick={() => openDialog(DialogType.DELETE_TIME_LOG, { log: entry })}
                       className="hover:text-red-600 transition-colors p-1 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />

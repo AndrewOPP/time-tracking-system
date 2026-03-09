@@ -1,10 +1,10 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
 
-type Props = {
+interface Props {
   register: UseFormRegister<LogTimeFormValues>;
   errors: FieldErrors<LogTimeFormValues>;
-};
+}
 
 export const DescriptionField = ({ register, errors }: Props) => {
   return (

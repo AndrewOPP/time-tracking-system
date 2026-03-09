@@ -67,7 +67,6 @@ export const Navigation = () => {
       label: 'My Time Logs',
       path: ROUTES.EMPLOYEE.EMPLOYEE_TIME_LOGS,
       icon: TimerIcon,
-      // systemRole: UserSystemRole.EMPLOYEE,
     },
   ];
 

@@ -1,7 +1,7 @@
-type Props = {
+interface Props {
   onClose: () => void;
   isSaving: boolean;
-};
+}
 
 export const ModalFooter = ({ onClose, isSaving }: Props) => {
   return (
@@ -19,7 +19,7 @@ export const ModalFooter = ({ onClose, isSaving }: Props) => {
         disabled={isSaving}
         className="px-8 py-2.5 font-semibold text-white bg-[#4E916B] hover:bg-[#3d7254] rounded-[8px] disabled:opacity-50 cursor-pointer"
       >
-        {isSaving ? 'Saving...' : 'Save'}
+        Save
       </button>
     </div>
   );

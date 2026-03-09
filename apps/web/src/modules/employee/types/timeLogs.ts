@@ -41,3 +41,27 @@ export interface Project {
   totalTeamMembers: number;
   totalLoggedHours: number;
 }
+
+export interface LogSummary {
+  date: Date;
+  totalHours: number;
+}
+
+export const DialogType = {
+  TRACK_TIME: 'TRACK_TIME',
+  DELETE_TIME_LOG: 'DELETE_TIME_LOG',
+} as const;
+
+export type DialogType = (typeof DialogType)[keyof typeof DialogType] | null;
+
+export interface DialogData {
+  date?: string | null;
+  log?: TimeLog;
+}
+
+export interface DialogState {
+  activeDialog: DialogType;
+  dialogData: DialogData;
+  openDialog: (type: DialogType, data?: DialogData) => void;
+  closeDialog: () => void;
+}

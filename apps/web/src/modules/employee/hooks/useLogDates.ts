@@ -1,4 +1,3 @@
-// src/hooks/useLogDates.ts
 import { useMemo } from 'react';
 import { useTimeLogsByPeriod } from '../hooks/useTimeLogs';
 

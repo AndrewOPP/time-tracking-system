@@ -18,7 +18,6 @@ export const useUpdateLogMutation = () => {
               ...updatedLog,
             };
           }
-
           return log;
         });
       });
@@ -41,15 +40,15 @@ export const useDeleteLogMutation = () => {
   });
 };
 
-export const useCreateLogMutation = () => {
+export const useCreateLogMutation = (fromStr: string, toStr: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: logCreate,
-    onSuccess: createdLog => {
-      queryClient.setQueriesData({ queryKey: ['timeLogs'] }, (oldData: TimeLog[] | undefined) => {
-        if (!oldData) return oldData;
-        return [...oldData, createdLog];
+    onSuccess: newLog => {
+      queryClient.setQueryData(['timeLogs', fromStr, toStr], (oldData: TimeLog[] | undefined) => {
+        if (!oldData) return [newLog];
+        return [...oldData, newLog];
       });
     },
   });

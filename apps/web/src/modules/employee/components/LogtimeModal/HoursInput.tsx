@@ -1,10 +1,10 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
 
-type Props = {
+interface Props {
   register: UseFormRegister<LogTimeFormValues>;
   errors: FieldErrors<LogTimeFormValues>;
-};
+}
 
 export const HoursInput = ({ register, errors }: Props) => {
   return (
@@ -18,9 +18,20 @@ export const HoursInput = ({ register, errors }: Props) => {
           type="number"
           step="0.5"
           {...register('hours', { valueAsNumber: true })}
-          className={`w-[37px] h-[36px] rounded-[8px] text-center border ${
-            errors.hours ? 'border-red-500' : 'border-[#E0E1E2]'
-          }`}
+          onKeyDown={e => {
+            if (['-', '+', 'e', 'E'].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
+          onInput={e => {
+            const input = e.currentTarget;
+            const regex = /^\d{0,2}(\.\d{0,1})?$/;
+
+            if (!regex.test(input.value)) {
+              input.value = input.value.slice(0, -1);
+            }
+          }}
+          className={`w-[37px] h-[36px] rounded-[8px] text-center border ${errors.hours ? 'border-red-500' : 'border-[#E0E1E2]'} focus:outline-none focus:ring-1 focus:ring-[#d1d1d1] transition-all`}
         />
 
         <span className="text-[#6F6F6F] font-medium text-[16px] ml-3">hours</span>

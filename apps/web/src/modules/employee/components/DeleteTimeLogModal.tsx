@@ -2,17 +2,20 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
 import { useDialogStore } from '../store/useDialogStore';
 import { useDeleteLogMutation } from '../hooks/useMutations';
 import { X } from 'lucide-react';
+import { useToast } from '@hooks/use-toast';
+import { DialogType } from '../types/timeLogs';
 
 export const DeleteTimeLogModal = () => {
   const { activeDialog, dialogData, closeDialog } = useDialogStore();
-
-  const isOpen = activeDialog === 'DELETE_TIME_LOG';
+  const { toast } = useToast();
+  const isOpen = activeDialog === DialogType.DELETE_TIME_LOG;
   const log = dialogData.log;
 
   const deleteMutation = useDeleteLogMutation();
@@ -23,7 +26,13 @@ export const DeleteTimeLogModal = () => {
     deleteMutation.mutate(
       { id: log.id },
       {
-        onSuccess: closeDialog,
+        onSuccess: () => {
+          toast({
+            variant: 'default',
+            title: 'Log has been deleted',
+          });
+          closeDialog();
+        },
       }
     );
   };
@@ -35,12 +44,15 @@ export const DeleteTimeLogModal = () => {
           <DialogTitle className="text-[22px] font-semibold text-gray-900 ">
             Delete time log
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Delete time log for selected date
+          </DialogDescription>
           <DialogClose className="rounded-full p-1 opacity-70 hover:opacity-100 cursor-pointer">
             <X className="h-6 w-6 text-[#1F1F1F]" />
           </DialogClose>
         </DialogHeader>
 
-        <p className="text-[16px] text-gray-700 mt-4 px-4">
+        <p className="text-[16px] text-gray-700 mt-4 px-5">
           Are you sure you want to delete this log?
         </p>
 

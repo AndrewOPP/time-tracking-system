@@ -1,12 +1,13 @@
 import { DayPicker } from 'react-day-picker';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { LogSummary } from '../types/timeLogs';
 
 interface CustomCalendarProps {
   selected?: Date;
   onSelect?: (date: Date | undefined) => void;
   month?: Date;
   onMonthChange?: (month: Date) => void;
-  logDates?: Date[];
+  logSummaries?: LogSummary[];
 }
 
 export const CustomCalendar = ({
@@ -14,8 +15,21 @@ export const CustomCalendar = ({
   onSelect,
   month,
   onMonthChange,
-  logDates = [],
+  logSummaries = [],
 }: CustomCalendarProps) => {
+  const yellowDays = logSummaries
+    .filter(log => log.totalHours > 0 && log.totalHours < 8)
+    .map(log => log.date);
+
+  const greenDays = logSummaries
+    .filter(log => log.totalHours >= 8 && log.totalHours <= 9)
+    .map(log => log.date);
+
+  const redDays = logSummaries.filter(log => log.totalHours > 9).map(log => log.date);
+
+  const dotBaseClass =
+    "[&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-1.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:w-[4px] [&>button]:after:h-[4px] [&>button]:after:rounded-full";
+
   return (
     <DayPicker
       mode="single"
@@ -34,11 +48,14 @@ export const CustomCalendar = ({
         },
       }}
       modifiers={{
-        hasLog: logDates,
+        logYellow: yellowDays,
+        logGreen: greenDays,
+        logRed: redDays,
       }}
       modifiersClassNames={{
-        hasLog:
-          "[&>button]:after:content-[''] [&>button]:after:absolute [&>button]:after:bottom-1.5 [&>button]:after:left-1/2 [&>button]:after:-translate-x-1/2 [&>button]:after:w-[4px] [&>button]:after:h-[4px] [&>button]:after:bg-[#509665] [&>button]:after:rounded-full",
+        logYellow: `${dotBaseClass} [&>button]:after:bg-[#EAB308]`,
+        logGreen: `${dotBaseClass} [&>button]:after:bg-[#509665]`,
+        logRed: `${dotBaseClass} [&>button]:after:bg-[#EF4444]`,
       }}
       classNames={{
         root: 'w-full relative',

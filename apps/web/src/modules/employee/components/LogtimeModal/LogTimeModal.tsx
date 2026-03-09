@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
@@ -16,11 +17,12 @@ import { ModalFooter } from './ModalFooter';
 import { useLogTimeForm } from '../../hooks/useLogTimeForm';
 import { useDialogStore } from '../../store/useDialogStore';
 import { useProjects } from '../../hooks/useProjects';
+import { DialogType } from '../../types/timeLogs';
 
-export const LogTimeModal = () => {
+export const LogTimeModal = ({ from, to }: { from: string; to: string }) => {
   const { activeDialog, dialogData, closeDialog } = useDialogStore();
-  const { data: allProjects = [] } = useProjects();
-  const isOpen = activeDialog === 'TRACK_TIME';
+  const isOpen = activeDialog === DialogType.TRACK_TIME;
+  const { data: allProjects = [] } = useProjects(isOpen);
   const { date, log } = dialogData;
 
   const targetDate = log?.date ?? date ?? '';
@@ -32,25 +34,30 @@ export const LogTimeModal = () => {
     formState: { errors },
     onSubmit,
     isSaving,
-  } = useLogTimeForm(log, targetDate, closeDialog);
+    reset,
+  } = useLogTimeForm(log, targetDate, closeDialog, from, to);
+
+  const handleClose = () => {
+    reset();
+    closeDialog();
+  };
 
   if (!isOpen || !targetDate) return null;
 
   const displayDate = format(new Date(targetDate), 'EEEE, MMM d');
 
-  const handleClose = () => {
-    closeDialog();
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none rounded-[12px] bg-white shadow-2xl [&>button]:hidden">
         <DialogHeader className="border-b border-[#E0E1E2] px-5 pt-4 pb-4">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-center ">
             <div>
               <DialogTitle className="text-[22px] font-semibold text-gray-900">
                 Log time
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Create or edit time log for selected date
+              </DialogDescription>
               <p className="text-[16px] text-gray-500 mt-1">{displayDate}</p>
             </div>
 

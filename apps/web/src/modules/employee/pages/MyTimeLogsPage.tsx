@@ -1,18 +1,20 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { format } from 'date-fns';
+
 import { PageHeader } from '@components/PageHeader';
 import { DayCard } from '../components/DayCard';
 import { DayCardSkeleton } from '../components/DayCardSkeleton';
 import { CustomCalendar } from '../components/CustomCalendar';
 import { WeekNavigation } from '../components/WeekNavigation';
-import { useDialogStore } from '../store/useDialogStore';
 import { LogTimeModal } from '../components/LogtimeModal/LogTimeModal';
 import { DeleteTimeLogModal } from '../components/DeleteTimeLogModal';
+
+import { useDialogStore } from '../store/useDialogStore';
 import { useWeekRange } from '../hooks/useWeekRange';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useLogDates } from '../hooks/useLogDates';
 import { groupLogsToDays } from '../utils/groupLogs';
-import { format } from 'date-fns';
-import { useSearchParams } from 'react-router-dom';
 
 export default function MyTimeLogsPage() {
   const { openDialog } = useDialogStore();
@@ -23,7 +25,6 @@ export default function MyTimeLogsPage() {
   const activeDate = useMemo(() => (dateParam ? new Date(dateParam) : new Date()), [dateParam]);
 
   const { weekStart, weekEnd, weekRangeLabel } = useWeekRange(activeDate);
-
   const { handlePrevWeek, handleNextWeek, updateDateInUrl } = useWeekNavigation(activeDate);
 
   const [calendarMonth, setCalendarMonth] = useState(weekStart);
@@ -34,13 +35,30 @@ export default function MyTimeLogsPage() {
 
   const fromStr = format(weekStart, 'yyyy-MM-dd');
   const toStr = format(weekEnd, 'yyyy-MM-dd');
-  const { logDates, timeLogs, isLoading, isError } = useLogDates(fromStr, toStr);
 
-  const groupedLogsByDays = useMemo(
-    () => groupLogsToDays(fromStr, toStr, timeLogs),
-    [timeLogs, fromStr, toStr]
-  );
+  const { timeLogs, isLoading, isError } = useLogDates(fromStr, toStr);
+
+  const groupedLogsByDays = useMemo(() => {
+    return groupLogsToDays(fromStr, toStr, timeLogs || []);
+  }, [fromStr, toStr, timeLogs]);
+
   const totalWeekHours = groupedLogsByDays.reduce((sum, day) => sum + day.totalHours, 0);
+
+  const logSummaries = useMemo(() => {
+    if (!timeLogs) return [];
+
+    const sums = timeLogs.reduce<Record<string, number>>((acc, log) => {
+      const dateKey = format(new Date(log.date), 'yyyy-MM-dd');
+
+      acc[dateKey] = (acc[dateKey] ?? 0) + Number(log.hours);
+      return acc;
+    }, {});
+
+    return Object.entries(sums).map(([date, totalHours]) => ({
+      date: new Date(`${date}T00:00:00`),
+      totalHours,
+    }));
+  }, [timeLogs]);
 
   return (
     <div className="w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
@@ -87,13 +105,13 @@ export default function MyTimeLogsPage() {
               onSelect={date => date && updateDateInUrl(date)}
               month={calendarMonth}
               onMonthChange={setCalendarMonth}
-              logDates={logDates}
+              logSummaries={logSummaries}
             />
           </div>
         </div>
       </div>
 
-      <LogTimeModal />
+      <LogTimeModal from={fromStr} to={toStr} />
       <DeleteTimeLogModal />
     </div>
   );

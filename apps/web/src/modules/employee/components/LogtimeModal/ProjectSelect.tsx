@@ -10,11 +10,11 @@ import {
 import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
 import type { Project } from '../../types/timeLogs';
 
-type Props = {
+interface Props {
   control: Control<LogTimeFormValues>;
   errors: FieldErrors<LogTimeFormValues>;
   projects: Project[];
-};
+}
 
 export const ProjectSelect = ({ control, errors, projects }: Props) => {
   return (
