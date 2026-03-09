@@ -15,6 +15,7 @@ import { useWeekRange } from '../hooks/useWeekRange';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useLogDates } from '../hooks/useLogDates';
 import { groupLogsToDays } from '../utils/groupLogs';
+import { useLogSummaries } from '../hooks/useLogSummaries';
 
 export default function MyTimeLogsPage() {
   const { openDialog } = useDialogStore();
@@ -42,23 +43,9 @@ export default function MyTimeLogsPage() {
     return groupLogsToDays(fromStr, toStr, timeLogs || []);
   }, [fromStr, toStr, timeLogs]);
 
+  const { logSummaries } = useLogSummaries(timeLogs || []);
+
   const totalWeekHours = groupedLogsByDays.reduce((sum, day) => sum + day.totalHours, 0);
-
-  const logSummaries = useMemo(() => {
-    if (!timeLogs) return [];
-
-    const sums = timeLogs.reduce<Record<string, number>>((acc, log) => {
-      const dateKey = format(new Date(log.date), 'yyyy-MM-dd');
-
-      acc[dateKey] = (acc[dateKey] ?? 0) + Number(log.hours);
-      return acc;
-    }, {});
-
-    return Object.entries(sums).map(([date, totalHours]) => ({
-      date: new Date(`${date}T00:00:00`),
-      totalHours,
-    }));
-  }, [timeLogs]);
 
   return (
     <div className="w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
@@ -99,7 +86,7 @@ export default function MyTimeLogsPage() {
         </div>
 
         <div className="w-full lg:w-[380px] shrink-0">
-          <div className="sticky top-6 bg-white border border-gray-200 rounded-[12px] py-5 px-6 shadow-sm">
+          <div className="sticky top-6 bg-white border border-gray-200 rounded-[12px] py-5 px-6 ">
             <CustomCalendar
               selected={activeDate}
               onSelect={date => date && updateDateInUrl(date)}

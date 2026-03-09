@@ -9,6 +9,7 @@ import {
 } from '@/shared/components/ui/select';
 import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
 import type { Project } from '../../types/timeLogs';
+import { ProjectStatus } from '@/shared/constants/projectStatus';
 
 interface Props {
   control: Control<LogTimeFormValues>;
@@ -29,8 +30,8 @@ export const ProjectSelect = ({ control, errors, projects }: Props) => {
         render={({ field }) => (
           <Select onValueChange={field.onChange} value={field.value}>
             <SelectTrigger
-              className={`cursor-pointer w-full h-[48px] rounded-[12px] border ${
-                errors.project ? 'border-red-500' : 'border-[#D0D5DD]'
+              className={`cursor-pointer w-full h-[48px] rounded-[6px] border ${
+                errors.project ? 'border-red-500' : 'border-[#D0D5DD] shadow-none'
               } bg-white text-[16px] pl-10 relative`}
             >
               <Briefcase className="absolute left-3 w-5 h-5 text-[#667085]" />
@@ -41,13 +42,15 @@ export const ProjectSelect = ({ control, errors, projects }: Props) => {
               position="popper"
               align="start"
               sideOffset={4}
-              className="rounded-[12px] border border-[#EAECF0] shadow-lg bg-white cursor-pointer"
+              className="rounded-[12px] border border-[#EAECF0] bg-white cursor-pointer shadow-none"
             >
-              {projects.map(project => (
-                <SelectItem className="cursor-pointer" key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
+              {projects
+                .filter(projects => projects.status === ProjectStatus.IN_PROGRESS)
+                .map(project => (
+                  <SelectItem className="cursor-pointer" key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         )}
