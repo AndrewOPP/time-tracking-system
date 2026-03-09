@@ -42,7 +42,6 @@ export default function MyTimeLogsPage() {
   const monthFromStr = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
   const monthToStr = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
 
-  // Робимо паралельний запит за весь місяць
   const { timeLogs: monthLogs } = useLogDates(monthFromStr, monthToStr);
 
   const groupedLogsByDays = useMemo(() => {
