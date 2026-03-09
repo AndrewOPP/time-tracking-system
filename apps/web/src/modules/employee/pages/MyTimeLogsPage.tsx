@@ -1,61 +1,46 @@
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, isSameMonth } from 'date-fns';
+import { useMemo, useState, useEffect } from 'react';
 import { PageHeader } from '@components/PageHeader';
-import { useTimeLogsByPeriod } from '../hooks/useTimeLogs';
-import { groupLogsToDays } from '../utils/groupLogs';
 import { DayCard } from '../components/DayCard';
 import { DayCardSkeleton } from '../components/DayCardSkeleton';
 import { CustomCalendar } from '../components/CustomCalendar';
 import { WeekNavigation } from '../components/WeekNavigation';
-import { LogTimeModal } from '../components/LogTimeModal';
 import { useDialogStore } from '../store/useDialogStore';
+import { LogTimeModal } from '../components/LogtimeModal/LogTimeModal';
+import { DeleteTimeLogModal } from '../components/DeleteTimeLogModal';
+import { useWeekRange } from '../hooks/useWeekRange';
+import { useWeekNavigation } from '../hooks/useWeekNavigation';
+import { useLogDates } from '../hooks/useLogDates';
+import { groupLogsToDays } from '../utils/groupLogs';
+import { format } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 
 export default function MyTimeLogsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { openDialog } = useDialogStore();
 
+  const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date');
+
   const activeDate = useMemo(() => (dateParam ? new Date(dateParam) : new Date()), [dateParam]);
 
-  const weekStart = useMemo(() => startOfWeek(activeDate, { weekStartsOn: 1 }), [activeDate]);
-  const weekEnd = useMemo(() => endOfWeek(activeDate, { weekStartsOn: 1 }), [activeDate]);
+  const { weekStart, weekEnd, weekRangeLabel } = useWeekRange(activeDate);
 
-  const [calendarMonth, setCalendarMonth] = useState<Date>(weekStart);
-  const [prevDateParam, setPrevDateParam] = useState(dateParam);
+  const { handlePrevWeek, handleNextWeek, updateDateInUrl } = useWeekNavigation(activeDate);
 
-  if (dateParam !== prevDateParam) {
-    setPrevDateParam(dateParam);
+  const [calendarMonth, setCalendarMonth] = useState(weekStart);
+
+  useEffect(() => {
     setCalendarMonth(activeDate);
-  }
+  }, [activeDate]);
 
   const fromStr = format(weekStart, 'yyyy-MM-dd');
   const toStr = format(weekEnd, 'yyyy-MM-dd');
+  const { logDates, timeLogs, isLoading, isError } = useLogDates(fromStr, toStr);
 
-  const { data: timeLogs, isLoading, isError } = useTimeLogsByPeriod(fromStr, toStr);
-
-  const logDates = useMemo(() => {
-    if (!timeLogs) return [];
-    return timeLogs.map(log => new Date(log.date));
-  }, [timeLogs]);
-
-  const groupedLogsByDays = groupLogsToDays(fromStr, toStr, timeLogs);
+  const groupedLogsByDays = useMemo(
+    () => groupLogsToDays(fromStr, toStr, timeLogs),
+    [timeLogs, fromStr, toStr]
+  );
   const totalWeekHours = groupedLogsByDays.reduce((sum, day) => sum + day.totalHours, 0);
-
-  const updateDateInUrl = (newDate: Date) => {
-    setSearchParams({ date: format(newDate, 'yyyy-MM-dd') });
-  };
-
-  const handlePrevWeek = () => updateDateInUrl(subWeeks(activeDate, 1));
-  const handleNextWeek = () => updateDateInUrl(addWeeks(activeDate, 1));
-
-  const formatWeekRange = () => {
-    if (isSameMonth(weekStart, weekEnd)) {
-      return `${format(weekStart, 'MMMM d')}–${format(weekEnd, 'd, yyyy')}`;
-    } else {
-      return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
-    }
-  };
 
   return (
     <div className="w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
@@ -69,7 +54,7 @@ export default function MyTimeLogsPage() {
           <WeekNavigation
             onPrevWeek={handlePrevWeek}
             onNextWeek={handleNextWeek}
-            weekRangeText={formatWeekRange()}
+            weekRangeText={weekRangeLabel}
             totalHours={totalWeekHours}
           />
 
@@ -109,7 +94,7 @@ export default function MyTimeLogsPage() {
       </div>
 
       <LogTimeModal />
-      {/* <DeleteLogAlert /> */}
+      <DeleteTimeLogModal />
     </div>
   );
 }

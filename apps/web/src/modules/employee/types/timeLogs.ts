@@ -31,3 +31,13 @@ export interface DayGroup {
   totalHours: number;
   entries: TimeLog[];
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  logo: string | null;
+  status: string;
+  teamAvatars: string[];
+  totalTeamMembers: number;
+  totalLoggedHours: number;
+}

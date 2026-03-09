@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import type { TimeLog } from '../types/timeLogs';
 
-type DialogType = 'TRACK_TIME' | 'DELETE_LOG' | null;
+type DialogType = 'TRACK_TIME' | 'DELETE_TIME_LOG' | null;
 
 interface DialogData {
   date?: string | null;
-  log?: TimeLog | null;
+  log?: TimeLog;
 }
 
 interface DialogState {

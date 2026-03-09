@@ -92,7 +92,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
                     </button>
 
                     <button
-                      onClick={() => openDialog('DELETE_LOG', { log: entry })}
+                      onClick={() => openDialog('DELETE_TIME_LOG', { log: entry })}
                       className="hover:text-red-600 transition-colors p-1 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />

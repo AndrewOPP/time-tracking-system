@@ -117,6 +117,9 @@ export class TimeLogCommandsService {
       return tx.timeLog.update({
         where: { id: logId },
         data: dataToUpdate,
+        include: {
+          project: { select: { name: true, id: true } },
+        },
       });
     });
   }

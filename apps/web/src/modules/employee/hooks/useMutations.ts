@@ -49,7 +49,6 @@ export const useCreateLogMutation = () => {
     onSuccess: createdLog => {
       queryClient.setQueriesData({ queryKey: ['timeLogs'] }, (oldData: TimeLog[] | undefined) => {
         if (!oldData) return oldData;
-        // Возвращаем новый массив, разворачивая старый и добавляя новый лог в конец
         return [...oldData, createdLog];
       });
     },
