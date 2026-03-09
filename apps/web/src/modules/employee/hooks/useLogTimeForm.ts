@@ -10,8 +10,8 @@ import axios from 'axios';
 const logTimeSchema = z.object({
   project: z.string().min(1, 'Please select a project'),
   hours: z
-    .number({ error: 'Please enter a valid amount of hours in range 0.5-24' })
-    .min(0.5, 'Minimum is 0.5 hours')
+    .number({ error: 'Please enter a valid amount of hours in range 0.1-24' })
+    .min(0.1, 'Minimum is 0.1 hours')
     .max(24, 'Cannot exceed 24 hours'),
   description: z.string().min(3, 'Description must be at least 3 characters'),
 });

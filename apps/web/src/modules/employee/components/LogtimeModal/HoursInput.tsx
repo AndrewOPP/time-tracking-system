@@ -16,7 +16,7 @@ export const HoursInput = ({ register, errors }: Props) => {
       <div className="flex items-center">
         <input
           type="number"
-          step="0.5"
+          step="0.1"
           {...register('hours', { valueAsNumber: true })}
           onKeyDown={e => {
             if (['-', '+', 'e', 'E'].includes(e.key)) {
