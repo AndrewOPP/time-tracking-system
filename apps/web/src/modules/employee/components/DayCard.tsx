@@ -45,7 +45,7 @@ export const DayCard = ({ dayData, index = 0, onTrackClick }: DayCardProps) => {
 
         <button
           onClick={() => onTrackClick?.(dayData.fullDate)}
-          className="flex items-center gap-2 bg-[#509665] hover:bg-[#4E916B] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-[#509665] hover:bg-[#4E916B] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           <Clock className="w-4 h-4" />
           Track hours

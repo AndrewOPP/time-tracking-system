@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { parseISO, addWeeks, subWeeks, format } from 'date-fns';
+import { parseISO, addWeeks, subWeeks, format, differenceInDays } from 'date-fns';
 import { findLogsByPeriod } from '../api/myTimeLogs.api';
 
 export const useTimeLogsByPeriod = (from: string, to: string) => {
@@ -24,6 +24,11 @@ export const useTimeLogsByPeriod = (from: string, to: string) => {
 
     const fromDate = parseISO(from);
     const toDate = parseISO(to);
+
+    const daysDiff = differenceInDays(toDate, fromDate);
+    if (daysDiff > 7) {
+      return;
+    }
 
     const nextFrom = format(addWeeks(fromDate, 1), 'yyyy-MM-dd');
     const nextTo = format(addWeeks(toDate, 1), 'yyyy-MM-dd');

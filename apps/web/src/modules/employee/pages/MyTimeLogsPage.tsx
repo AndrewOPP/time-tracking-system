@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { format } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 
 import { PageHeader } from '@components/PageHeader';
 import { DayCard } from '../components/DayCard';
@@ -39,11 +39,20 @@ export default function MyTimeLogsPage() {
 
   const { timeLogs, isLoading, isError } = useLogDates(fromStr, toStr);
 
+  const monthFromStr = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
+  const monthToStr = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
+
+  // Робимо паралельний запит за весь місяць
+  const { timeLogs: monthLogs } = useLogDates(monthFromStr, monthToStr);
+  console.log(monthFromStr, 'monthFromStr');
+  console.log(monthToStr, 'monthToStr');
+  console.log(monthLogs, 'monthLogs');
+
   const groupedLogsByDays = useMemo(() => {
     return groupLogsToDays(fromStr, toStr, timeLogs || []);
   }, [fromStr, toStr, timeLogs]);
 
-  const { logSummaries } = useLogSummaries(timeLogs || []);
+  const { logSummaries } = useLogSummaries(monthLogs || []);
 
   const totalWeekHours = groupedLogsByDays.reduce((sum, day) => sum + day.totalHours, 0);
 
@@ -98,7 +107,7 @@ export default function MyTimeLogsPage() {
         </div>
       </div>
 
-      <LogTimeModal from={fromStr} to={toStr} />
+      <LogTimeModal />
       <DeleteTimeLogModal />
     </div>
   );

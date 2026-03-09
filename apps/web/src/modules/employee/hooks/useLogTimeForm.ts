@@ -21,12 +21,10 @@ export type LogTimeFormValues = z.infer<typeof logTimeSchema>;
 export const useLogTimeForm = (
   log: TimeLog | undefined,
   targetDate: string,
-  onSuccess: () => void,
-  fromStr: string,
-  toStr: string
+  onSuccess: () => void
 ) => {
   const { toast } = useToast();
-  const createLogMutation = useCreateLogMutation(fromStr, toStr);
+  const createLogMutation = useCreateLogMutation();
   const updateLogMutation = useUpdateLogMutation();
 
   const form = useForm<LogTimeFormValues>({

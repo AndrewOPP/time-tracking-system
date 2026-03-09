@@ -40,16 +40,20 @@ export const useDeleteLogMutation = () => {
   });
 };
 
-export const useCreateLogMutation = (fromStr: string, toStr: string) => {
+export const useCreateLogMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: logCreate,
-    onSuccess: newLog => {
-      queryClient.setQueryData(['timeLogs', fromStr, toStr], (oldData: TimeLog[] | undefined) => {
-        if (!oldData) return [newLog];
-        return [...oldData, newLog];
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timeLogs'] });
+      //       I will maybe use it in the future, so dont comment this pls
+      //========================================================================
+      // queryClient.setQueryData(['timeLogs', fromStr, toStr], (oldData: TimeLog[] | undefined) => {
+      //   if (!oldData) return [newLog];
+      //   return [...oldData, newLog];
+      // });
+      //========================================================================
     },
   });
 };

@@ -19,7 +19,7 @@ import { useDialogStore } from '../../store/useDialogStore';
 import { useProjects } from '../../hooks/useProjects';
 import { DialogType } from '../../types/timeLogs';
 
-export const LogTimeModal = ({ from, to }: { from: string; to: string }) => {
+export const LogTimeModal = () => {
   const { activeDialog, dialogData, closeDialog } = useDialogStore();
   const isOpen = activeDialog === DialogType.TRACK_TIME;
   const { data: allProjects = [] } = useProjects(isOpen);
@@ -35,7 +35,7 @@ export const LogTimeModal = ({ from, to }: { from: string; to: string }) => {
     onSubmit,
     isSaving,
     reset,
-  } = useLogTimeForm(log, targetDate, closeDialog, from, to);
+  } = useLogTimeForm(log, targetDate, closeDialog);
 
   const handleClose = () => {
     reset();
