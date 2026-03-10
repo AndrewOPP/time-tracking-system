@@ -1,3 +1,4 @@
+import { cn } from '@lib/utils';
 import { Clock } from 'lucide-react';
 
 interface DayCardHeaderProps {
@@ -19,7 +20,10 @@ export const DayCardHeader = ({
 }: DayCardHeaderProps) => {
   return (
     <div
-      className={`h-[72px] bg-[##6F6F6F1A] py-4 px-6 flex items-center justify-between border ${borderClass} rounded-t-[12px]`}
+      className={cn(
+        'h-18 bg-[#F9FAFB] py-4 px-6 flex items-center justify-between border rounded-t-[12px]',
+        borderClass
+      )}
     >
       <div className="flex items-center gap-4">
         <span className="bg-[#6F6F6F1A] text-gray-800 font-semibold px-2 py-1 rounded-md text-sm min-w-[3rem] text-center">

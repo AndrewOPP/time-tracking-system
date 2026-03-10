@@ -1,9 +1,9 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
-import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
+import type { LogTimeFormInput } from '../../hooks/useLogTimeForm';
 
 interface Props {
-  register: UseFormRegister<LogTimeFormValues>;
-  errors: FieldErrors<LogTimeFormValues>;
+  register: UseFormRegister<LogTimeFormInput>;
+  errors: FieldErrors<LogTimeFormInput>;
 }
 
 export const HoursInput = ({ register, errors }: Props) => {

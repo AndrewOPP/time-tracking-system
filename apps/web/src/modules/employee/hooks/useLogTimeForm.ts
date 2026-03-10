@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import * as z from 'zod';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,17 +5,21 @@ import { useCreateLogMutation, useUpdateLogMutation } from '../hooks/useMutation
 import type { TimeLog } from '../types/timeLogs';
 import { useToast } from '@hooks/use-toast';
 import axios from 'axios';
+import { useLayoutEffect } from 'react';
 
 const logTimeSchema = z.object({
   project: z.string().min(1, 'Please select a project'),
-  hours: z
-    .number({ error: 'Please enter a valid amount of hours in range 0.1-24' })
+  hours: z.coerce
+    .number({
+      error: 'Please enter a valid amount of hours in range 0.1-24',
+    })
     .min(0.1, 'Minimum is 0.1 hours')
     .max(24, 'Cannot exceed 24 hours'),
   description: z.string().min(3, 'Description must be at least 3 characters'),
 });
 
-export type LogTimeFormValues = z.infer<typeof logTimeSchema>;
+export type LogTimeFormInput = z.input<typeof logTimeSchema>;
+export type LogTimeFormOutput = z.output<typeof logTimeSchema>;
 
 export const useLogTimeForm = (
   log: TimeLog | undefined,
@@ -27,18 +30,18 @@ export const useLogTimeForm = (
   const createLogMutation = useCreateLogMutation();
   const updateLogMutation = useUpdateLogMutation();
 
-  const form = useForm<LogTimeFormValues>({
+  const form = useForm<LogTimeFormInput, unknown, LogTimeFormOutput>({
     resolver: zodResolver(logTimeSchema),
     defaultValues: {
-      project: '',
-      hours: 0,
-      description: '',
+      project: log?.projectId || '',
+      hours: log ? Number(log.hours) : 0,
+      description: log?.description || '',
     },
   });
 
   const { reset } = form;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (log) {
       reset({
         project: log.projectId,
@@ -62,7 +65,7 @@ export const useLogTimeForm = (
     return message || 'Something went wrong';
   };
 
-  const onSubmit: SubmitHandler<LogTimeFormValues> = data => {
+  const onSubmit: SubmitHandler<LogTimeFormOutput> = data => {
     if (log) {
       updateLogMutation.mutate(
         {
