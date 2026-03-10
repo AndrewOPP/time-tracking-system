@@ -7,13 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import type { LogTimeFormValues } from '../../hooks/useLogTimeForm';
+import type { LogTimeFormInput } from '../../hooks/useLogTimeForm';
 import type { Project } from '../../types/timeLogs';
 import { ProjectStatus } from '@/shared/constants/projectStatus';
 
 interface Props {
-  control: Control<LogTimeFormValues>;
-  errors: FieldErrors<LogTimeFormValues>;
+  control: Control<LogTimeFormInput>;
+  errors: FieldErrors<LogTimeFormInput>;
   projects: Project[];
 }
 
@@ -27,33 +27,42 @@ export const ProjectSelect = ({ control, errors, projects }: Props) => {
       <Controller
         name="project"
         control={control}
-        render={({ field }) => (
-          <Select onValueChange={field.onChange} value={field.value}>
-            <SelectTrigger
-              className={`cursor-pointer w-full h-[48px] rounded-[6px] border ${
-                errors.project ? 'border-red-500' : 'border-[#D0D5DD] shadow-none'
-              } bg-white text-[16px] pl-10 relative`}
-            >
-              <Briefcase className="absolute left-3 w-5 h-5 text-[#667085]" />
-              <SelectValue placeholder="Select project" />
-            </SelectTrigger>
+        render={({ field }) => {
+          const activeProjects =
+            projects?.filter(project => project.status === ProjectStatus.IN_PROGRESS) || [];
 
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={4}
-              className="rounded-[12px] border border-[#EAECF0] bg-white cursor-pointer shadow-none"
-            >
-              {projects
-                .filter(projects => projects.status === ProjectStatus.IN_PROGRESS)
-                .map(project => (
-                  <SelectItem className="cursor-pointer" key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        )}
+          return (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger
+                className={`cursor-pointer w-full h-[48px] rounded-[6px] border ${
+                  errors.project ? 'border-red-500' : 'border-[#D0D5DD] shadow-none'
+                } bg-white text-[16px] pl-10 relative`}
+              >
+                <Briefcase className="absolute left-3 w-5 h-5 text-[#667085]" />
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+
+              <SelectContent
+                position="popper"
+                align="start"
+                sideOffset={4}
+                className="rounded-[12px] border border-[#EAECF0] bg-white shadow-none"
+              >
+                {activeProjects.length > 0 ? (
+                  activeProjects.map(project => (
+                    <SelectItem className="cursor-pointer py-2" key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="py-2 px-2 text-sm text-[#667085] text-center cursor-default outline-none">
+                    You have no active projects
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
+          );
+        }}
       />
 
       <span className="text-red-500 text-sm mt-1 min-h-[20px] block">

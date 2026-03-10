@@ -4,6 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@ui/tooltip';
 import type { ProjectDetails } from '../types/project.api.types';
+import { useDialogStore } from '../store/useDialogStore';
 
 interface ProjectHeaderProps {
   project: ProjectDetails;
@@ -16,6 +17,8 @@ export const ProjectHeader = ({
   currentStatus,
   isTrackingDisabled,
 }: ProjectHeaderProps) => {
+  const { openDialog } = useDialogStore();
+
   return (
     <Card className="p-6 rounded-[16px] shadow-none border-gray-200 flex flex-col min-[1155px]:flex-row items-start min-[1155px]:items-center justify-between gap-4">
       <div className="flex gap-4 items-center">
@@ -64,7 +67,10 @@ export const ProjectHeader = ({
             </TooltipContent>
           </Tooltip>
         ) : (
-          <Button className="flex items-center gap-2 rounded-lg font-medium bg-[#489B74] hover:bg-[#3d8362] text-white cursor-pointer">
+          <Button
+            onClick={() => openDialog()}
+            className="flex items-center gap-2 rounded-lg font-medium bg-[#489B74] hover:bg-[#3d8362] text-white cursor-pointer"
+          >
             <Clock className="w-4 h-4" />
             Log Hours
           </Button>

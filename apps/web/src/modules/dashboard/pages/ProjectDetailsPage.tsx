@@ -10,6 +10,7 @@ import { ProjectStatus } from '@/shared/constants/projectStatus';
 import { getAppErrorMessage } from '@/shared/utils/error-handler';
 import { BackButton } from '../components/BackButton';
 import { ProjectDetailsSkeleton } from '../components/ProjectDetailsSkeleton';
+import TrackLogsModal from '../components/TrackLogsModal/TrackLogsModal';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,7 @@ export const ProjectDetailsPage = () => {
           <ProjectTeam team={project.team} />
         </div>
       </div>
+      <TrackLogsModal />
     </div>
   );
 };

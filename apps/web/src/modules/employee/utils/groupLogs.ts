@@ -9,7 +9,12 @@ const getDateKey = (date: Date) => {
   return dateKey;
 };
 
-export const groupLogsToDays = (from: string, to: string, logs: TimeLog[] = []): DayGroup[] => {
+export const groupLogsToDays = (
+  from: string,
+  to: string,
+  logs: TimeLog[] = [],
+  monthType: 'long' | 'short'
+): DayGroup[] => {
   const logsByDate = logs.reduce(
     (acc, log) => {
       const logDate = new Date(log.date);
@@ -36,7 +41,7 @@ export const groupLogsToDays = (from: string, to: string, logs: TimeLog[] = []):
     const totalHours = dayLogs.reduce((sum, log) => sum + log.hours, 0);
 
     const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(startDay);
-    const dateStr = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' }).format(
+    const dateStr = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: monthType }).format(
       startDay
     );
 
