@@ -7,6 +7,7 @@ import {
   UserCircle,
   PersonStanding,
   Bot,
+  Calendar1,
 } from 'lucide-react';
 
 import { ROUTES } from '@/shared/constants/routes';
@@ -61,6 +62,14 @@ export const Navigation = () => {
       path: ROUTES.EMPLOYEE.EMPLOYEE_PROFILE,
       icon: PersonStanding,
       systemRole: UserSystemRole.EMPLOYEE,
+    },
+    {
+      label: 'My Time Logs',
+      path:
+        user.role === UserSystemRole.EMPLOYEE
+          ? ROUTES.EMPLOYEE.EMPLOYEE_TIME_LOGS
+          : ROUTES.MANAGER.MANAGER_TIME_LOGS,
+      icon: Calendar1,
     },
   ];
 

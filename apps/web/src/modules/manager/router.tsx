@@ -3,12 +3,14 @@ import { ROUTES } from '@/shared/constants/routes';
 import { ManagerAIChatPage } from './pages/ManagerAIChatPage';
 import { ManagerTimeTrachingPage } from './pages/ManagerTimeTrachingPage';
 import { ManagerDashboardPage } from './pages/ManagerDashboardPage';
+import MyTimeLogsPage from '../employee/pages/MyTimeLogsPage';
 
 export const ManagerRoutes = () => (
   <Routes>
     <Route path={ROUTES.MANAGER.DASHBOARD} element={<ManagerDashboardPage />} />
     <Route path={ROUTES.MANAGER.TIME_TRACKING} element={<ManagerTimeTrachingPage />} />
     <Route path={ROUTES.MANAGER.AI_CHAT} element={<ManagerAIChatPage />} />
+    <Route path={ROUTES.MANAGER.TIME_LOGS} element={<MyTimeLogsPage />} />
 
     <Route path="*" element={<ManagerDashboardPage />} />
   </Routes>

@@ -15,12 +15,16 @@ export const ROUTES = {
   EMPLOYEE: {
     ROOT: '/employee',
     PROFILE: 'profile',
+    TIME_LOGS: 'my-time-logs',
     EMPLOYEE_PROFILE: '/employee/profile',
+    EMPLOYEE_TIME_LOGS: '/employee/my-time-logs',
   },
 
   MANAGER: {
     ROOT: '/manager',
     AI_CHAT: '/ai-chat',
+    TIME_LOGS: 'my-time-logs',
+    MANAGER_TIME_LOGS: '/manager/my-time-logs',
     MANAGER_AI_CHAT: '/manager/ai-chat',
     DASHBOARD: 'dashboard',
     MANAGER_DASHBOARD: '/manager/dashboard',
