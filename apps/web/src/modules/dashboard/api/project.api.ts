@@ -1,5 +1,10 @@
 import { axiosPrivate } from '@/shared/api';
-import type { Project, ProjectDetails } from '../types/project.api.types';
+import type {
+  BulkResponse,
+  CreateBulkLog,
+  Project,
+  ProjectDetails,
+} from '../types/project.api.types';
 import { extractApiError } from '@/shared/utils/extractApiError';
 
 export const fetchProjects = async (): Promise<Project[]> => {
@@ -18,4 +23,22 @@ export const fetchProjectById = async (id: string): Promise<ProjectDetails> => {
   } catch (err: unknown) {
     throw new Error(extractApiError(err, 'PROJECT_DETAILS_FETCH_FAILED'));
   }
+};
+
+type BulkLogPayload = {
+  createBulkLogs: CreateBulkLog[];
+  projectId: string;
+};
+
+export const createLogBulk = async ({
+  createBulkLogs,
+  projectId,
+}: BulkLogPayload): Promise<BulkResponse> => {
+  console.log(createBulkLogs, '23rwewfwefwe');
+
+  const { data } = await axiosPrivate.post<BulkResponse>(
+    `/time-logs/bulk/${projectId}`,
+    createBulkLogs
+  );
+  return data;
 };

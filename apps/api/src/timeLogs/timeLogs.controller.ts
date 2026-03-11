@@ -45,8 +45,11 @@ export class TimeLogsController {
   }
 
   @Get('me')
-  findMyLogs(@Req() req: RequestWithUser, @Query() query: DateRangeQueryDto) {
-    return this.timeLogsService.findLogsByPeriod(req.user, query.from, query.to);
+  findMyLogs(
+    @Req() req: RequestWithUser,
+    @Query() query: DateRangeQueryDto & { projectId?: string }
+  ) {
+    return this.timeLogsService.findLogsByPeriod(req.user, query.from, query.to, query.projectId);
   }
 
   @Get('missing-report/:userId')

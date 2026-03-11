@@ -42,3 +42,14 @@ export interface ProjectTrackDialogState {
   openDialog: (data?: DialogData) => void;
   closeDialog: () => void;
 }
+
+export interface CreateBulkLog {
+  date: string;
+  hours: number;
+  description: string;
+  id?: string;
+}
+
+export interface BulkResponse {
+  message: string;
+}

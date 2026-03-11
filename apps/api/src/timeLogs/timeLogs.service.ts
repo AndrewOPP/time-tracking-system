@@ -33,8 +33,8 @@ export class TimeLogsService {
   }
 
   // --- QUERIES ---
-  async findLogsByPeriod(user: user, from: string, to: string) {
-    return this.queries.findLogsByPeriod(user, from, to);
+  async findLogsByPeriod(user: user, from: string, to: string, projectId?: string) {
+    return this.queries.findLogsByPeriod(user, from, to, projectId);
   }
 
   async findMissingDays(userId: string, from: string, to: string) {

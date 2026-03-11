@@ -162,12 +162,16 @@ export class TimeLogCommandsService {
       const incomingIds = logsToSave.map(log => log.id).filter(id => id);
 
       for (const log of existingLogs) {
+        if (Number(log.hours) === 0) continue;
         if (incomingIds.includes(log.id)) continue;
+
         const dateStr = log.date.toISOString().split('T')[0];
         hoursPerDay.set(dateStr, (hoursPerDay.get(dateStr) || 0) + Number(log.hours));
       }
 
       for (const log of logsToSave) {
+        if (log.hours === 0) continue;
+
         const dateStr = new Date(log.date).toISOString().split('T')[0];
         const newTotal = (hoursPerDay.get(dateStr) || 0) + log.hours;
 
@@ -177,8 +181,11 @@ export class TimeLogCommandsService {
         hoursPerDay.set(dateStr, newTotal);
       }
 
-      const logsToCreate = logsToSave.filter(log => !log.id);
-      const logsToUpdate = logsToSave.filter(log => !!log.id);
+      const logsToCreate = logsToSave.filter(log => !log.id && log.hours > 0);
+
+      const logsToUpdate = logsToSave.filter(log => !!log.id && log.hours > 0);
+
+      const logsToDelete = logsToSave.filter(log => !!log.id && log.hours === 0);
 
       if (logsToCreate.length > 0) {
         await tx.timeLog.createMany({
@@ -206,6 +213,15 @@ export class TimeLogCommandsService {
             })
           )
         );
+      }
+
+      if (logsToDelete.length > 0) {
+        await tx.timeLog.deleteMany({
+          where: {
+            id: { in: logsToDelete.map(log => log.id!) },
+            userId,
+          },
+        });
       }
 
       return { message: TIME_LOG_ERRORS.MESSAGES.BULK_SUCCESS };

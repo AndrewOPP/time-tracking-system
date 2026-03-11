@@ -49,7 +49,7 @@ export const ProjectDetailsPage = () => {
           <ProjectTeam team={project.team} />
         </div>
       </div>
-      <TrackLogsModal />
+      <TrackLogsModal projectName={project.name} projectId={project.id} />
     </div>
   );
 };
