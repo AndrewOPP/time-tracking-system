@@ -12,14 +12,14 @@ interface ProjectSidebarProps {
 
 export const ProjectSidebar = ({ project, currentStatus }: ProjectSidebarProps) => {
   return (
-    <div className="w-full lg:w-[420px] shrink-0 flex flex-col gap-6">
-      <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200">
-        <div className="flex items-center gap-2 mb-6 text-slate-900 font-bold font-exo text-[18px]">
+    <div className="w-full lg:w-[420px] shrink-0 flex flex-col ">
+      <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200 gap-4">
+        <div className="flex items-center gap-2  text-slate-900 font-bold font-exo text-[18px]">
           <FileText className="w-5 h-5 text-gray-400" />
           Project Details
         </div>
 
-        <div className="flex flex-col gap-5 text-sm">
+        <div className="flex flex-col gap-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-500 flex items-center gap-2">
               <LayoutList className="w-4 h-4" /> Status
