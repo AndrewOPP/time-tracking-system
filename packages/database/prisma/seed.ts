@@ -169,15 +169,16 @@ async function createProject(count: number, managers: User[]) {
 
   for (let i = 0; i < count; i++) {
     const manager = i < CONFIG.PM_PROJECTS_COUNT ? faker.helpers.arrayElement(managers) : null;
+    const projectName = faker.company.name();
 
     projectsData.push({
-      name: faker.company.name(),
+      name: projectName,
       emoji: faker.internet.emoji(),
       status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
       startDate: faker.date.past(),
       description: faker.lorem.paragraphs(2),
       endDate: faker.date.future(),
-      avatarUrl: faker.image.avatar(),
+      avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(projectName)}&background=random&color=fff&size=200`,
       projectManagerId: manager ? manager.id : null,
     });
   }

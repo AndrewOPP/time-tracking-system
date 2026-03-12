@@ -64,13 +64,13 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:min-w-[800px] p-0 gap-0 [&>button]:hidden">
+      <DialogContent className="sm:min-w-[800px] p-0 gap-0 [&>button]:hidden  rounded-[6px]">
         <DialogHeader className="border-b border-[#E0E1E2] py-4 px-6 flex flex-row items-center justify-between">
           <div className="flex flex-col gap-2">
             <DialogTitle className="text-[22px] font-semibold text-gray-900">
               Tracking hours
             </DialogTitle>
-            <p>{projectName}</p>
+            <p className="text-[14px] text-[#6F6F6F]">{projectName}</p>
           </div>
           <DialogDescription className="sr-only">
             Delete time log for selected date
@@ -82,7 +82,7 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
 
         <form onSubmit={onSubmit} className="flex flex-col">
           <div>
-            <div className="px-6 pt-4 pb-1 flex justify-center">
+            <div className="px-6 pt-5 flex justify-center">
               <WeekNavigation
                 onPrevWeek={handlePrevWeek}
                 onNextWeek={handleNextWeek}

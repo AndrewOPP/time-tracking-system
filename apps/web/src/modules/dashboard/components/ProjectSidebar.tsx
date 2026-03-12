@@ -13,7 +13,7 @@ interface ProjectSidebarProps {
 export const ProjectSidebar = ({ project, currentStatus }: ProjectSidebarProps) => {
   return (
     <div className="w-full lg:w-[420px] shrink-0 flex flex-col gap-6">
-      <Card className="p-6 rounded-[16px] shadow-none border-gray-200">
+      <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200">
         <div className="flex items-center gap-2 mb-6 text-slate-900 font-bold font-exo text-[18px]">
           <FileText className="w-5 h-5 text-gray-400" />
           Project Details

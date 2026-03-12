@@ -34,8 +34,6 @@ export const createLogBulk = async ({
   createBulkLogs,
   projectId,
 }: BulkLogPayload): Promise<BulkResponse> => {
-  console.log(createBulkLogs, '23rwewfwefwe');
-
   const { data } = await axiosPrivate.post<BulkResponse>(
     `/time-logs/bulk/${projectId}`,
     createBulkLogs

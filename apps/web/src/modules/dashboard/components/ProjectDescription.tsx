@@ -7,7 +7,7 @@ interface ProjectDescriptionProps {
 
 export const ProjectDescription = ({ description }: ProjectDescriptionProps) => {
   return (
-    <Card className="p-6 rounded-[16px] shadow-none border-gray-200">
+    <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200">
       <div className="flex items-center gap-2 mb-4 text-slate-900 font-bold font-exo text-[18px]">
         <FileText className="w-5 h-5 text-gray-400" />
         Project Description

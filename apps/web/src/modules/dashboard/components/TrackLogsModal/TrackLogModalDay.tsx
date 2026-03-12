@@ -22,8 +22,16 @@ export default function TrackLogModalDay({
   const isWeekend = day.dayName === 'Saturday' || day.dayName === 'Sunday';
   const hasHours = currentHours > 0;
 
-  const dotColor = hasHours ? 'bg-[#4E916B]' : 'bg-[#6F6F6F]';
-  const dotWeekendColor = isWeekend ? 'bg-[#d1d1d1]' : dotColor;
+  const getDotColor = () => {
+    if (isWeekend && !hasHours) return 'bg-[#d1d1d1]';
+    if (!hasHours) return 'bg-[#6F6F6F]';
+    if (currentHours < 8) return 'bg-[#EAB308]';
+    if (currentHours <= 9) return 'bg-[#4E916B]';
+    return 'bg-[#EF4444]';
+  };
+
+  const dotColor = getDotColor();
+
   const dayColor = isWeekend ? 'text-[#6F6F6F]' : 'text-[#1F1F1F]';
 
   const commentPlaceholder = isWeekend
@@ -35,9 +43,6 @@ export default function TrackLogModalDay({
   const cleanInputErrors = (value: string) => {
     if (value === '') {
       clearErrors([`days.${index}.hours`, `days.${index}.description`]);
-    } else {
-      if (dayError?.hours) clearErrors(`days.${index}.hours`);
-      if (dayError?.description) clearErrors(`days.${index}.description`);
     }
   };
 
@@ -45,15 +50,15 @@ export default function TrackLogModalDay({
     <div
       className="animate-in fade-in slide-in-from-bottom-2 duration-500 ease-out"
       style={{
-        animationDelay: `${index * 100}ms`,
+        animationDelay: `${index * 30}ms`,
         animationFillMode: 'both',
       }}
     >
       <div className="flex items-center gap-2 pb-4 pt-4 border-b border-[#E5E7EB]">
         <div className="w-[110px] flex items-start gap-2 shrink-0">
-          <div className={`mt-[4px] w-[8px] h-[8px] rounded-full shrink-0 ${dotWeekendColor}`} />
-          <div className="flex flex-col pt-0">
-            <span className={`text-[16px] font-semibold leading-none ${dayColor}`}>
+          <div className={`mt-[4px] w-[8px] h-[8px] rounded-full shrink-0 ${dotColor}`} />
+          <div className="flex flex-col pt-0 ">
+            <span className={`text-[16px] font-semibold leading-none pb-[4px] ${dayColor}`}>
               {day.dayName}
             </span>
             <span className="text-[12px] text-[#6F6F6F] leading-none">{day.dateStr}</span>
@@ -88,6 +93,11 @@ export default function TrackLogModalDay({
                 : 'border-[#E0E1E2] focus:border-[#9c9c9c]'
             }`}
           />
+          {dayError?.hours && (
+            <span className="text-[10px] text-red-500 absolute mt-[38px]">
+              {dayError.hours.message}
+            </span>
+          )}
         </div>
 
         <div className="flex-1 flex flex-col relative">
@@ -100,7 +110,7 @@ export default function TrackLogModalDay({
             }}
             placeholder={commentPlaceholder}
             {...register(`days.${index}.description` as const)}
-            className={`h-[36px] border rounded-md px-4 py-2 text-[14px] text-[#1F2937] placeholder:text-[#9CA3AF] outline-none min-w-0 bg-transparent transition-colors ${
+            className={`h-[36px] border rounded-md px-5 py-[9px] text-[14px] text-[#1F2937] placeholder:text-[#9CA3AF] outline-none min-w-0 bg-transparent transition-colors ${
               dayError?.description
                 ? 'border-red-500 focus:border-red-500'
                 : 'border-[#E0E1E2] focus:border-[#9c9c9c]'

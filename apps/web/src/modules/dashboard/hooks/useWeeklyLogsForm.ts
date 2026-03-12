@@ -110,6 +110,17 @@ export const useWeeklyLogsForm = (
   }, [groupedLogsByDays, projectId, reset]);
 
   const onSubmit: SubmitHandler<WeeklyLogFormOutput> = data => {
+    const totalHours = data.days.reduce((sum, day) => sum + (Number(day.hours) || 0), 0);
+
+    if (totalHours === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please fill in at least one day',
+      });
+      return;
+    }
+
     const logsToSubmit = data.days
       .filter(day => {
         const hasHours = Number(day.hours) > 0;

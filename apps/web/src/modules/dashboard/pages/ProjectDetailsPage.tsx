@@ -34,7 +34,7 @@ export const ProjectDetailsPage = () => {
   const isTrackingDisabled = project.status !== ProjectStatus.IN_PROGRESS;
 
   return (
-    <div className="w-full pb-10">
+    <div className="w-full pb-10 animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
       <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
       <div className="px-4 flex flex-col lg:flex-row gap-6 items-start">
         <ProjectSidebar project={project} currentStatus={currentStatus} />

@@ -169,8 +169,32 @@ export class TimeLogCommandsService {
         hoursPerDay.set(dateStr, (hoursPerDay.get(dateStr) || 0) + Number(log.hours));
       }
 
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(now.getMonth() - 1);
+      oneMonthAgo.setHours(0, 0, 0, 0);
+
       for (const log of logsToSave) {
         if (log.hours === 0) continue;
+
+        const logDate = new Date(log.date);
+
+        if (logDate > now) {
+          throw new BadRequestException('You cannot track hours for future dates');
+        }
+
+        if (logDate < oneMonthAgo) {
+          const formattedDate = logDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          throw new BadRequestException(
+            `You cannot create or edit logs on ${formattedDate}. It is older than 1 month`
+          );
+        }
 
         const dateStr = new Date(log.date).toISOString().split('T')[0];
         const newTotal = (hoursPerDay.get(dateStr) || 0) + log.hours;

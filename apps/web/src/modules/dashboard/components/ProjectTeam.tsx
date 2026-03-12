@@ -9,8 +9,8 @@ interface ProjectTeamProps {
 
 export const ProjectTeam = ({ team }: ProjectTeamProps) => {
   return (
-    <Card className="p-6 rounded-[16px] shadow-none border-gray-200">
-      <div className="flex items-center gap-2 mb-6 text-slate-900 font-bold font-exo text-[18px]">
+    <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200">
+      <div className="flex items-center gap-2 text-slate-900 font-bold font-exo text-[18px]">
         <Users className="w-5 h-5 text-gray-400" />
         Team Members
       </div>
@@ -19,7 +19,7 @@ export const ProjectTeam = ({ team }: ProjectTeamProps) => {
         {team.length > 0 ? (
           team.map(member => (
             <div key={member.id} className="flex items-center gap-3">
-              <Avatar className="w-8 h-8">
+              <Avatar className="w-9 h-9">
                 <AvatarImage src={member.avatarUrl} />
                 <AvatarFallback className="bg-gray-200 text-xs">EMP</AvatarFallback>
               </Avatar>
