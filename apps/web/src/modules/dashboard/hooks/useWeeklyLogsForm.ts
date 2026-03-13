@@ -9,24 +9,16 @@ import { getModalErrorMessage } from '@/shared/utils/getModalErrorMessage';
 const dailyLogSchema = z
   .object({
     date: z.string(),
-    hours: z.union([z.coerce.number(), z.literal('')]).optional(),
+    hours: z
+      .union([z.coerce.number().min(0.1, 'Mix 0.1h').max(24, 'Max 24h'), z.literal('')])
+      .optional(),
     description: z.string().optional(),
     id: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    const hoursValue = Number(data.hours) || 0;
+    const hasHours = typeof data.hours === 'number';
     const descText = data.description?.trim() || '';
-
-    const hasHours = hoursValue > 0;
     const hasDescription = descText.length > 0;
-
-    if (hoursValue > 24) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Max 24h',
-        path: ['hours'],
-      });
-    }
 
     if (!hasHours && !hasDescription) {
       return;

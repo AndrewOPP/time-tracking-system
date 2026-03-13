@@ -74,3 +74,9 @@ export class ManagerDashboardQueryDto extends DateRangeQueryDto {
   @IsString()
   search?: string;
 }
+
+export class ProjectDateRangeQueryDto extends DateRangeQueryDto {
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
+}

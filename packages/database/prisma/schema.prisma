@@ -116,6 +116,8 @@ model Project {
 
   timeLogs       TimeLog[]
 
+
+
   @@map("project")
 }
 
@@ -170,6 +172,8 @@ model TimeLog {
 
   @@index([userId, date])
   @@index([projectId, date])
+
+  @@unique([userId, projectId, date])
 
   @@map("time_log")
 }

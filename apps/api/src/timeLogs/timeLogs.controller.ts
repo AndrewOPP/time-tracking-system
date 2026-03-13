@@ -18,6 +18,7 @@ import {
   CreateTimeLogDto,
   DateRangeQueryDto,
   ManagerDashboardQueryDto,
+  ProjectDateRangeQueryDto,
   UpdateTimeLogDto,
 } from './dto/timeLogs.controller.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -45,10 +46,7 @@ export class TimeLogsController {
   }
 
   @Get('me')
-  findMyLogs(
-    @Req() req: RequestWithUser,
-    @Query() query: DateRangeQueryDto & { projectId?: string }
-  ) {
+  findMyLogs(@Req() req: RequestWithUser, @Query() query: ProjectDateRangeQueryDto) {
     return this.timeLogsService.findLogsByPeriod(req.user, query.from, query.to, query.projectId);
   }
 

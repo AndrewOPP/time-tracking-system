@@ -56,7 +56,36 @@ export class TimeLogCommandsService {
       if (project.users.length === 0)
         throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
 
-      await this._checkDailyHoursLimit(tx, userId, targetDate, Number(timeLog.hours));
+      const existingLog = await tx.timeLog.findUnique({
+        where: {
+          userId_projectId_date: {
+            userId,
+            projectId: timeLog.projectId,
+            date: targetDate,
+          },
+        },
+      });
+
+      await this._checkDailyHoursLimit(
+        tx,
+        userId,
+        targetDate,
+        Number(timeLog.hours),
+        existingLog?.id
+      );
+
+      if (existingLog) {
+        return tx.timeLog.update({
+          where: { id: existingLog.id },
+          data: {
+            hours: timeLog.hours,
+            description: timeLog.description,
+          },
+          include: {
+            project: { select: { id: true, name: true } },
+          },
+        });
+      }
 
       return tx.timeLog.create({
         data: {
@@ -68,10 +97,7 @@ export class TimeLogCommandsService {
         },
         include: {
           project: {
-            select: {
-              id: true,
-              name: true,
-            },
+            select: { id: true, name: true },
           },
         },
       });
