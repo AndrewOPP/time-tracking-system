@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useCreateBulkLogMutation } from './useMutations';
 import { toast } from '@hooks/use-toast';
 import { getModalErrorMessage } from '@/shared/utils/getModalErrorMessage';
@@ -57,6 +57,7 @@ const weeklyLogSchema = z.object({
 
 export type WeeklyLogFormInput = z.input<typeof weeklyLogSchema>;
 export type WeeklyLogFormOutput = z.output<typeof weeklyLogSchema>;
+export type DailyLogDraft = WeeklyLogFormInput['days'][number];
 
 type GroupedDay = {
   fullDate: string;
@@ -71,48 +72,56 @@ export const useWeeklyLogsForm = (
 ) => {
   const createBulkLogMutation = useCreateBulkLogMutation();
 
+  const draftsRef = useRef<Record<string, DailyLogDraft>>({});
+
   const form = useForm<WeeklyLogFormInput, unknown, WeeklyLogFormOutput>({
     resolver: zodResolver(weeklyLogSchema),
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
     shouldFocusError: false,
-    defaultValues: {
-      projectId: projectId,
-      days: groupedLogsByDays.map(day => ({
-        id: day.entries[0]?.id || '',
-        date: day.fullDate,
-        hours: day.totalHours || '',
-        description: day.entries[0]?.description || '',
-      })),
-    },
   });
 
-  const { reset } = form;
+  const { reset, getValues } = form;
+
+  const saveCurrentToDrafts = () => {
+    const currentDays = getValues('days');
+    if (currentDays) {
+      currentDays.forEach(day => {
+        const hasHours = day.hours !== '' && day.hours !== undefined;
+        const hasDesc = !!day.description?.trim();
+
+        if (hasHours || hasDesc) {
+          draftsRef.current[day.date] = day;
+        } else {
+          delete draftsRef.current[day.date];
+        }
+      });
+    }
+  };
+
+  const clearDrafts = () => {
+    draftsRef.current = {};
+  };
 
   useLayoutEffect(() => {
     reset({
       projectId: projectId,
-      days: groupedLogsByDays.map(day => ({
-        id: day.entries[0]?.id || '',
-        date: day.fullDate,
-        hours: day.totalHours || '',
-        description: day.entries[0]?.description || '',
-      })),
+      days: groupedLogsByDays.map(day => {
+        const draft = draftsRef.current[day.fullDate];
+
+        if (draft) return draft;
+
+        return {
+          id: day.entries[0]?.id || '',
+          date: day.fullDate,
+          hours: day.totalHours || '',
+          description: day.entries[0]?.description || '',
+        };
+      }),
     });
   }, [groupedLogsByDays, projectId, reset]);
 
   const onSubmit: SubmitHandler<WeeklyLogFormOutput> = data => {
-    const totalHours = data.days.reduce((sum, day) => sum + (Number(day.hours) || 0), 0);
-
-    if (totalHours === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Please fill in at least one day',
-      });
-      return;
-    }
-
     const logsToSubmit = data.days
       .filter(day => {
         const hasHours = Number(day.hours) > 0;
@@ -136,6 +145,7 @@ export const useWeeklyLogsForm = (
       });
 
     if (logsToSubmit.length === 0) {
+      clearDrafts();
       onSuccess();
       return;
     }
@@ -144,6 +154,7 @@ export const useWeeklyLogsForm = (
       { createBulkLogs: logsToSubmit, projectId },
       {
         onSuccess: () => {
+          clearDrafts();
           toast({
             variant: 'default',
             title: 'Logs have been updated',
@@ -161,8 +172,14 @@ export const useWeeklyLogsForm = (
     );
   };
 
+  const handleFormSubmit = (e?: React.BaseSyntheticEvent) => {
+    return form.handleSubmit(onSubmit)(e);
+  };
+
   return {
     ...form,
-    onSubmit: form.handleSubmit(onSubmit),
+    saveCurrentToDrafts,
+    clearDrafts,
+    onSubmit: handleFormSubmit,
   };
 };

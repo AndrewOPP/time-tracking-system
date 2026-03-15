@@ -124,6 +124,24 @@ export class TimeLogCommandsService {
         if (projectAccess.users.length === 0)
           throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED_UPDATE);
       }
+      const targetProjectId = updateTimeLogData.projectId || targetLog.projectId;
+      const targetDate = updateTimeLogData.date ? new Date(updateTimeLogData.date) : targetLog.date;
+
+      if (updateTimeLogData.date || updateTimeLogData.projectId) {
+        const conflictingLog = await tx.timeLog.findUnique({
+          where: {
+            userId_projectId_date: {
+              userId,
+              projectId: targetProjectId,
+              date: targetDate,
+            },
+          },
+        });
+
+        if (conflictingLog && conflictingLog.id !== logId) {
+          throw new BadRequestException(TIME_LOG_ERRORS.LOG.LOG_IS_EXISTING);
+        }
+      }
 
       if ('hours' in updateTimeLogData || 'date' in updateTimeLogData) {
         const targetDate = updateTimeLogData.date
