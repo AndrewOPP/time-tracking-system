@@ -51,7 +51,6 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
     reset,
     clearErrors,
     saveCurrentToDrafts,
-    clearDrafts,
   } = useWeeklyLogsForm(groupedLogsByDays, projectId, closeDialog);
 
   const formDays = watch('days');
@@ -68,12 +67,9 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
   };
 
   const handleClose = () => {
-    clearDrafts();
     reset();
     closeDialog();
   };
-
-  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>

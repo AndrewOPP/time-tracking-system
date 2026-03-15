@@ -87,14 +87,7 @@ export const useWeeklyLogsForm = (
     const currentDays = getValues('days');
     if (currentDays) {
       currentDays.forEach(day => {
-        const hasHours = day.hours !== '' && day.hours !== undefined;
-        const hasDesc = !!day.description?.trim();
-
-        if (hasHours || hasDesc) {
-          draftsRef.current[day.date] = day;
-        } else {
-          delete draftsRef.current[day.date];
-        }
+        draftsRef.current[day.date] = day;
       });
     }
   };
@@ -104,10 +97,17 @@ export const useWeeklyLogsForm = (
   };
 
   useLayoutEffect(() => {
+    return () => {
+      clearDrafts();
+    };
+  }, []);
+
+  useLayoutEffect(() => {
     reset({
       projectId: projectId,
       days: groupedLogsByDays.map(day => {
         const draft = draftsRef.current[day.fullDate];
+        console.log(draft);
 
         if (draft) return draft;
 
@@ -179,7 +179,6 @@ export const useWeeklyLogsForm = (
   return {
     ...form,
     saveCurrentToDrafts,
-    clearDrafts,
     onSubmit: handleFormSubmit,
   };
 };
