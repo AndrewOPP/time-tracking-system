@@ -18,6 +18,7 @@ export interface ManagerDashboardRow {
   projectId: string;
   projectName: string;
   pmName: string;
+  projectAvatarUrl: string;
   pmAvatarUrl: string | null;
   perProjectTotal: number;
 

@@ -167,9 +167,21 @@ async function createTechnologies() {
 async function createProject(count: number, managers: User[]) {
   const projectsData = [];
 
+  const colors = [
+    '64748B', // Slate
+    '4E916B', // Muted Emerald
+    '6366F1', // Soft Indigo
+    'D97706', // Warm Amber
+    'BE185D', // Dusty Rose
+    '84A59D', // Sage
+    'A44A3F', // Terracotta
+  ];
+
   for (let i = 0; i < count; i++) {
     const manager = i < CONFIG.PM_PROJECTS_COUNT ? faker.helpers.arrayElement(managers) : null;
     const projectName = faker.company.name();
+
+    const randomColor = faker.helpers.arrayElement(colors);
 
     projectsData.push({
       name: projectName,
@@ -178,7 +190,10 @@ async function createProject(count: number, managers: User[]) {
       startDate: faker.date.past(),
       description: faker.lorem.paragraphs(2),
       endDate: faker.date.future(),
-      avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(projectName)}&background=random&color=fff&size=200`,
+
+      avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        projectName
+      )}&background=${randomColor}&color=fff&size=200&bold=true`,
       projectManagerId: manager ? manager.id : null,
     });
   }

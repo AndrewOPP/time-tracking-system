@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, description, className, children }: PageHeaderProps) => {
   return (
-    <div className={cn('py-[20px] px-[16px] mb-5 border-b border-gray-200', className)}>
+    <div className={cn('py-[20px] pr-[16px] mb-5 border-b border-gray-200', className)}>
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-[10px]">
           <h1 className="font-exo font-bold text-[18px] leading-none text-[#1F1F1F]">{title}</h1>

@@ -105,7 +105,12 @@ export class TimeLogQueriesService {
 
     const year = fromDate.getFullYear();
     const month = fromDate.getMonth() + 1;
-    const weeksInfo = getWeeksForMonth(year, month);
+    let weeksInfo = getWeeksForMonth(year, month);
+
+    weeksInfo = weeksInfo.filter(week => {
+      if (week.weekNumber <= 5) return true;
+      return week.workingHours > 0;
+    });
 
     const formattedWeeks = weeksInfo.map(week => ({
       ...week,
@@ -138,6 +143,7 @@ export class TimeLogQueriesService {
               select: {
                 id: true,
                 name: true,
+                avatarUrl: true,
                 projectManager: {
                   select: {
                     realName: true,
@@ -217,6 +223,7 @@ export class TimeLogQueriesService {
           projectName: userProject.project.name,
           pmName: userProject.project.projectManager?.realName ?? 'No PM',
           pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,
+          projectAvatarUrl: userProject.project.avatarUrl ?? '',
           perProjectTotal,
 
           week1: weeklyHours[0],

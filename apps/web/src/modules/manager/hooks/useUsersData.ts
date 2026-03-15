@@ -23,6 +23,7 @@ export interface ManagerDashboardRow {
   projectId: string;
   projectName: string;
   pmName: string;
+  projectAvatarUrl: string;
   pmAvatarUrl: string | null;
   perProjectTotal: number;
 
@@ -40,7 +41,7 @@ export interface ManagerDashboardResponse {
 }
 
 export const useUsersData = (from: string, to: string, search?: string) => {
-  return useQuery<ManagerDashboardResponse[], Error>({
+  return useQuery<ManagerDashboardResponse, Error>({
     queryKey: ['usersData', { from, to, search }],
     queryFn: () => getUsersInfo({ from, to, search }),
     staleTime: 1000 * 60 * 5,
