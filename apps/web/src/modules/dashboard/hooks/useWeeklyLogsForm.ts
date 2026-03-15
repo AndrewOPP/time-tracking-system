@@ -107,7 +107,6 @@ export const useWeeklyLogsForm = (
       projectId: projectId,
       days: groupedLogsByDays.map(day => {
         const draft = draftsRef.current[day.fullDate];
-        console.log(draft);
 
         if (draft) return draft;
 
