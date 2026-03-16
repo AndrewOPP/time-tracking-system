@@ -8,6 +8,8 @@ export const TIME_LOG_ERRORS = {
   },
   LOG: {
     NOT_FOUND: 'Time log entry not found',
+    LOG_IS_EXISTING:
+      'A time log already exists for this project on the selected date. Please edit the existing log instead.',
     FORBIDDEN_EDIT: 'You can only edit your own time logs',
     FORBIDDEN_DELETE: 'You can only delete your own time logs',
     FORBIDDEN_BULK: 'Attempt to update a non-existent log or a log belonging to another user',

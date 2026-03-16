@@ -50,21 +50,30 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
     formState: { errors },
     reset,
     clearErrors,
+    saveCurrentToDrafts,
   } = useWeeklyLogsForm(groupedLogsByDays, projectId, closeDialog);
 
   const formDays = watch('days');
   const totalWeekHours = formDays?.reduce((sum, day) => sum + (Number(day.hours) || 0), 0) || 0;
+
+  const onPrevWeekClick = () => {
+    saveCurrentToDrafts();
+    handlePrevWeek();
+  };
+
+  const onNextWeekClick = () => {
+    saveCurrentToDrafts();
+    handleNextWeek();
+  };
 
   const handleClose = () => {
     reset();
     closeDialog();
   };
 
-  if (!isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:min-w-[800px] p-0 gap-0 [&>button]:hidden  rounded-[6px]">
+      <DialogContent className="sm:min-w-[800px] p-0 gap-0 [&>button]:hidden rounded-[6px]">
         <DialogHeader className="border-b border-[#E0E1E2] py-4 px-6 flex flex-row items-center justify-between">
           <div className="flex flex-col gap-2">
             <DialogTitle className="text-[22px] font-semibold text-gray-900">
@@ -73,9 +82,12 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
             <p className="text-[14px] text-[#6F6F6F]">{projectName}</p>
           </div>
           <DialogDescription className="sr-only">
-            Delete time log for selected date
+            Track and manage time logs for selected weeks
           </DialogDescription>
-          <DialogClose className="rounded-full p-1 opacity-70 hover:opacity-100 cursor-pointer">
+          <DialogClose
+            onClick={handleClose}
+            className="rounded-full p-1 opacity-70 hover:opacity-100 cursor-pointer"
+          >
             <X className="h-6 w-6 text-[#1F1F1F]" />
           </DialogClose>
         </DialogHeader>
@@ -84,8 +96,8 @@ export default function TrackLogsModal({ projectName, projectId }: TrackLogsModa
           <div>
             <div className="px-6 pt-5 flex justify-center">
               <WeekNavigation
-                onPrevWeek={handlePrevWeek}
-                onNextWeek={handleNextWeek}
+                onPrevWeek={onPrevWeekClick}
+                onNextWeek={onNextWeekClick}
                 weekRangeText={weekRangeLabel}
               />
             </div>

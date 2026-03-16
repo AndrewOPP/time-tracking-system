@@ -11,10 +11,11 @@ import { getAppErrorMessage } from '@/shared/utils/error-handler';
 import { BackButton } from '../components/BackButton';
 import { ProjectDetailsSkeleton } from '../components/ProjectDetailsSkeleton';
 import TrackLogsModal from '../components/TrackLogsModal/TrackLogsModal';
+import { useDialogStore } from '../store/useDialogStore';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-
+  const { isOpen } = useDialogStore();
   const { data: project, isError, isLoading, error } = useProjectById(id);
 
   if (isLoading) {
@@ -49,7 +50,7 @@ export const ProjectDetailsPage = () => {
           <ProjectTeam team={project.team} />
         </div>
       </div>
-      <TrackLogsModal projectName={project.name} projectId={project.id} />
+      {isOpen && <TrackLogsModal projectId={project.id} projectName={project.name} />}
     </div>
   );
 };
