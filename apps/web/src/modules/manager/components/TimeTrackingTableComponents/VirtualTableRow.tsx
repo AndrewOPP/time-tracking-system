@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import type { ManagerDashboardRow } from '../../hooks/useUsersData';
+
 import { flexRender, type Row } from '@tanstack/react-table';
+import type { ManagerDashboardRow } from '../../types/managerAIChat.types';
 
 export const VirtualTableRow = memo(
   ({

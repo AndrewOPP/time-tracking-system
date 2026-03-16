@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 
 interface CellListProps<T> {
   items: T[];
@@ -18,6 +18,6 @@ const CellListInternal = <T extends { projectId?: string | number }>({
   </div>
 );
 
-export const CellList = React.memo(CellListInternal, (prevProps, nextProps) => {
+export const CellList = memo(CellListInternal, (prevProps, nextProps) => {
   return prevProps.items === nextProps.items;
 }) as typeof CellListInternal;

@@ -181,7 +181,7 @@
 @layer utilities {
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: #e6e8ec transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar {

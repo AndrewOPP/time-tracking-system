@@ -1,4 +1,3 @@
-import type { ManagerDashboardRow, WeekInfo } from '../../hooks/useUsersData';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
   FileText,
@@ -12,6 +11,7 @@ import {
 import { CellList } from './CellList';
 import { FastUserAvatar } from './FastUserAvatar';
 import { FastProjectAvatar } from './FastProjectAvatar';
+import type { ManagerDashboardRow, WeekInfo } from '../../types/managerAIChat.types';
 
 export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow>[] => {
   const baseColumns: ColumnDef<ManagerDashboardRow>[] = [

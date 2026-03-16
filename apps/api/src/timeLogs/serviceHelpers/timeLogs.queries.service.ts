@@ -66,138 +66,6 @@ export class TimeLogQueriesService {
     return { userId, period: { from, to }, missingDays };
   }
 
-  // async getManagerDashboard(from: string, to: string, search?: string) {
-  //   const fromDate = new Date(from);
-  //   const toDate = new Date(to);
-
-  //   const year = fromDate.getFullYear();
-  //   const month = fromDate.getMonth() + 1;
-
-  //   // Отримуємо інформацію про тижні
-  //   let weeksInfo = getWeeksForMonth(year, month);
-  //   weeksInfo = weeksInfo.filter(week => week.weekNumber <= 5 || week.workingHours > 0);
-
-  //   const formattedWeeks = weeksInfo.map(week => ({
-  //     ...week,
-  //     startStr: format(week.startDate, 'yyyy-MM-dd'),
-  //     endStr: format(week.endDate, 'yyyy-MM-dd'),
-  //   }));
-
-  //   const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
-
-  //   const userWhere: Prisma.UserWhereInput = {};
-  //   if (search) {
-  //     userWhere.OR = [
-  //       { realName: { contains: search, mode: 'insensitive' } },
-  //       { email: { contains: search, mode: 'insensitive' } },
-  //     ];
-  //   }
-
-  //   // Запит до БД залишаємо ефективним
-  //   const users = await this.prisma.user.findMany({
-  //     where: userWhere,
-  //     select: {
-  //       id: true,
-  //       realName: true,
-  //       email: true,
-  //       avatarUrl: true,
-  //       workFormat: true,
-  //       projects: {
-  //         include: {
-  //           project: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //               avatarUrl: true,
-  //               projectManager: {
-  //                 select: { realName: true, avatarUrl: true },
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //       timeLogs: {
-  //         where: { date: { gte: fromDate, lte: toDate } },
-  //         select: { projectId: true, date: true, hours: true },
-  //       },
-  //       ptoLogs: {
-  //         where: { date: { gte: fromDate, lte: toDate } },
-  //         select: { hours: true },
-  //       },
-  //     },
-  //     orderBy: { realName: 'asc' },
-  //   });
-
-  //   // Формуємо ієрархічні дані (1 юзер = 1 рядок)
-  //   const tableData = users
-  //     .filter(user => user.projects.length > 0)
-  //     .map(user => {
-  //       const totalPto = user.ptoLogs.reduce((s, l) => s + Number(l.hours), 0);
-  //       const totalUserHours = user.timeLogs.reduce((s, l) => s + Number(l.hours), 0);
-  //       const employedTimePercent =
-  //         monthWorkingHours > 0 ? Math.round((totalUserHours / monthWorkingHours) * 100) : 0;
-
-  //       // Групуємо логи по проектах для швидкого доступу
-  //       const logsByProject = new Map<string, typeof user.timeLogs>();
-  //       for (const log of user.timeLogs) {
-  //         if (!logsByProject.has(log.projectId)) logsByProject.set(log.projectId, []);
-  //         logsByProject.get(log.projectId)!.push(log);
-  //       }
-
-  //       // Перетворюємо проекти в масив всередині юзера
-  //       const projects = user.projects.map(userProject => {
-  //         const projectId = userProject.project.id;
-  //         const projectLogs = logsByProject.get(projectId) ?? [];
-
-  //         // Розрахунок годин по тижнях (масив з 6 елементів)
-  //         const weeklyHours = [0, 0, 0, 0, 0, 0];
-  //         for (const log of projectLogs) {
-  //           const logDateStr = format(log.date, 'yyyy-MM-dd');
-  //           const targetWeek = formattedWeeks.find(
-  //             w => logDateStr >= w.startStr && logDateStr <= w.endStr
-  //           );
-  //           if (targetWeek) {
-  //             weeklyHours[targetWeek.weekNumber - 1] += Number(log.hours);
-  //           }
-  //         }
-
-  //         return {
-  //           projectId,
-  //           projectName: userProject.project.name,
-  //           projectAvatarUrl: userProject.project.avatarUrl ?? '',
-  //           pmName: userProject.project.projectManager?.realName ?? 'No PM',
-  //           pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,
-  //           perProjectTotal: projectLogs.reduce((sum, log) => sum + Number(log.hours), 0),
-  //           // Віддаємо тижні об'єктом для зручного accessorKey на фронті
-  //           weeks: {
-  //             week1: weeklyHours[0],
-  //             week2: weeklyHours[1],
-  //             week3: weeklyHours[2],
-  //             week4: weeklyHours[3],
-  //             week5: weeklyHours[4],
-  //             week6: weeklyHours[5],
-  //           },
-  //         };
-  //       });
-
-  //       return {
-  //         userId: user.id,
-  //         employeeName: user.realName || user.email,
-  //         avatarUrl: user.avatarUrl,
-  //         totalUserHours,
-  //         ptoHours: totalPto,
-  //         format: user.workFormat,
-  //         employedTimePercent,
-  //         projects, // Твій масив проектів
-  //       };
-  //     });
-
-  //   return {
-  //     weeksInfo,
-  //     tableData,
-  //   };
-  // }
-
   async getManagerDashboard(
     from: string,
     to: string,
@@ -211,7 +79,6 @@ export class TimeLogQueriesService {
     const year = fromDate.getFullYear();
     const month = fromDate.getMonth() + 1;
 
-    // Отримуємо інформацію про тижні
     let weeksInfo = getWeeksForMonth(year, month);
     weeksInfo = weeksInfo.filter(week => week.weekNumber <= 5 || week.workingHours > 0);
 
@@ -231,15 +98,13 @@ export class TimeLogQueriesService {
       ];
     }
 
-    // 1. Рассчитываем, сколько записей нужно пропустить
     const skip = (page - 1) * limit;
 
-    // 2. Выполняем параллельно запрос юзеров (с пагинацией) и запрос их общего количества
     const [users, totalUsersCount] = await Promise.all([
       this.prisma.user.findMany({
         where: userWhere,
-        skip, // <-- пропускаем
-        take: limit, // <-- берем порцию
+        skip,
+        take: limit,
         select: {
           id: true,
           realName: true,
@@ -271,10 +136,9 @@ export class TimeLogQueriesService {
         },
         orderBy: { realName: 'asc' },
       }),
-      this.prisma.user.count({ where: userWhere }), // Считаем общее количество для nextPage
+      this.prisma.user.count({ where: userWhere }),
     ]);
 
-    // Формуємо ієрархічні дані (1 юзер = 1 рядок)
     const tableData = users
       .filter(user => user.projects.length > 0)
       .map(user => {
@@ -283,19 +147,16 @@ export class TimeLogQueriesService {
         const employedTimePercent =
           monthWorkingHours > 0 ? Math.round((totalUserHours / monthWorkingHours) * 100) : 0;
 
-        // Групуємо логи по проектах для швидкого доступу
         const logsByProject = new Map<string, typeof user.timeLogs>();
         for (const log of user.timeLogs) {
           if (!logsByProject.has(log.projectId)) logsByProject.set(log.projectId, []);
           logsByProject.get(log.projectId)!.push(log);
         }
 
-        // Перетворюємо проекти в масив всередині юзера
         const projects = user.projects.map(userProject => {
           const projectId = userProject.project.id;
           const projectLogs = logsByProject.get(projectId) ?? [];
 
-          // Розрахунок годин по тижнях (масив з 6 елементів)
           const weeklyHours = [0, 0, 0, 0, 0, 0];
           for (const log of projectLogs) {
             const logDateStr = format(log.date, 'yyyy-MM-dd');
@@ -314,7 +175,6 @@ export class TimeLogQueriesService {
             pmName: userProject.project.projectManager?.realName ?? 'No PM',
             pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,
             perProjectTotal: projectLogs.reduce((sum, log) => sum + Number(log.hours), 0),
-            // Віддаємо тижні об'єктом для зручного accessorKey на фронті
             weeks: {
               week1: weeklyHours[0],
               week2: weeklyHours[1],
@@ -334,18 +194,18 @@ export class TimeLogQueriesService {
           ptoHours: totalPto,
           format: user.workFormat,
           employedTimePercent,
-          projects, // Твій масив проектів
+          projects,
         };
       });
 
-    // 3. Вычисляем следующую страницу
     const totalPages = Math.ceil(totalUsersCount / limit);
     const nextPage = page < totalPages ? page + 1 : null;
 
     return {
       weeksInfo,
       tableData,
-      nextPage, // <-- Передаем на фронтенд для useInfiniteQuery
+      nextPage,
+      totalCount: totalUsersCount,
     };
   }
 }
