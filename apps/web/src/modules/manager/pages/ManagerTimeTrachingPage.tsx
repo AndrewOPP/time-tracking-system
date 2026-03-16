@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { useUsersData } from '../hooks/useUsersData';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
@@ -10,16 +10,25 @@ export function ManagerTimeTrachingPage() {
   const from = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const to = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
-  const { data, isLoading } = useUsersData(from, to);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useUsersData(
+    from,
+    to
+  );
 
   const [isPageAnimationDone, setIsPageAnimationDone] = useState(() => {
     if (data && !isLoading) return true;
     return false;
   });
 
+  const flatTableData = useMemo(() => {
+    return data?.pages.flatMap(page => page.tableData) || [];
+  }, [data]);
+
+  const weeksInfo = data?.pages[0]?.weeksInfo || [];
+
   useEffect(() => {
     if (isPageAnimationDone) return;
-    const timer = setTimeout(() => setIsPageAnimationDone(true), 550);
+    const timer = setTimeout(() => setIsPageAnimationDone(true), 450);
     return () => clearTimeout(timer);
   }, [isPageAnimationDone]);
 
@@ -48,7 +57,13 @@ export function ManagerTimeTrachingPage() {
         </div>
       ) : (
         <div className="w-full transition-opacity animate-in fade-in duration-500">
-          <TimeTrackingTable data={data!.tableData} weeksInfo={data!.weeksInfo} />
+          <TimeTrackingTable
+            data={flatTableData}
+            weeksInfo={weeksInfo}
+            fetchNextPage={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+          />
         </div>
       )}
     </div>

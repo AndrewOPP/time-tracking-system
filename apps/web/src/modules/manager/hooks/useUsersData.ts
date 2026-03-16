@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { getUsersInfo } from '../api/timeTrackingTable.api';
 
@@ -40,11 +40,15 @@ export interface ManagerDashboardRow {
 export interface ManagerDashboardResponse {
   weeksInfo: WeekInfo[];
   tableData: ManagerDashboardRow[];
+  nextPage: number | null;
 }
 export const useUsersData = (from: string, to: string, search?: string) => {
-  return useQuery<ManagerDashboardResponse, Error>({
+  return useInfiniteQuery<ManagerDashboardResponse, Error>({
     queryKey: ['usersData', from, to, search],
-    queryFn: () => getUsersInfo({ from, to, search }),
+    queryFn: ({ pageParam }) =>
+      getUsersInfo({ from, to, search, page: pageParam as number, limit: 15 }),
+    initialPageParam: 1,
+    getNextPageParam: lastPage => lastPage.nextPage ?? undefined,
     staleTime: 1000 * 60 * 5,
   });
 };
