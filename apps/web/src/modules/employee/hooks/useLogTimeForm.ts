@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateLogMutation, useUpdateLogMutation } from '../hooks/useMutations';
 import type { TimeLog } from '../types/timeLogs';
 import { useToast } from '@hooks/use-toast';
-import axios from 'axios';
 import { useLayoutEffect } from 'react';
+import { getModalErrorMessage } from '@/shared/utils/getModalErrorMessage';
 
 const logTimeSchema = z.object({
   project: z.string().min(1, 'Please select a project'),
@@ -57,14 +57,6 @@ export const useLogTimeForm = (
     }
   }, [log, reset]);
 
-  const getErrorMessage = (error: unknown): string => {
-    if (!axios.isAxiosError(error)) return 'Something went wrong';
-
-    const message = error.response?.data?.message;
-
-    return message || 'Something went wrong';
-  };
-
   const onSubmit: SubmitHandler<LogTimeFormOutput> = data => {
     if (log) {
       updateLogMutation.mutate(
@@ -89,7 +81,7 @@ export const useLogTimeForm = (
             toast({
               variant: 'destructive',
               title: 'Error',
-              description: getErrorMessage(error),
+              description: getModalErrorMessage(error),
             });
           },
         }
@@ -116,7 +108,7 @@ export const useLogTimeForm = (
             toast({
               variant: 'destructive',
               title: 'Error',
-              description: getErrorMessage(error),
+              description: getModalErrorMessage(error),
             });
           },
         }

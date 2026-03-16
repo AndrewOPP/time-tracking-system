@@ -3,14 +3,15 @@ import { useTimeLogsByPeriod } from '../hooks/useTimeLogs';
 
 export const useLogDates = (
   from: string,
-  to: string
+  to: string,
+  projectId?: string
 ): {
   logDates: Date[];
   timeLogs: ReturnType<typeof useTimeLogsByPeriod>['data'];
   isLoading: boolean;
   isError: boolean;
 } => {
-  const { data: timeLogs, isLoading, isError } = useTimeLogsByPeriod(from, to);
+  const { data: timeLogs, isLoading, isError } = useTimeLogsByPeriod(from, to, projectId);
 
   const logDates = useMemo(() => {
     if (!timeLogs) return [];

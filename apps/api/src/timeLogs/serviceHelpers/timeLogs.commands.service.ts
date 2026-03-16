@@ -56,7 +56,36 @@ export class TimeLogCommandsService {
       if (project.users.length === 0)
         throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED);
 
-      await this._checkDailyHoursLimit(tx, userId, targetDate, Number(timeLog.hours));
+      const existingLog = await tx.timeLog.findUnique({
+        where: {
+          userId_projectId_date: {
+            userId,
+            projectId: timeLog.projectId,
+            date: targetDate,
+          },
+        },
+      });
+
+      await this._checkDailyHoursLimit(
+        tx,
+        userId,
+        targetDate,
+        Number(timeLog.hours),
+        existingLog?.id
+      );
+
+      if (existingLog) {
+        return tx.timeLog.update({
+          where: { id: existingLog.id },
+          data: {
+            hours: timeLog.hours,
+            description: timeLog.description,
+          },
+          include: {
+            project: { select: { id: true, name: true } },
+          },
+        });
+      }
 
       return tx.timeLog.create({
         data: {
@@ -68,10 +97,7 @@ export class TimeLogCommandsService {
         },
         include: {
           project: {
-            select: {
-              id: true,
-              name: true,
-            },
+            select: { id: true, name: true },
           },
         },
       });
@@ -97,6 +123,24 @@ export class TimeLogCommandsService {
         if (!projectAccess) throw new NotFoundException(TIME_LOG_ERRORS.PROJECT.NOT_FOUND);
         if (projectAccess.users.length === 0)
           throw new ForbiddenException(TIME_LOG_ERRORS.PROJECT.ACCESS_DENIED_UPDATE);
+      }
+      const targetProjectId = updateTimeLogData.projectId || targetLog.projectId;
+      const targetDate = updateTimeLogData.date ? new Date(updateTimeLogData.date) : targetLog.date;
+
+      if (updateTimeLogData.date || updateTimeLogData.projectId) {
+        const conflictingLog = await tx.timeLog.findUnique({
+          where: {
+            userId_projectId_date: {
+              userId,
+              projectId: targetProjectId,
+              date: targetDate,
+            },
+          },
+        });
+
+        if (conflictingLog && conflictingLog.id !== logId) {
+          throw new BadRequestException(TIME_LOG_ERRORS.LOG.LOG_IS_EXISTING);
+        }
       }
 
       if ('hours' in updateTimeLogData || 'date' in updateTimeLogData) {
@@ -162,12 +206,40 @@ export class TimeLogCommandsService {
       const incomingIds = logsToSave.map(log => log.id).filter(id => id);
 
       for (const log of existingLogs) {
+        if (Number(log.hours) === 0) continue;
         if (incomingIds.includes(log.id)) continue;
+
         const dateStr = log.date.toISOString().split('T')[0];
         hoursPerDay.set(dateStr, (hoursPerDay.get(dateStr) || 0) + Number(log.hours));
       }
 
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(now.getMonth() - 1);
+      oneMonthAgo.setHours(0, 0, 0, 0);
+
       for (const log of logsToSave) {
+        if (log.hours === 0) continue;
+
+        const logDate = new Date(log.date);
+
+        if (logDate > now) {
+          throw new BadRequestException('You cannot track hours for future dates');
+        }
+
+        if (logDate < oneMonthAgo) {
+          const formattedDate = logDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          throw new BadRequestException(
+            `You cannot create or edit logs on ${formattedDate}. It is older than 1 month`
+          );
+        }
+
         const dateStr = new Date(log.date).toISOString().split('T')[0];
         const newTotal = (hoursPerDay.get(dateStr) || 0) + log.hours;
 
@@ -177,8 +249,11 @@ export class TimeLogCommandsService {
         hoursPerDay.set(dateStr, newTotal);
       }
 
-      const logsToCreate = logsToSave.filter(log => !log.id);
-      const logsToUpdate = logsToSave.filter(log => !!log.id);
+      const logsToCreate = logsToSave.filter(log => !log.id && log.hours > 0);
+
+      const logsToUpdate = logsToSave.filter(log => !!log.id && log.hours > 0);
+
+      const logsToDelete = logsToSave.filter(log => !!log.id && log.hours === 0);
 
       if (logsToCreate.length > 0) {
         await tx.timeLog.createMany({
@@ -206,6 +281,15 @@ export class TimeLogCommandsService {
             })
           )
         );
+      }
+
+      if (logsToDelete.length > 0) {
+        await tx.timeLog.deleteMany({
+          where: {
+            id: { in: logsToDelete.map(log => log.id!) },
+            userId,
+          },
+        });
       }
 
       return { message: TIME_LOG_ERRORS.MESSAGES.BULK_SUCCESS };

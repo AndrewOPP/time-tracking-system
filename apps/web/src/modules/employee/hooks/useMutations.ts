@@ -47,13 +47,6 @@ export const useCreateLogMutation = () => {
     mutationFn: logCreate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeLogs'] });
-      //       I will maybe use it in the future, so dont comment this pls
-      //========================================================================
-      // queryClient.setQueryData(['timeLogs', fromStr, toStr], (oldData: TimeLog[] | undefined) => {
-      //   if (!oldData) return [newLog];
-      //   return [...oldData, newLog];
-      // });
-      //========================================================================
     },
   });
 };

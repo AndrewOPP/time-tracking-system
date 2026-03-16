@@ -17,11 +17,11 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card
       onClick={() => navigate(`${ROUTES.DASHBOARD}/${project.id}`)}
-      className="w-full max-w-[320px] rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+      className="w-full max-w-[320px]  py-4 rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
     >
-      <CardContent className="">
+      <CardContent className="px-5">
         <div className="flex gap-4 items-center">
-          <div className="w-[68px] h-[68px] bg-[#1C1C1C] rounded-[14px] flex items-center justify-center shrink-0">
+          <div className="w-[68px] h-[68px]  rounded-[14px] flex items-center justify-center shrink-0">
             {project.logo ? (
               <img
                 src={project.logo}
@@ -34,7 +34,9 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
           </div>
 
           <div className="flex flex-col justify-center gap-2">
-            <h3 className="text-lg font-bold text-slate-900 leading-none">{project.name}</h3>
+            <h3 className="text-lg font-bold text-slate-900 leading-none line-clamp-1">
+              {project.name}
+            </h3>
 
             <div
               className={cn(
@@ -55,19 +57,19 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
         <hr className="border-gray-200" />
       </div>
 
-      <CardFooter className="flex justify-between items-center">
+      <CardFooter className="flex justify-between items-center px-5">
         <div className="flex -space-x-2">
           {project.teamAvatars.length > 0 ? (
             <>
               {project.teamAvatars.slice(0, 5).map((avatar, index) => (
-                <Avatar key={index} className="w-8 h-8 border-2 border-white ring-0">
+                <Avatar key={index} className="w-9 h-9 border-2 border-white ring-0">
                   <AvatarImage src={avatar} alt={`Team member ${index + 1}`} />
                   <AvatarFallback className="text-xs">U</AvatarFallback>
                 </Avatar>
               ))}
 
               {project.teamAvatars.length > 5 && (
-                <Avatar className="w-8 h-8 border-2 border-white ring-0">
+                <Avatar className="w-9 h-9 border-2 border-white ring-0">
                   <AvatarFallback className="text-[11px] font-medium bg-gray-100 text-gray-600">
                     +{project.teamAvatars.length - 5}
                   </AvatarFallback>

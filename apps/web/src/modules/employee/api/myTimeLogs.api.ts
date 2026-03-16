@@ -1,9 +1,13 @@
 import { axiosPrivate } from '@/shared/api';
 import type { CreateLog, TimeLog, UpdateLog } from '../types/timeLogs';
 
-export const findLogsByPeriod = async (from: string, to: string): Promise<TimeLog[]> => {
+export const findLogsByPeriod = async (
+  from: string,
+  to: string,
+  projectId?: string
+): Promise<TimeLog[]> => {
   const { data } = await axiosPrivate.get<TimeLog[]>('/time-logs/me', {
-    params: { from, to },
+    params: { from, to, projectId },
   });
   return data;
 };

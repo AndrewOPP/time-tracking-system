@@ -10,10 +10,12 @@ import { ProjectStatus } from '@/shared/constants/projectStatus';
 import { getAppErrorMessage } from '@/shared/utils/error-handler';
 import { BackButton } from '../components/BackButton';
 import { ProjectDetailsSkeleton } from '../components/ProjectDetailsSkeleton';
+import TrackLogsModal from '../components/TrackLogsModal/TrackLogsModal';
+import { useDialogStore } from '../store/useDialogStore';
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-
+  const { isOpen } = useDialogStore();
   const { data: project, isError, isLoading, error } = useProjectById(id);
 
   if (isLoading) {
@@ -33,7 +35,7 @@ export const ProjectDetailsPage = () => {
   const isTrackingDisabled = project.status !== ProjectStatus.IN_PROGRESS;
 
   return (
-    <div className="w-full pb-10">
+    <div className="w-full pb-10 animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
       <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
       <div className="px-4 flex flex-col lg:flex-row gap-6 items-start">
         <ProjectSidebar project={project} currentStatus={currentStatus} />
@@ -48,6 +50,7 @@ export const ProjectDetailsPage = () => {
           <ProjectTeam team={project.team} />
         </div>
       </div>
+      {isOpen && <TrackLogsModal projectId={project.id} projectName={project.name} />}
     </div>
   );
 };

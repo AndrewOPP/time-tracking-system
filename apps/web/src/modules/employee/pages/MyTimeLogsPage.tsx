@@ -45,7 +45,7 @@ export default function MyTimeLogsPage() {
   const { timeLogs: monthLogs } = useLogDates(monthFromStr, monthToStr);
 
   const groupedLogsByDays = useMemo(() => {
-    return groupLogsToDays(fromStr, toStr, timeLogs || []);
+    return groupLogsToDays(fromStr, toStr, timeLogs || [], 'short');
   }, [fromStr, toStr, timeLogs]);
 
   const { logSummaries } = useLogSummaries(monthLogs || []);

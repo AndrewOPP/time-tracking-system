@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 import { parseISO, addWeeks, subWeeks, format, differenceInDays } from 'date-fns';
 import { findLogsByPeriod } from '../api/myTimeLogs.api';
 
-export const useTimeLogsByPeriod = (from: string, to: string) => {
+export const useTimeLogsByPeriod = (from: string, to: string, projectId?: string) => {
   const queryClient = useQueryClient();
 
   const queryResult = useQuery({
-    queryKey: ['timeLogs', from, to],
-    queryFn: () => findLogsByPeriod(from, to),
+    queryKey: ['timeLogs', from, to, projectId],
+    queryFn: () => findLogsByPeriod(from, to, projectId),
     enabled: !!from && !!to,
     select: data => {
       return data.map(log => ({

@@ -7,15 +7,29 @@ import { TIME_LOG_ERRORS } from '../constants/timeLogs.constants';
 export class TimeLogQueriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findLogsByPeriod(user: user, from: string, to: string) {
+  async findLogsByPeriod(user: user, from: string, to: string, projectId?: string) {
     const userId = user.sub;
-    return this.prisma.timeLog.findMany({
-      where: {
-        userId: userId,
-        date: { gte: new Date(from), lte: new Date(to) },
+
+    const where: Prisma.TimeLogWhereInput = {
+      userId: userId,
+      date: {
+        gte: new Date(from),
+        lte: new Date(to),
       },
+    };
+
+    if (projectId) {
+      where.projectId = projectId;
+    }
+
+    return this.prisma.timeLog.findMany({
+      where: where,
       orderBy: { date: 'asc' },
-      include: { project: { select: { name: true } } },
+      include: {
+        project: {
+          select: { name: true },
+        },
+      },
     });
   }
 

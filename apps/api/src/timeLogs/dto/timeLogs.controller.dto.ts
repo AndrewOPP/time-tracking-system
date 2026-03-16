@@ -9,6 +9,7 @@ import {
   Max,
   MaxLength,
   IsOptional,
+  ValidateIf,
 } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 import { IsValidDateRange } from '../utils/dateValidation.decorator';
@@ -34,13 +35,28 @@ export class CreateTimeLogDto {
   projectId: string;
 }
 
-export class UpdateTimeLogDto extends PartialType(CreateTimeLogDto) {}
-
-export class BulkSaveTimeLogDto extends OmitType(CreateTimeLogDto, ['projectId'] as const) {
+export class BulkSaveTimeLogDto extends OmitType(CreateTimeLogDto, [
+  'projectId',
+  'hours',
+  'description',
+] as const) {
   @IsOptional()
   @IsUUID()
   id?: string;
+
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  @Max(24)
+  hours: number;
+
+  @ValidateIf(object => object.hours > 0)
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(1500)
+  description: string;
 }
+
+export class UpdateTimeLogDto extends PartialType(CreateTimeLogDto) {}
 
 @IsValidDateRange()
 export class DateRangeQueryDto {
@@ -57,4 +73,10 @@ export class ManagerDashboardQueryDto extends DateRangeQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+}
+
+export class ProjectDateRangeQueryDto extends DateRangeQueryDto {
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
 }
