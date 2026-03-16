@@ -1,122 +1,99 @@
-import { useMemo } from 'react';
+import { useMemo, memo, useRef, useCallback } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-
+import { useVirtualizer } from '@tanstack/react-virtual';
 import type { ManagerDashboardRow, WeekInfo } from '../../hooks/useUsersData';
 import { getColumns } from './GetColumns';
-
-const MERGED_COLUMNS = ['employee', 'total', 'employedTime', 'pto', 'format'];
+import { VirtualTableRow } from './VirtualTableRow';
 
 interface TimeTrackingTableProps {
   data: ManagerDashboardRow[];
   weeksInfo: WeekInfo[];
 }
 
-export const TimeTrackingTable = ({ data, weeksInfo }: TimeTrackingTableProps) => {
+export const TimeTrackingTable = memo(({ data, weeksInfo }: TimeTrackingTableProps) => {
   const columns = useMemo(() => getColumns(weeksInfo), [weeksInfo]);
+
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-  console.log(data, 'data');
+
+  const { rows } = table.getRowModel();
+
+  const estimateSize = useCallback(() => 60, []);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize,
+    overscan: 6,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0 ? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
     <div
-      className="
-  rounded-md border border-[#E0E1E2] bg-white overflow-auto max-h-[686px]
-  
-  /* Стили для Chrome, Safari и Edge */
-  [&::-webkit-scrollbar]:w-2           
-  [&::-webkit-scrollbar]:h-2         
-  [&::-webkit-scrollbar-track]:bg-transparent
-  [&::-webkit-scrollbar-thumb]:bg-[#e4e4e4] 
-  [&::-webkit-scrollbar-thumb]:rounded-full  
-  [&::-webkit-scrollbar-thumb]:hover:bg-[#e4e4e4] 
-  
-  /* Стили для Firefox */
-  [scrollbar-width:thin] 
-  [scrollbar-color:#e4e4e4_transparent]
-"
+      ref={tableContainerRef}
+      className="w-full border border-[#E0E1E2] rounded-md bg-white overflow-auto max-h-[calc(100vh-250px)] relative custom-scrollbar"
     >
-      <table className="w-full text-sm text-left whitespace-nowrap">
-        <thead className="bg-gray-50 border-b border-[#E0E1E2]">
+      <table className="text-sm text-left border-separate border-spacing-0 table-fixed w-max min-w-full">
+        <thead className="sticky top-0 z-30">
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
+              {headerGroup.headers.map((header, index) => (
                 <th
                   key={header.id}
-                  className={`py-3 px-4 font-medium text-[#6F6F6F] border-[#E0E1E2] last:border-r-0 sticky top-0 bg-gray-50 ${
-                    header.column.id === 'employee'
-                      ? 'left-0 z-30 shadow-[inset_-1px_0_0_0_#E0E1E2]'
-                      : 'z-20 border-r'
-                  }`}
+                  className={`py-3 px-4 font-medium text-[#6F6F6F] border-b border-r border-[#E0E1E2] last:border-r-0 bg-gray-50
+                    ${index === 0 ? 'sticky left-0 z-40' : ''}`}
                 >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                  <div className="min-w-max">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </div>
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-
         <tbody>
-          {table.getRowModel().rows.map((row, index, rowsArray) => {
-            const { isFirstRowForUser, userTotalProjects, userId } = row.original;
+          {paddingTop > 0 && (
+            <tr>
+              <td
+                style={{ height: `${paddingTop}px`, padding: 0, border: 0 }}
+                colSpan={columns.length}
+              />
+            </tr>
+          )}
 
-            const isLastRowForUser =
-              index === rowsArray.length - 1 || rowsArray[index + 1].original.userId !== userId;
-
-            const ptClass = isFirstRowForUser ? 'pt-3' : 'pt-1.5';
-            const pbClass = isLastRowForUser ? 'pb-3' : 'pb-1.5';
-
-            const normalCellPadding = `px-4 ${ptClass} ${pbClass}`;
-
+          {virtualRows.map(virtualRow => {
+            const row = rows[virtualRow.index];
             return (
-              <tr
+              <VirtualTableRow
                 key={row.id}
-                className={`hover:bg-slate-50/50 transition-colors ${
-                  isFirstRowForUser ? 'border-t border-[#E0E1E2]' : ''
-                }`}
-              >
-                {row.getVisibleCells().map(cell => {
-                  const isMergedColumn = MERGED_COLUMNS.includes(cell.column.id);
-
-                  if (isMergedColumn) {
-                    if (isFirstRowForUser) {
-                      return (
-                        <td
-                          key={cell.id}
-                          rowSpan={userTotalProjects}
-                          className={`px-4 py-3 align-middle relative border-[#E0E1E2] ${
-                            cell.column.id === 'employee'
-                              ? 'sticky left-0 z-10 bg-white shadow-[inset_-1px_0_0_0_#E0E1E2]'
-                              : 'bg-white border-r'
-                          } ${cell.column.id === 'format' ? 'border-l border-r-0' : ''}`}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      );
-                    } else {
-                      return null;
-                    }
-                  }
-
-                  return (
-                    <td
-                      key={cell.id}
-                      className={`${normalCellPadding} border-r border-[#E0E1E2] last:border-r-0`}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  );
-                })}
-              </tr>
+                row={row}
+                index={virtualRow.index}
+                measureRef={rowVirtualizer.measureElement}
+              />
             );
           })}
+
+          {paddingBottom > 0 && (
+            <tr>
+              <td
+                style={{ height: `${paddingBottom}px`, padding: 0, border: 0 }}
+                colSpan={columns.length}
+              />
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
   );
-};
+});

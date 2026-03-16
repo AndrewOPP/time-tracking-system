@@ -3,9 +3,7 @@ import { Skeleton } from '@components/ui/skeleton';
 export const TableSkeleton = () => {
   return (
     <div className="w-full">
-      {/* Контейнер таблицы */}
       <div className="rounded-md border border-[#E0E1E2] bg-white overflow-hidden  min-h-[686px]">
-        {/* Шапка таблицы */}
         <div className="flex border-b border-[#E0E1E2] bg-gray-50 p-4 gap-4">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-32" />
@@ -15,7 +13,6 @@ export const TableSkeleton = () => {
           <Skeleton className="h-4 w-24" />
         </div>
 
-        {/* Строки таблицы (имитируем 5 штук) */}
         <div className="p-4 space-y-6">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">

@@ -193,7 +193,7 @@ async function createProject(count: number, managers: User[]) {
 
       avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         projectName
-      )}&background=${randomColor}&color=fff&size=200&bold=true`,
+      )}&background=${randomColor}&color=fff&size=32&bold=true`,
       projectManagerId: manager ? manager.id : null,
     });
   }

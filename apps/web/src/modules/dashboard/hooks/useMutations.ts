@@ -10,6 +10,7 @@ export const useCreateBulkLogMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ['timeLogs'],
       });
+      queryClient.removeQueries({ queryKey: ['usersData'] });
     },
   });
 };
