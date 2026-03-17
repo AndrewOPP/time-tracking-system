@@ -5,6 +5,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 interface JwtPayload {
   sub: string;
   email: string;
+  role: string;
 }
 
 interface RequestWithUser extends Request {
@@ -28,8 +29,9 @@ export class ProjectsController {
   @Get(':id')
   async getUserProjectById(@Req() req: RequestWithUser, @Param('id') projectId: string) {
     const userId = req.user.sub;
+    const userRole = req.user.role;
 
-    const project = await this.projectsService.getUserProjectById(userId, projectId);
+    const project = await this.projectsService.getUserProjectById(userId, userRole, projectId);
 
     return project;
   }

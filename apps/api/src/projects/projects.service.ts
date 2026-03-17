@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@time-tracking-app/database/index';
 import { ProjectError } from './types/projects.types';
+import { Role } from 'src/auth/types/oauth.types';
 
 @Injectable()
 export class ProjectsService {
@@ -56,7 +57,7 @@ export class ProjectsService {
     }
   }
 
-  async getUserProjectById(id: string, projectIdToFind: string) {
+  async getUserProjectById(id: string, userRole: string, projectIdToFind: string) {
     const projectId = projectIdToFind;
     const userId = id;
 
@@ -88,7 +89,7 @@ export class ProjectsService {
       }
 
       const isParticipant = project.users.some(user => user.userId === userId);
-      const isPM = project.projectManagerId === userId;
+      const isPM = project.projectManagerId === userId || userRole === Role.MANAGER;
 
       if (!isParticipant && !isPM) {
         throw new ForbiddenException(ProjectError.ACCESS_DENIED);

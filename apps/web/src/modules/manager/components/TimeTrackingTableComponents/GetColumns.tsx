@@ -12,6 +12,8 @@ import { CellList } from './CellList';
 import { FastUserAvatar } from './FastUserAvatar';
 import { FastProjectAvatar } from './FastProjectAvatar';
 import type { ManagerDashboardRow, WeekInfo } from '../../types/managerAIChat.types';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '@/shared/constants/routes';
 
 export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow>[] => {
   const baseColumns: ColumnDef<ManagerDashboardRow>[] = [
@@ -29,7 +31,7 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
           <FastUserAvatar
             src={row.original.avatarUrl || ''}
             name={row.original.employeeName}
-            className="h-5 w-5 shrink-0"
+            className="h-4 w-4 shrink-0"
           />
           <span
             className="text-[14px] text-[#1F1F1F] font-medium truncate flex-1 w-[20px]"
@@ -52,7 +54,10 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
         <CellList
           items={row.original.projects}
           renderItem={project => (
-            <div className="p-0 flex items-center gap-2  w-full">
+            <Link
+              className="flex items-center gap-2 w-full group cursor-pointer  rounded-md hover:bg-gray-100 transition-all duration-200"
+              to={`${ROUTES.DASHBOARD}/${project.projectId}`}
+            >
               <FastProjectAvatar src={project.projectAvatarUrl || ''} name={project.projectName} />
               <span
                 className="text-[#1F1F1F] text-[14px] truncate flex-1 w-[250px]"
@@ -60,7 +65,7 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
               >
                 {project.projectName}
               </span>
-            </div>
+            </Link>
           )}
         />
       ),
@@ -196,7 +201,7 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
       id: 'format',
       accessorKey: 'format',
       header: () => (
-        <div className="flex items-center justify-center gap-1.5 w-full">
+        <div className="flex items-start justify-start gap-1.5 w-[100px]">
           <Building2 className="h-4 w-4 shrink-0" />
           Format
         </div>
@@ -204,7 +209,7 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
       cell: ({ getValue }) => {
         const val = String(getValue());
         return (
-          <div className="flex items-center justify-center px-4 text-[#1F1F1F] w-full">
+          <div className="flex items-start justify-start px-4 text-[#1F1F1F] w-full">
             {val === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
           </div>
         );
