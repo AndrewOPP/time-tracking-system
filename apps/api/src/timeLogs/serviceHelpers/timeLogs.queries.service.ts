@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PrismaService } from '@time-tracking-app/database/index';
+import { Prisma, PrismaService, ProjectStatus } from '@time-tracking-app/database/index';
 import { user } from '../types/timeLogs.types';
 import { TIME_LOG_ERRORS } from '../constants/timeLogs.constants';
 import { getWeeksForMonth } from '../utils/monthToWeeks';
@@ -25,7 +25,7 @@ export class TimeLogQueriesService {
     }
 
     return this.prisma.timeLog.findMany({
-      where: where,
+      where,
       orderBy: { date: 'asc' },
       include: {
         project: {
@@ -90,16 +90,26 @@ export class TimeLogQueriesService {
 
     const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
 
-    const userWhere: Prisma.UserWhereInput = {};
-    if (search) {
-      userWhere.OR = [
-        { realName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
     const skip = (page - 1) * limit;
 
+    const userWhere: Prisma.UserWhereInput = {
+      AND: [
+        {
+          OR: [
+            { projects: { some: { project: { status: ProjectStatus.IN_PROGRESS } } } },
+            { timeLogs: { some: { date: { gte: fromDate, lte: toDate } } } },
+          ],
+        },
+        search
+          ? {
+              OR: [
+                { realName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {},
+      ],
+    };
     const [users, totalUsersCount] = await Promise.all([
       this.prisma.user.findMany({
         where: userWhere,
@@ -118,6 +128,7 @@ export class TimeLogQueriesService {
                   id: true,
                   name: true,
                   avatarUrl: true,
+                  status: true,
                   projectManager: {
                     select: { realName: true, avatarUrl: true },
                   },
@@ -139,30 +150,42 @@ export class TimeLogQueriesService {
       this.prisma.user.count({ where: userWhere }),
     ]);
 
-    const tableData = users
-      .filter(user => user.projects.length > 0)
-      .map(user => {
-        const totalPto = user.ptoLogs.reduce((s, l) => s + Number(l.hours), 0);
-        const totalUserHours = user.timeLogs.reduce((s, l) => s + Number(l.hours), 0);
-        const employedTimePercent =
-          monthWorkingHours > 0 ? Math.round((totalUserHours / monthWorkingHours) * 100) : 0;
+    const tableData = users.map(user => {
+      const totalPto = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+      const totalUserHours = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+      const employedTimePercent =
+        monthWorkingHours > 0 ? Math.round((totalUserHours / monthWorkingHours) * 100) : 0;
 
-        const logsByProject = new Map<string, typeof user.timeLogs>();
-        for (const log of user.timeLogs) {
-          if (!logsByProject.has(log.projectId)) logsByProject.set(log.projectId, []);
-          logsByProject.get(log.projectId)!.push(log);
-        }
+      const logsByProject = new Map<string, typeof user.timeLogs>();
 
-        const projects = user.projects.map(userProject => {
+      for (const log of user.timeLogs) {
+        if (!logsByProject.has(log.projectId)) logsByProject.set(log.projectId, []);
+        logsByProject.get(log.projectId)!.push(log);
+      }
+
+      const projects = user.projects
+        .filter(userProject => {
           const projectId = userProject.project.id;
           const projectLogs = logsByProject.get(projectId) ?? [];
+          const hasHours = projectLogs.length > 0;
+          const isActive = userProject.project.status === ProjectStatus.IN_PROGRESS;
+
+          return isActive || hasHours;
+        })
+        .map(userProject => {
+          const projectId = userProject.project.id;
+          const projectLogs = logsByProject.get(projectId) ?? [];
+          const perProjectTotal = projectLogs.reduce((sum, log) => sum + Number(log.hours), 0);
 
           const weeklyHours = [0, 0, 0, 0, 0, 0];
+
           for (const log of projectLogs) {
             const logDateStr = format(log.date, 'yyyy-MM-dd');
+
             const targetWeek = formattedWeeks.find(
-              w => logDateStr >= w.startStr && logDateStr <= w.endStr
+              week => logDateStr >= week.startStr && logDateStr <= week.endStr
             );
+
             if (targetWeek) {
               weeklyHours[targetWeek.weekNumber - 1] += Number(log.hours);
             }
@@ -174,7 +197,7 @@ export class TimeLogQueriesService {
             projectAvatarUrl: userProject.project.avatarUrl ?? '',
             pmName: userProject.project.projectManager?.realName ?? 'No PM',
             pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,
-            perProjectTotal: projectLogs.reduce((sum, log) => sum + Number(log.hours), 0),
+            perProjectTotal: perProjectTotal,
             weeks: {
               week1: weeklyHours[0],
               week2: weeklyHours[1],
@@ -186,17 +209,17 @@ export class TimeLogQueriesService {
           };
         });
 
-        return {
-          userId: user.id,
-          employeeName: user.realName || user.email,
-          avatarUrl: user.avatarUrl,
-          totalUserHours,
-          ptoHours: totalPto,
-          format: user.workFormat,
-          employedTimePercent,
-          projects,
-        };
-      });
+      return {
+        userId: user.id,
+        employeeName: user.realName || user.email,
+        avatarUrl: user.avatarUrl,
+        totalUserHours,
+        ptoHours: totalPto,
+        format: user.workFormat,
+        employedTimePercent,
+        projects,
+      };
+    });
 
     const totalPages = Math.ceil(totalUsersCount / limit);
     const nextPage = page < totalPages ? page + 1 : null;

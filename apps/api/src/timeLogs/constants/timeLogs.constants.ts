@@ -26,3 +26,10 @@ export const TIME_LOG_ERRORS = {
     BULK_EMPTY: 'No data to save',
   },
 };
+
+export const ProjectStatus = {
+  COMPLETED: 'COMPLETED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NOT_STARTED: 'NOT_STARTED',
+  PAUSED: 'PAUSED',
+} as const;

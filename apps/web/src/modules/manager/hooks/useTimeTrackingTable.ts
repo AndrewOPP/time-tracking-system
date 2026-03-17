@@ -34,8 +34,8 @@ export const useTimeTrackingTable = ({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => containerRef.current,
-    estimateSize: () => 30,
-    overscan: 7,
+    estimateSize: () => 50,
+    overscan: 5,
   });
 
   const fetchingLock = useRef(false);
@@ -49,8 +49,7 @@ export const useTimeTrackingTable = ({
   useEffect(() => {
     const lastItem = virtualRows[virtualRows.length - 1];
 
-    if (!lastItem || !hasNextPage || fetchingLock.current || rowVirtualizer.scrollOffset === 0)
-      return;
+    if (!lastItem || !hasNextPage || fetchingLock.current) return;
 
     if (lastItem.index >= rows.length - 1) {
       fetchingLock.current = true;

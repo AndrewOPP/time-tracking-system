@@ -16,6 +16,7 @@ const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 export function ManagerTimeTrachingPage() {
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useUsersData(CURRENT_MONTH_START, CURRENT_MONTH_END);
+  console.log(data);
 
   const flatTableData = data?.pages.flatMap(p => p.tableData) || [];
   const weeksInfo = data?.pages[0]?.weeksInfo || [];
