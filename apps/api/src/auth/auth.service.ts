@@ -209,6 +209,7 @@ export class AuthService {
         data: {
           email: profile.email,
           realName: profile.name,
+          username: profile.email.split('@')[0],
           provider: provider,
           providerId: profile.id,
           avatarUrl: profile.picture || null,
@@ -290,6 +291,7 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.systemRole,
+          userName: user.username,
           isActive: user.isActive,
         },
       };
