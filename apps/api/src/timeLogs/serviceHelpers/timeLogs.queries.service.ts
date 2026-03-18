@@ -4,7 +4,7 @@ import { user } from '../types/timeLogs.types';
 import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.constants';
 import { getWeeksForMonth } from '../utils/monthToWeeks';
 import { format } from 'date-fns';
-import { calculatePaginationOffset } from '../utils/CalculatePaginationOffset';
+import { calculatePaginationOffset } from '../utils/calculatePaginationOffset';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -82,7 +82,7 @@ export class TimeLogQueriesService {
 
     let weeksInfo = getWeeksForMonth(year, month);
     weeksInfo = weeksInfo.filter(
-      week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumbeRange || week.workingHours > 0
+      week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
     );
 
     const formattedWeeks = weeksInfo.map(week => ({

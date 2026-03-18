@@ -10,7 +10,7 @@ import {
   HeaderPto,
   HeaderPm,
   HeaderFormat,
-} from './TableHeaders';
+} from './headers';
 
 import {
   CellEmployee,
@@ -21,7 +21,7 @@ import {
   CellEmployedTime,
   CellPm,
   CellFormat,
-} from './TableCells';
+} from './cells';
 
 export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow>[] => {
   const baseColumns: ColumnDef<ManagerDashboardRow>[] = [
@@ -62,7 +62,7 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
       id: 'employedTime',
       accessorKey: 'employedTimePercent',
       header: HeaderEmployedTime,
-      cell: ({ getValue }) => <CellEmployedTime percent={Number(getValue())} />,
+      cell: () => <CellEmployedTime />,
     },
     {
       id: 'pto',

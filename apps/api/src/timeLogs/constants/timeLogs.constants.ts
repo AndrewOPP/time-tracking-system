@@ -36,5 +36,5 @@ export const ProjectStatus = {
 
 export const TIMELOGS_QUERIES_CONFIG = {
   limit: 15,
-  weekNumbeRange: 5,
+  weekNumberRange: 5,
 };

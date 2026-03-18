@@ -1,5 +1,6 @@
 import { axiosPrivate } from '@/shared/api';
 import { API_ROUTES } from '@/shared/constants/apiRoutes';
+import { buildPath } from '@/shared/utils/buildPath';
 
 export const DEFAULT_LIMIT = 15;
 
@@ -18,9 +19,12 @@ export const getUsersInfo = async ({
   page,
   limit = DEFAULT_LIMIT,
 }: GetUsersInfoType) => {
-  const { data } = await axiosPrivate.get(API_ROUTES.TIME_LOG_MANAGER_REPORT, {
-    params: { from, to, search, page, limit },
-  });
+  const { data } = await axiosPrivate.get(
+    buildPath(API_ROUTES.TIME_LOGS, API_ROUTES.MANAGER_REPORT),
+    {
+      params: { from, to, search, page, limit },
+    }
+  );
 
   return data;
 };
