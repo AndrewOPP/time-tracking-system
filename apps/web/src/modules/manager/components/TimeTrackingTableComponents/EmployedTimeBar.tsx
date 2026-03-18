@@ -2,46 +2,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@compo
 import React from 'react';
 import type { ProjectData, WeekInfo } from '../../types/managerAIChat.types';
 import { BAR_CONFIG } from '../../constants/constants';
-import { calculateEmployedTimeData } from '../../utils.ts/employedTimeCalculator';
+import { calculateEmployedTimeData } from '../../utils/employedTimeCalculator';
+import { formatHours } from '../../utils/formatHours';
+import { TooltipRow } from './TooltipRow';
 
 interface EmployedTimeBarProps {
   totalUserHours: number;
   weeksInfo: WeekInfo[];
   projects: ProjectData[];
 }
-
-const formatHours = (hours: number) => `${hours.toFixed(1).replace(/\.0$/, '')}h`;
-
-interface TooltipRowProps {
-  title: string;
-  hoursValue: number;
-  percent: number;
-  color: string;
-  dotColor?: string;
-}
-
-const TooltipRow: React.FC<TooltipRowProps> = ({ title, hoursValue, percent, color, dotColor }) => {
-  const pureColor = color.replace(/\[|\]/g, '');
-  const pureDotColor = dotColor?.replace(/\[|\]/g, '');
-
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <div
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: pureDotColor || pureColor }}
-        />
-        <span className="text-[#1F1F1F]">{title}</span>
-      </div>
-      <div className="text-right" style={{ color: pureColor }}>
-        {percent}%
-      </div>
-      <div className="text-right" style={{ color: pureColor }}>
-        [{formatHours(hoursValue)}]
-      </div>
-    </>
-  );
-};
 
 export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
   totalUserHours,
