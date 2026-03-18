@@ -10,6 +10,39 @@ interface EmployedTimeBarProps {
   projects: ProjectData[];
 }
 
+const formatHours = (hours: number) => `${hours.toFixed(1).replace(/\.0$/, '')}h`;
+
+interface TooltipRowProps {
+  title: string;
+  hoursValue: number;
+  percent: number;
+  color: string;
+  dotColor?: string;
+}
+
+const TooltipRow: React.FC<TooltipRowProps> = ({ title, hoursValue, percent, color, dotColor }) => {
+  const pureColor = color.replace(/\[|\]/g, '');
+  const pureDotColor = dotColor?.replace(/\[|\]/g, '');
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <div
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: pureDotColor || pureColor }}
+        />
+        <span className="text-[#1F1F1F]">{title}</span>
+      </div>
+      <div className="text-right" style={{ color: pureColor }}>
+        {percent}%
+      </div>
+      <div className="text-right" style={{ color: pureColor }}>
+        [{formatHours(hoursValue)}]
+      </div>
+    </>
+  );
+};
+
 export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
   totalUserHours,
   weeksInfo,
@@ -18,33 +51,15 @@ export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
   const { hours, visualPercents, employedTimePercent, monthWorkingHours } =
     calculateEmployedTimeData({ totalUserHours, weeksInfo, projects });
 
-  const formatHours = (hours: number) => `${hours.toFixed(1).replace(/\.0$/, '')}h`;
-  const getPercent = (hours: number) =>
-    totalUserHours > 0 ? Math.round((hours / monthWorkingHours) * 100) : 0;
+  const getPercent = (hoursValue: number) =>
+    totalUserHours > 0 ? Math.round((hoursValue / monthWorkingHours) * 100) : 0;
 
-  const renderRow = (hoursValue: number, title: string, hexColor: string, dotColor?: string) => {
-    const pureColor = hexColor.replace(/\[|\]/g, '');
-    const pureDotColor = dotColor?.replace(/\[|\]/g, '');
-    return (
-      <>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: pureDotColor ? pureDotColor : pureColor }}
-          />
-          <span className="text-[#1F1F1F]">{title}</span>
-        </div>
-
-        <div className="text-right" style={{ color: pureColor }}>
-          {getPercent(hoursValue)}%
-        </div>
-
-        <div className="text-right" style={{ color: pureColor }}>
-          [{formatHours(hoursValue)}]
-        </div>
-      </>
-    );
-  };
+  const barSegments = [
+    { key: 'billable', value: visualPercents.billable, color: BAR_CONFIG.colors.billable },
+    { key: 'nonBillable', value: visualPercents.nonBillable, color: BAR_CONFIG.colors.nonBillable },
+    { key: 'untracked', value: visualPercents.untracked, color: BAR_CONFIG.colors.untracked.bg },
+    { key: 'overtime', value: visualPercents.overtime, color: BAR_CONFIG.colors.overtime },
+  ];
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -56,41 +71,18 @@ export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
             <div
               className={`flex w-full h-2 ${BAR_CONFIG.dimensions.radius} ${BAR_CONFIG.dimensions.gap}`}
             >
-              {visualPercents.billable > 0 && (
-                <div
-                  className={`h-full transition-all duration-300 ${BAR_CONFIG.dimensions.radius}`}
-                  style={{
-                    width: `${visualPercents.billable}%`,
-                    backgroundColor: BAR_CONFIG.colors.billable,
-                  }}
-                />
-              )}
-              {visualPercents.nonBillable > 0 && (
-                <div
-                  className={`h-full transition-all duration-300 ${BAR_CONFIG.dimensions.radius}`}
-                  style={{
-                    width: `${visualPercents.nonBillable}%`,
-                    backgroundColor: BAR_CONFIG.colors.nonBillable,
-                  }}
-                />
-              )}
-              {visualPercents.untracked > 0 && (
-                <div
-                  className={`h-full transition-all duration-300 ${BAR_CONFIG.dimensions.radius}`}
-                  style={{
-                    width: `${visualPercents.untracked}%`,
-                    backgroundColor: BAR_CONFIG.colors.untracked.bg,
-                  }}
-                />
-              )}
-              {visualPercents.overtime > 0 && (
-                <div
-                  className={`h-full transition-all duration-300 ${BAR_CONFIG.dimensions.radius}`}
-                  style={{
-                    width: `${visualPercents.overtime}%`,
-                    backgroundColor: BAR_CONFIG.colors.overtime,
-                  }}
-                />
+              {barSegments.map(
+                segment =>
+                  segment.value > 0 && (
+                    <div
+                      key={segment.key}
+                      className={`h-full transition-all duration-300 ${BAR_CONFIG.dimensions.radius}`}
+                      style={{
+                        width: `${segment.value}%`,
+                        backgroundColor: segment.color.replace(/\[|\]/g, ''),
+                      }}
+                    />
+                  )
               )}
             </div>
           </div>
@@ -101,26 +93,42 @@ export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
           className="w-auto py-3 px-4 shadow-lg bg-[#FFFFFF] border border-[#EEEEEE] rounded-xl"
         >
           <div className="grid grid-cols-[1fr_auto_auto] gap-x-5 gap-y-2.5 text-sm items-center">
-            {hours.billable > 0 &&
-              renderRow(hours.billable, BAR_CONFIG.titles.billable, BAR_CONFIG.colors.billable)}
+            {hours.billable > 0 && (
+              <TooltipRow
+                title={BAR_CONFIG.titles.billable}
+                hoursValue={hours.billable}
+                percent={getPercent(hours.billable)}
+                color={BAR_CONFIG.colors.billable}
+              />
+            )}
 
-            {hours.nonBillable > 0 &&
-              renderRow(
-                hours.nonBillable,
-                BAR_CONFIG.titles.nonBillable,
-                BAR_CONFIG.colors.nonBillable
-              )}
+            {hours.nonBillable > 0 && (
+              <TooltipRow
+                title={BAR_CONFIG.titles.nonBillable}
+                hoursValue={hours.nonBillable}
+                percent={getPercent(hours.nonBillable)}
+                color={BAR_CONFIG.colors.nonBillable}
+              />
+            )}
 
-            {hours.overtime > 0 &&
-              renderRow(hours.overtime, BAR_CONFIG.titles.overtime, BAR_CONFIG.colors.overtime)}
+            {hours.overtime > 0 && (
+              <TooltipRow
+                title={BAR_CONFIG.titles.overtime}
+                hoursValue={hours.overtime}
+                percent={getPercent(hours.overtime)}
+                color={BAR_CONFIG.colors.overtime}
+              />
+            )}
 
-            {hours.untracked > 0 &&
-              renderRow(
-                hours.untracked,
-                BAR_CONFIG.titles.untracked,
-                BAR_CONFIG.colors.untracked.text,
-                BAR_CONFIG.colors.untracked.bg
-              )}
+            {hours.untracked > 0 && (
+              <TooltipRow
+                title={BAR_CONFIG.titles.untracked}
+                hoursValue={hours.untracked}
+                percent={getPercent(hours.untracked)}
+                color={BAR_CONFIG.colors.untracked.text}
+                dotColor={BAR_CONFIG.colors.untracked.bg}
+              />
+            )}
 
             <div className="col-span-3 border-t border-dashed border-[#D1D5DB] my-0.5" />
 
