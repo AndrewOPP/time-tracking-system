@@ -10,6 +10,11 @@ export const SUGGESTIONS = [
   { id: '03', text: 'Find available backend developers' },
 ];
 
+export const PROJECT_TYPE = {
+  billable: 'BILLABLE',
+  nonBillable: 'NON_BILLABLE',
+};
+
 export const COLUMN_WIDTHS = {
   employee: 'w-[230px]',
   projects: 'w-[250px]',
@@ -17,4 +22,27 @@ export const COLUMN_WIDTHS = {
   perProjectTotal: 'w-[130px]',
   total: 'w-[70px]',
   pm: 'w-[160px]',
+} as const;
+
+export const BAR_CONFIG = {
+  colors: {
+    billable: '#4B8A67',
+    nonBillable: '#1F1F1F',
+    untracked: {
+      text: '#747474',
+      bg: '#D2D2D2',
+    },
+    overtime: '#CE2225',
+    textDefault: '#1F1F1F',
+  },
+  titles: {
+    billable: 'Billable',
+    nonBillable: 'Non-billable',
+    untracked: 'Untracked',
+    overtime: 'Overtime',
+  },
+  dimensions: {
+    gap: 'gap-[2px]',
+    radius: 'rounded-[2px]',
+  },
 } as const;

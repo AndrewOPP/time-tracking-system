@@ -22,6 +22,7 @@ export interface WeekInfo {
 export interface ProjectData {
   projectId: string;
   projectName: string;
+  type: 'BILLABLE' | 'NON_BILLABLE';
   pmName: string;
   projectAvatarUrl: string;
   pmAvatarUrl: string | null;
