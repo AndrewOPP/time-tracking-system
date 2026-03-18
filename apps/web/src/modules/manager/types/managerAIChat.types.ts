@@ -42,7 +42,7 @@ export interface ManagerDashboardRow {
   avatarUrl: string | null;
   totalUserHours: number;
   ptoHours: number;
-  format: 'FULL_TIME' | 'PART_TIME' | string;
+  format: 'FULL_TIME' | 'PART_TIME';
   employedTimePercent: number;
   projects: ProjectData[];
 }

@@ -33,3 +33,8 @@ export const ProjectStatus = {
   NOT_STARTED: 'NOT_STARTED',
   PAUSED: 'PAUSED',
 } as const;
+
+export const TIMELOGS_QUERIES_CONFIG = {
+  limit: 15,
+  weekNumbeRange: 5,
+};

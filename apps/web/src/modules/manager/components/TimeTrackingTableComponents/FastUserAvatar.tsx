@@ -1,17 +1,21 @@
-export const FastUserAvatar = ({
-  src,
-  name,
-  className = 'h-5 w-5',
-}: {
+import { cn } from '@lib/utils';
+import { getAvatarInitials } from '../../utils/getAvatarInitials';
+
+interface FastUserAvatarProps {
   src?: string;
   name: string;
   className?: string;
-}) => (
+}
+
+export const FastUserAvatar = ({ src, name, className = 'h-5 w-5' }: FastUserAvatarProps) => (
   <div
-    className={`relative rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden ${className}`}
+    className={cn(
+      'relative rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden',
+      className
+    )}
   >
     <span className="text-[10px] font-medium text-slate-500 select-none">
-      {(name || 'U').slice(0, 2).toUpperCase()}
+      {getAvatarInitials(name)}
     </span>
     {src && (
       <img

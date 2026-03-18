@@ -14,6 +14,11 @@ export interface WeekBoundary {
   workingHours: number;
 }
 
+/**
+ * @description Week starting day. Sunday - 0, Monday - 1, Tuesday - 2, etc.
+ */
+const WEEK_STARTS_ON_MONDAY = 1;
+
 export function getWeeksForMonth(year: number, month: number, hoursPerDay = 8): WeekBoundary[] {
   const firstDayOfMonth = startOfMonth(new Date(year, month - 1));
   const lastDayOfMonth = endOfMonth(firstDayOfMonth);
@@ -23,7 +28,7 @@ export function getWeeksForMonth(year: number, month: number, hoursPerDay = 8): 
   let weekNumber = 1;
 
   while (currentStart <= lastDayOfMonth) {
-    let currentEnd = endOfWeek(currentStart, { weekStartsOn: 1 });
+    let currentEnd = endOfWeek(currentStart, { weekStartsOn: WEEK_STARTS_ON_MONDAY });
 
     if (currentEnd > lastDayOfMonth) {
       currentEnd = lastDayOfMonth;

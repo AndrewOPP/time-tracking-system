@@ -13,6 +13,11 @@ interface UseTimeTrackingTableProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
+const VIRTUALIZER_CONFIG = {
+  estimateSize: 50,
+  overscan: 3,
+};
+
 export const useTimeTrackingTable = ({
   data,
   weeksInfo,
@@ -34,8 +39,8 @@ export const useTimeTrackingTable = ({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => containerRef.current,
-    estimateSize: () => 50,
-    overscan: 5,
+    estimateSize: () => VIRTUALIZER_CONFIG.estimateSize,
+    overscan: VIRTUALIZER_CONFIG.overscan,
   });
 
   const fetchingLock = useRef(false);

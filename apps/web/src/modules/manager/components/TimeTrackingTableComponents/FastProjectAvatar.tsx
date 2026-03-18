@@ -1,7 +1,14 @@
-export const FastProjectAvatar = ({ src, name }: { src?: string; name: string }) => (
+import { getAvatarInitials } from '../../utils/getAvatarInitials';
+
+interface FastProjectAvatarProps {
+  src?: string;
+  name: string;
+}
+
+export const FastProjectAvatar = ({ src, name }: FastProjectAvatarProps) => (
   <div className="relative h-4 w-4 rounded shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden">
     <span className="text-[8px] font-medium text-slate-500 select-none">
-      {name.slice(0, 2).toUpperCase()}
+      {getAvatarInitials(name)}
     </span>
     {src && (
       <img

@@ -57,10 +57,7 @@ export class ProjectsService {
     }
   }
 
-  async getUserProjectById(id: string, userRole: string, projectIdToFind: string) {
-    const projectId = projectIdToFind;
-    const userId = id;
-
+  async getUserProjectById(userId: string, userRole: string, projectId: string) {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },

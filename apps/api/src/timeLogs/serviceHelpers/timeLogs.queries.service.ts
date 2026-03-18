@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, PrismaService, ProjectStatus } from '@time-tracking-app/database/index';
 import { user } from '../types/timeLogs.types';
-import { TIME_LOG_ERRORS } from '../constants/timeLogs.constants';
+import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.constants';
 import { getWeeksForMonth } from '../utils/monthToWeeks';
 import { format } from 'date-fns';
+import { calculatePaginationOffset } from '../utils/CalculatePaginationOffset';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -71,7 +72,7 @@ export class TimeLogQueriesService {
     to: string,
     search?: string,
     page: number = 1,
-    limit: number = 15
+    limit: number = TIMELOGS_QUERIES_CONFIG.limit
   ) {
     const fromDate = new Date(from);
     const toDate = new Date(to);
@@ -80,7 +81,9 @@ export class TimeLogQueriesService {
     const month = fromDate.getMonth() + 1;
 
     let weeksInfo = getWeeksForMonth(year, month);
-    weeksInfo = weeksInfo.filter(week => week.weekNumber <= 5 || week.workingHours > 0);
+    weeksInfo = weeksInfo.filter(
+      week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumbeRange || week.workingHours > 0
+    );
 
     const formattedWeeks = weeksInfo.map(week => ({
       ...week,
@@ -88,9 +91,7 @@ export class TimeLogQueriesService {
       endStr: format(week.endDate, 'yyyy-MM-dd'),
     }));
 
-    const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
-
-    const skip = (page - 1) * limit;
+    const skip = calculatePaginationOffset(page, limit);
 
     const userWhere: Prisma.UserWhereInput = {
       AND: [
@@ -153,15 +154,16 @@ export class TimeLogQueriesService {
     const tableData = users.map(user => {
       const totalPto = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
       const totalUserHours = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
-      const employedTimePercent =
-        monthWorkingHours > 0 ? Math.round((totalUserHours / monthWorkingHours) * 100) : 0;
 
       const logsByProject = new Map<string, typeof user.timeLogs>();
 
-      for (const log of user.timeLogs) {
-        if (!logsByProject.has(log.projectId)) logsByProject.set(log.projectId, []);
+      user.timeLogs.forEach(log => {
+        if (!logsByProject.has(log.projectId)) {
+          logsByProject.set(log.projectId, []);
+        }
+
         logsByProject.get(log.projectId)!.push(log);
-      }
+      });
 
       const projects = user.projects
         .filter(userProject => {
@@ -216,7 +218,6 @@ export class TimeLogQueriesService {
         totalUserHours,
         ptoHours: totalPto,
         format: user.workFormat,
-        employedTimePercent,
         projects,
       };
     });
