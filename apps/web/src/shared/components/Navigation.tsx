@@ -8,6 +8,7 @@ import {
   PersonStanding,
   Bot,
   Calendar1,
+  PersonStandingIcon,
 } from 'lucide-react';
 
 import { ROUTES } from '@/shared/constants/routes';
@@ -70,6 +71,11 @@ export const Navigation = () => {
           ? ROUTES.EMPLOYEE.EMPLOYEE_TIME_LOGS
           : ROUTES.MANAGER.MANAGER_TIME_LOGS,
       icon: Calendar1,
+    },
+    {
+      label: 'My profile',
+      path: ROUTES.USER.PROFILE,
+      icon: PersonStandingIcon,
     },
   ];
 

@@ -19,6 +19,11 @@ export const ROUTES = {
     EMPLOYEE_PROFILE: '/employee/profile',
     EMPLOYEE_TIME_LOGS: '/employee/my-time-logs',
   },
+  USER: {
+    ROOT: '/user',
+    PROFILE: '/profile',
+    USER_PROFILE: '/profile/:username',
+  },
 
   MANAGER: {
     ROOT: '/manager',

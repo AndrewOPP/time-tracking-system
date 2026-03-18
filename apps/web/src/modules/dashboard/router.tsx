@@ -5,6 +5,7 @@ import { UserSystemRole } from '@/shared/types/user';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
 import { HomePage } from './pages/HomePage';
+import UserProfilePage from '../profile/pages/UserProfile';
 
 export const GeneralRoutes = () => {
   const { user } = useAuthStore();
@@ -26,6 +27,7 @@ export const GeneralRoutes = () => {
       />
 
       <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+      <Route path={ROUTES.USER.USER_PROFILE} element={<UserProfilePage />} />
       <Route path={ROUTES.DASHBOARD_PROJECTS} element={<ProjectDetailsPage />} />
       <Route path={'/home'} element={<HomePage />} />
 

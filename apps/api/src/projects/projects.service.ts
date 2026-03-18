@@ -108,6 +108,7 @@ export class ProjectsService {
           : null,
         team: project.users.map(u => ({
           id: u.user.id,
+          username: u.user.username,
           name: u.user.realName || u.user.username,
           position: u.position,
           avatarUrl: u.user.avatarUrl || null,
