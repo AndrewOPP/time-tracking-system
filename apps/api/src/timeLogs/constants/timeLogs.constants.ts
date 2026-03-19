@@ -26,3 +26,15 @@ export const TIME_LOG_ERRORS = {
     BULK_EMPTY: 'No data to save',
   },
 };
+
+export const ProjectStatus = {
+  COMPLETED: 'COMPLETED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NOT_STARTED: 'NOT_STARTED',
+  PAUSED: 'PAUSED',
+} as const;
+
+export const TIMELOGS_QUERIES_CONFIG = {
+  limit: 15,
+  weekNumberRange: 5,
+};

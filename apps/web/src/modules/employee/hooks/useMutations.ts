@@ -21,6 +21,7 @@ export const useUpdateLogMutation = () => {
           return log;
         });
       });
+      queryClient.removeQueries({ queryKey: ['usersData'] });
     },
   });
 };
@@ -36,6 +37,7 @@ export const useDeleteLogMutation = () => {
 
         return oldData.filter(log => deletedLog.id !== log.id);
       });
+      queryClient.removeQueries({ queryKey: ['usersData'] });
     },
   });
 };
@@ -47,6 +49,7 @@ export const useCreateLogMutation = () => {
     mutationFn: logCreate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeLogs'] });
+      queryClient.removeQueries({ queryKey: ['usersData'] });
     },
   });
 };

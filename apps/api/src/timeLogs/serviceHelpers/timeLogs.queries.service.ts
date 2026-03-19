@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PrismaService } from '@time-tracking-app/database/index';
+import { Prisma, PrismaService, ProjectStatus } from '@time-tracking-app/database/index';
 import { user } from '../types/timeLogs.types';
-import { TIME_LOG_ERRORS } from '../constants/timeLogs.constants';
+import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.constants';
+import { getWeeksForMonth } from '../utils/monthToWeeks';
+import { format } from 'date-fns';
+import { calculatePaginationOffset } from '../utils/calculatePaginationOffset';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -23,7 +26,7 @@ export class TimeLogQueriesService {
     }
 
     return this.prisma.timeLog.findMany({
-      where: where,
+      where,
       orderBy: { date: 'asc' },
       include: {
         project: {
@@ -64,36 +67,169 @@ export class TimeLogQueriesService {
     return { userId, period: { from, to }, missingDays };
   }
 
-  async getManagerDashboard(from: string, to: string, search?: string) {
+  async getManagerDashboard(
+    from: string,
+    to: string,
+    search?: string,
+    page: number = 1,
+    limit: number = TIMELOGS_QUERIES_CONFIG.limit
+  ) {
     const fromDate = new Date(from);
     const toDate = new Date(to);
 
-    const whereClause: Prisma.TimeLogWhereInput = {
-      date: { gte: fromDate, lte: toDate },
+    const year = fromDate.getFullYear();
+    const month = fromDate.getMonth() + 1;
+
+    let weeksInfo = getWeeksForMonth(year, month);
+    weeksInfo = weeksInfo.filter(
+      week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
+    );
+
+    const formattedWeeks = weeksInfo.map(week => ({
+      ...week,
+      startStr: format(week.startDate, 'yyyy-MM-dd'),
+      endStr: format(week.endDate, 'yyyy-MM-dd'),
+    }));
+
+    const skip = calculatePaginationOffset(page, limit);
+
+    const userWhere: Prisma.UserWhereInput = {
+      AND: [
+        {
+          OR: [
+            { projects: { some: { project: { status: ProjectStatus.IN_PROGRESS } } } },
+            { timeLogs: { some: { date: { gte: fromDate, lte: toDate } } } },
+          ],
+        },
+        search
+          ? {
+              OR: [
+                { realName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {},
+      ],
     };
-
-    if (search) {
-      whereClause.OR = [
-        { user: { realName: { contains: search, mode: 'insensitive' } } },
-        { project: { name: { contains: search, mode: 'insensitive' } } },
-        { project: { projectManager: { realName: { contains: search, mode: 'insensitive' } } } },
-      ];
-    }
-
-    return this.prisma.timeLog.findMany({
-      where: whereClause,
-      orderBy: { date: 'desc' },
-      include: {
-        user: { select: { id: true, realName: true, email: true, avatarUrl: true } },
-        project: {
-          select: {
-            id: true,
-            name: true,
-            emoji: true,
-            projectManager: { select: { id: true, realName: true, avatarUrl: true } },
+    const [users, totalUsersCount] = await Promise.all([
+      this.prisma.user.findMany({
+        where: userWhere,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          realName: true,
+          email: true,
+          avatarUrl: true,
+          workFormat: true,
+          projects: {
+            include: {
+              project: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  status: true,
+                  projectManager: {
+                    select: { realName: true, avatarUrl: true },
+                  },
+                },
+              },
+            },
+          },
+          timeLogs: {
+            where: { date: { gte: fromDate, lte: toDate } },
+            select: { projectId: true, date: true, hours: true },
+          },
+          ptoLogs: {
+            where: { date: { gte: fromDate, lte: toDate } },
+            select: { hours: true },
           },
         },
-      },
+        orderBy: { realName: 'asc' },
+      }),
+      this.prisma.user.count({ where: userWhere }),
+    ]);
+
+    const tableData = users.map(user => {
+      const totalPto = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+      const totalUserHours = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+
+      const logsByProject = new Map<string, typeof user.timeLogs>();
+
+      user.timeLogs.forEach(log => {
+        if (!logsByProject.has(log.projectId)) {
+          logsByProject.set(log.projectId, []);
+        }
+
+        logsByProject.get(log.projectId)!.push(log);
+      });
+
+      const projects = user.projects
+        .filter(userProject => {
+          const projectId = userProject.project.id;
+          const projectLogs = logsByProject.get(projectId) ?? [];
+          const hasHours = projectLogs.length > 0;
+          const isActive = userProject.project.status === ProjectStatus.IN_PROGRESS;
+
+          return isActive || hasHours;
+        })
+        .map(userProject => {
+          const projectId = userProject.project.id;
+          const projectLogs = logsByProject.get(projectId) ?? [];
+          const perProjectTotal = projectLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+
+          const weeklyHours = [0, 0, 0, 0, 0, 0];
+
+          for (const log of projectLogs) {
+            const logDateStr = format(log.date, 'yyyy-MM-dd');
+
+            const targetWeek = formattedWeeks.find(
+              week => logDateStr >= week.startStr && logDateStr <= week.endStr
+            );
+
+            if (targetWeek) {
+              weeklyHours[targetWeek.weekNumber - 1] += Number(log.hours);
+            }
+          }
+
+          return {
+            projectId,
+            projectName: userProject.project.name,
+            projectAvatarUrl: userProject.project.avatarUrl ?? '',
+            pmName: userProject.project.projectManager?.realName ?? 'No PM',
+            pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,
+            perProjectTotal: perProjectTotal,
+            weeks: {
+              week1: weeklyHours[0],
+              week2: weeklyHours[1],
+              week3: weeklyHours[2],
+              week4: weeklyHours[3],
+              week5: weeklyHours[4],
+              week6: weeklyHours[5],
+            },
+          };
+        });
+
+      return {
+        userId: user.id,
+        employeeName: user.realName || user.email,
+        avatarUrl: user.avatarUrl,
+        totalUserHours,
+        ptoHours: totalPto,
+        format: user.workFormat,
+        projects,
+      };
     });
+
+    const totalPages = Math.ceil(totalUsersCount / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+
+    return {
+      weeksInfo,
+      tableData,
+      nextPage,
+      totalCount: totalUsersCount,
+    };
   }
 }

@@ -85,6 +85,7 @@ model User {
   technologies    UserTechnology[]
 
   timeLogs        TimeLog[]
+  ptoLogs PtoLog[]
 
   @@map("user")
 }
@@ -176,4 +177,22 @@ model TimeLog {
   @@unique([userId, projectId, date])
 
   @@map("time_log")
+}
+
+model PtoLog {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date 
+  hours       Decimal  @db.Decimal(3, 1) 
+
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, date])
+  
+  @@unique([userId, date])
+
+  @@map("pto_log")
 }

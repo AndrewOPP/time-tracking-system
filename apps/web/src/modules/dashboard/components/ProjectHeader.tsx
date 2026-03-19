@@ -22,7 +22,7 @@ export const ProjectHeader = ({
   return (
     <Card className="px-6 py-5 rounded-[16px] shadow-none border-gray-200 flex flex-col min-[1155px]:flex-row items-start min-[1155px]:items-center justify-between gap-4">
       <div className="flex gap-4 items-center">
-        <div className="w-[68px] h-[68px] bg-[#1C1C1C] rounded-[14px] flex items-center justify-center shrink-0 overflow-hidden">
+        <div className="w-[68px] h-[68px]  rounded-[14px] flex items-center justify-center shrink-0 overflow-hidden">
           {project.logo ? (
             <img src={project.logo} alt={project.name} className="w-full h-full object-cover" />
           ) : (

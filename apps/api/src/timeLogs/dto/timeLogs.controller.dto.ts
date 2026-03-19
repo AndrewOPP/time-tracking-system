@@ -13,6 +13,8 @@ import {
 } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 import { IsValidDateRange } from '../utils/dateValidation.decorator';
+import { IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateTimeLogDto {
   @IsNotEmpty()
@@ -73,6 +75,18 @@ export class ManagerDashboardQueryDto extends DateRangeQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number;
 }
 
 export class ProjectDateRangeQueryDto extends DateRangeQueryDto {
