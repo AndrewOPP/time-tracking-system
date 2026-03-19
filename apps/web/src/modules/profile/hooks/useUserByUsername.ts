@@ -3,7 +3,7 @@ import { getUserByUsername } from '../api/getUserByUsername';
 
 export const useUserByUsername = (username: string | undefined) => {
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', username],
     queryFn: () => {
       if (!username) throw new Error('Username is required');
       return getUserByUsername(username);
