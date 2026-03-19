@@ -13,7 +13,8 @@ export const SUGGESTIONS = [
 export const PROJECT_TYPE = {
   billable: 'BILLABLE',
   nonBillable: 'NON_BILLABLE',
-};
+} as const;
+export type ProjectTypeValue = (typeof PROJECT_TYPE)[keyof typeof PROJECT_TYPE];
 
 export const COLUMN_WIDTHS = {
   employee: 'w-[230px]',
@@ -46,3 +47,10 @@ export const BAR_CONFIG = {
     radius: 'rounded-[2px]',
   },
 } as const;
+
+export const EMPLOYMENT_FORMAT = {
+  fullTime: 'FULL_TIME',
+  partTime: 'PART_TIME',
+} as const;
+
+export type EmploymentFormatValue = (typeof EMPLOYMENT_FORMAT)[keyof typeof EMPLOYMENT_FORMAT];

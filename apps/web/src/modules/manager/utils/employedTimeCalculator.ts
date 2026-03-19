@@ -1,5 +1,6 @@
 import { PROJECT_TYPE } from '../constants/constants';
 import type { ProjectData, WeekInfo } from '../types/managerAIChat.types';
+import { calculatePercentage } from '../utils/mathUtils';
 
 interface CalculatorInput {
   totalUserHours: number;
@@ -12,9 +13,7 @@ export const calculateEmployedTimeData = ({
   weeksInfo,
   projects,
 }: CalculatorInput) => {
-  const monthWorkingHours = weeksInfo.reduce((sum, week) => {
-    return (sum += week.workingHours);
-  }, 0);
+  const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
 
   const billableHours = projects
     .filter(project => project.type === PROJECT_TYPE.billable)
@@ -31,13 +30,17 @@ export const calculateEmployedTimeData = ({
   const visualTotal = Math.max(monthWorkingHours, totalUserHours) || 1;
   const baseScale = isOvertime ? monthWorkingHours / totalUserHours : 1;
 
-  const visualBillablePercent = ((billableHours * baseScale) / visualTotal) * 100;
-  const visualNonBillablePercent = ((nonBillableHours * baseScale) / visualTotal) * 100;
-  const visualUntrackedPercent = (untrackedHours / visualTotal) * 100;
-  const visualOvertimePercent = (overtimeHours / visualTotal) * 100;
-
-  const employedTimePercent = Math.round(
-    ((billableHours + nonBillableHours + overtimeHours) / monthWorkingHours) * 100
+  const visualBillablePercent = calculatePercentage(billableHours * baseScale, visualTotal, 2);
+  const visualNonBillablePercent = calculatePercentage(
+    nonBillableHours * baseScale,
+    visualTotal,
+    2
+  );
+  const visualUntrackedPercent = calculatePercentage(untrackedHours, visualTotal, 2);
+  const visualOvertimePercent = calculatePercentage(overtimeHours, visualTotal, 2);
+  const employedTimePercent = calculatePercentage(
+    billableHours + nonBillableHours + overtimeHours,
+    monthWorkingHours
   );
 
   return {
