@@ -1,24 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { useUsersData } from '../hooks/useUsersData';
-
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { SlidersHorizontal } from 'lucide-react';
-
 import { TableSkeleton } from '../components/TimeTrackingTableComponents/TableSkeleton';
 import { TimeTrackingTableSection } from '../components/TimeTrackingTableComponents/TimeTrackingTableSection';
 import { TableEmptyState } from '../components/TimeTrackingTableComponents/TableEmptyState';
 import { TableErrorState } from '../components/TimeTrackingTableComponents/TableErrorState';
+import { FiltersPopover } from '../components/TimeTrackingTableComponents/FiltersPopover';
+import { useTableFilters } from '../hooks/useTableFilters';
+import { tableDataFilter } from '../utils/tableDataFilter';
+import { ActiveFiltersBar } from '../components/TimeTrackingTableComponents/ActiveFiltersBar';
 
 const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
 export function ManagerTimeTrachingPage() {
-  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useUsersData(CURRENT_MONTH_START, CURRENT_MONTH_END);
+  const { data, isLoading, isError, refetch } = useUsersData(
+    CURRENT_MONTH_START,
+    CURRENT_MONTH_END
+  );
 
-  const flatTableData = data?.pages.flatMap(p => p.tableData) || [];
-  const weeksInfo = data?.pages[0]?.weeksInfo || [];
+  const flatTableData = useMemo(() => data?.tableData || [], [data?.tableData]);
+  const weeksInfo = useMemo(() => data?.weeksInfo || [], [data?.weeksInfo]);
 
   const [isPageAnimationDone, setIsPageAnimationDone] = useState(() => !!(data && !isLoading));
 
@@ -27,6 +30,25 @@ export function ManagerTimeTrachingPage() {
     const timer = setTimeout(() => setIsPageAnimationDone(true), 550);
     return () => clearTimeout(timer);
   }, [isPageAnimationDone]);
+
+  const {
+    selectedEmployees,
+    selectedProjects,
+    selectedPms,
+    toggleEmployee,
+    toggleProject,
+    togglePm,
+    clearCategory,
+    clearAllFilters,
+  } = useTableFilters();
+
+  const filteredData = useMemo(() => {
+    return tableDataFilter(flatTableData, {
+      selectedEmployees,
+      selectedProjects,
+      selectedPms,
+    });
+  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms]);
 
   const renderContent = () => {
     if (isError) {
@@ -37,19 +59,11 @@ export function ManagerTimeTrachingPage() {
       return <TableSkeleton />;
     }
 
-    if (flatTableData.length === 0) {
+    if (filteredData.length === 0) {
       return <TableEmptyState />;
     }
 
-    return (
-      <TimeTrackingTableSection
-        data={flatTableData}
-        weeksInfo={weeksInfo}
-        fetchNextPage={fetchNextPage}
-        hasNextPage={hasNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-      />
-    );
+    return <TimeTrackingTableSection data={filteredData} weeksInfo={weeksInfo} />;
   };
 
   return (
@@ -60,15 +74,30 @@ export function ManagerTimeTrachingPage() {
       />
 
       <div className="flex flex-row gap-2 items-center mb-5 mt-4">
-        <div className="h-10 w-10 border border-[#E0E1E2] flex items-center justify-center rounded-[6px] shrink-0 bg-white">
-          <SlidersHorizontal className="h-4 w-4" />
-        </div>
+        <FiltersPopover
+          flatTableData={flatTableData}
+          selectedEmployees={selectedEmployees}
+          selectedProjects={selectedProjects}
+          selectedPms={selectedPms}
+          toggleEmployee={toggleEmployee}
+          toggleProject={toggleProject}
+          togglePm={togglePm}
+        />
+
         <input
           type="text"
           placeholder="Search by employee, project, or PM..."
           className="py-[10px] px-4 text-[16px] text-[#6F6F6F] border border-[#E0E1E2] h-10 w-full max-w-[505px] rounded-[6px] bg-white outline-none focus:border-gray-400 transition-colors"
         />
       </div>
+
+      <ActiveFiltersBar
+        selectedEmployees={selectedEmployees}
+        selectedProjects={selectedProjects}
+        selectedPms={selectedPms}
+        onClearCategory={clearCategory}
+        onClearAll={clearAllFilters}
+      />
 
       {renderContent()}
     </div>

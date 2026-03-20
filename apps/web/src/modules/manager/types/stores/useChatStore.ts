@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ChatStore } from '../types/managerAIChat.types';
+import type { ChatStore } from '../managerAIChat.types';
 
 export const useChatStore = create<ChatStore>(set => ({
   savedMessages: [],

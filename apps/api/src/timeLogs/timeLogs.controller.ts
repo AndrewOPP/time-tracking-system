@@ -62,13 +62,7 @@ export class TimeLogsController {
   @Get('manager-report')
   @Roles(Role.MANAGER, Role.ADMIN)
   getManagerReport(@Query() query: ManagerDashboardQueryDto) {
-    return this.timeLogsService.getManagerDashboard(
-      query.from,
-      query.to,
-      query.search,
-      query.page,
-      query.limit
-    );
+    return this.timeLogsService.getManagerDashboard(query.from, query.to, query.search);
   }
   @Patch(':id')
   updateLog(

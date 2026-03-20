@@ -7,8 +7,9 @@ import { UserMessage } from '../components/ChatPageComponents/UserMessage';
 import { ErrorMessage } from '../components/ChatPageComponents/ErrorMessage';
 import { LoadingIndicator } from '../components/ChatPageComponents/LoadingIndicator';
 import { ChatInput } from '../components/ChatPageComponents/ChatInput';
-import { useChatStore } from '../stores/useChatStore';
+
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
+import { useChatStore } from '../types/stores/useChatStore';
 
 export function ManagerAIChatPage() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);

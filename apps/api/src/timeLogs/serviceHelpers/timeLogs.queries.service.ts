@@ -4,7 +4,7 @@ import { user } from '../types/timeLogs.types';
 import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.constants';
 import { getWeeksForMonth } from '../utils/monthToWeeks';
 import { format } from 'date-fns';
-import { calculatePaginationOffset } from '../utils/calculatePaginationOffset';
+// import { calculatePaginationOffset } from '../utils/calculatePaginationOffset';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -67,13 +67,7 @@ export class TimeLogQueriesService {
     return { userId, period: { from, to }, missingDays };
   }
 
-  async getManagerDashboard(
-    from: string,
-    to: string,
-    search?: string,
-    page: number = 1,
-    limit: number = TIMELOGS_QUERIES_CONFIG.limit
-  ) {
+  async getManagerDashboard(from: string, to: string, search?: string) {
     const fromDate = new Date(from);
     const toDate = new Date(to);
 
@@ -90,8 +84,6 @@ export class TimeLogQueriesService {
       startStr: format(week.startDate, 'yyyy-MM-dd'),
       endStr: format(week.endDate, 'yyyy-MM-dd'),
     }));
-
-    const skip = calculatePaginationOffset(page, limit);
 
     const userWhere: Prisma.UserWhereInput = {
       AND: [
@@ -111,46 +103,44 @@ export class TimeLogQueriesService {
           : {},
       ],
     };
-    const [users, totalUsersCount] = await Promise.all([
-      this.prisma.user.findMany({
-        where: userWhere,
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          realName: true,
-          email: true,
-          avatarUrl: true,
-          workFormat: true,
-          projects: {
-            include: {
-              project: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatarUrl: true,
-                  type: true,
-                  status: true,
-                  projectManager: {
-                    select: { realName: true, avatarUrl: true },
-                  },
+
+    // Убрали Promise.all и count-запрос, так как забираем сразу всех
+    const users = await this.prisma.user.findMany({
+      where: userWhere,
+      // Убрали skip и take
+      select: {
+        id: true,
+        realName: true,
+        email: true,
+        avatarUrl: true,
+        workFormat: true,
+        projects: {
+          include: {
+            project: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+                type: true,
+                status: true,
+                projectManager: {
+                  select: { realName: true, avatarUrl: true },
                 },
               },
             },
           },
-          timeLogs: {
-            where: { date: { gte: fromDate, lte: toDate } },
-            select: { projectId: true, date: true, hours: true },
-          },
-          ptoLogs: {
-            where: { date: { gte: fromDate, lte: toDate } },
-            select: { hours: true },
-          },
         },
-        orderBy: { realName: 'asc' },
-      }),
-      this.prisma.user.count({ where: userWhere }),
-    ]);
+        timeLogs: {
+          where: { date: { gte: fromDate, lte: toDate } },
+          select: { projectId: true, date: true, hours: true },
+        },
+        ptoLogs: {
+          where: { date: { gte: fromDate, lte: toDate } },
+          select: { hours: true },
+        },
+      },
+      orderBy: { realName: 'asc' },
+    });
 
     const tableData = users.map(user => {
       const totalPto = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
@@ -224,14 +214,11 @@ export class TimeLogQueriesService {
       };
     });
 
-    const totalPages = Math.ceil(totalUsersCount / limit);
-    const nextPage = page < totalPages ? page + 1 : null;
-
+    // Убрали totalPages и nextPage
     return {
       weeksInfo,
       tableData,
-      nextPage,
-      totalCount: totalUsersCount,
+      totalCount: users.length, // Берем из длины массива
     };
   }
 }
