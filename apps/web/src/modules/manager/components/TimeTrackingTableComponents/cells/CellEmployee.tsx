@@ -1,4 +1,4 @@
-import { FastUserAvatar } from '../FastUserAvatar'; // обновите пути импорта по необходимости
+import { FastUserAvatar } from '../FastUserAvatar';
 
 export const CellEmployee = ({ name, avatarUrl }: { name: string; avatarUrl: string | null }) => (
   <div className="flex items-center gap-2 px-5 w-[230px]">

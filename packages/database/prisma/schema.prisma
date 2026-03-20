@@ -20,6 +20,11 @@ enum UserStatus {
   INACTIVE
 }
 
+enum ProjectType {
+  BILLABLE
+  NON_BILLABLE
+}
+
 enum TechnologyType {
   BACKEND
   FRONTEND
@@ -104,6 +109,7 @@ model Project {
   description      String?
   emoji            String?
   status           ProjectStatus
+  type             ProjectType   @default(BILLABLE)
   startDate        DateTime?     @map("start_date")
   endDate          DateTime?     @map("end_date")
   createdAt        DateTime      @default(now()) @map("created_at")
