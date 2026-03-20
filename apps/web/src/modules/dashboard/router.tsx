@@ -5,7 +5,7 @@ import { UserSystemRole } from '@/shared/types/user';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
 import { HomePage } from './pages/HomePage';
-import UserProfilePage from '../profile/pages/UserProfile';
+import UserProfilePage from '../profile/pages/UserProfilePage';
 
 export const GeneralRoutes = () => {
   const { user } = useAuthStore();

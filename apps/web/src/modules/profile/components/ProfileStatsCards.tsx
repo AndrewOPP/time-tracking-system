@@ -1,11 +1,13 @@
 import React from 'react';
 import type { EmployeeProfileResponse } from '../types/employee.types';
+import type { UserTheme } from '../utils/getUserTheme';
 
 interface ProfileStatsCardsProps {
   user: EmployeeProfileResponse;
+  theme: UserTheme;
 }
 
-export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user }) => {
+export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user, theme }) => {
   const totalLoggedHours = user.recentTimeLogs.reduce((sum, log) => sum + log.hours, 0);
 
   const normHours = user.workFormat === 'FULL_TIME' ? 40 : 20;
@@ -13,9 +15,14 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user }) =>
 
   const activeProjects = user.projects.filter(p => p.userProjectStatus === 'ACTIVE');
 
+  // Максимально чисто и просто: только мягкая тень при наведении, без сдвигов
+  const cardClasses =
+    'bg-white rounded-2xl p-6 flex flex-col gap-4 border border-gray-100 shadow-sm transition-shadow duration-200 hover:shadow-md';
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-shadow hover:shadow-md">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4">
+      {/* Technology Stack */}
+      <div className={cardClasses}>
         <h3 className="text-gray-900 font-semibold">Technology Stack</h3>
         <div className="flex flex-wrap gap-3">
           {user.technologies.length > 0 ? (
@@ -38,12 +45,13 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user }) =>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-shadow hover:shadow-md">
+      {/* Current Projects */}
+      <div className={cardClasses}>
         <h3 className="text-gray-900 font-semibold">Current Projects</h3>
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {activeProjects.length > 0 ? (
             activeProjects.map(project => (
-              <div key={project.id} className="flex items-center gap-3">
+              <div key={project.id} className="flex items-center gap-3 overflow-hidden">
                 <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm flex-shrink-0">
                   ✓
                 </div>
@@ -53,12 +61,13 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user }) =>
               </div>
             ))
           ) : (
-            <span className="text-gray-400 text-sm">No active projects</span>
+            <span className="text-gray-400 text-sm col-span-2">No active projects</span>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-shadow hover:shadow-md">
+      {/* Logged Hours Summary */}
+      <div className={cardClasses}>
         <h3 className="text-gray-900 font-semibold">Logged Hours Summary</h3>
 
         <div className="flex justify-between items-end mt-2">
@@ -71,7 +80,7 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user }) =>
 
         <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden mt-1">
           <div
-            className="bg-gradient-to-r from-teal-400 to-indigo-500 h-full rounded-full transition-all duration-1000 ease-out"
+            className={`h-full rounded-full transition-all duration-1000 ease-out ${theme.progress}`}
             style={{ width: `${hoursPercent}%` }}
           />
         </div>

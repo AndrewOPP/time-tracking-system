@@ -2,29 +2,19 @@ import { useParams } from 'react-router-dom';
 import { PageHeader } from '@components/PageHeader';
 import { useUserByUsername } from '../hooks/useUserByUsername';
 import { ProfileHero } from '../components/ProfileHero';
-
 import { ProfileDetails } from '../components/ProfileDetails';
 import { ProfileStatsCards } from '../components/ProfileStatsCards';
+import { SkillsRadarChart } from '../components/SkillsRadarChart';
+import { getThemeForUser } from '../utils/getUserTheme';
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const { data, error, isLoading } = useUserByUsername(username);
 
-  if (isLoading) {
-    return (
-      <div className="p-6 flex justify-center items-center h-full">
-        <span className="text-gray-500 animate-pulse">Loading profile vibes...</span>
-      </div>
-    );
-  }
+  const userTheme = getThemeForUser(username || '');
 
-  if (error || !data) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        <h2>Oops! User not found or something went wrong.</h2>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="p-6 text-center">Loading...</div>;
+  if (error || !data) return <div className="p-6 text-center text-red-500">User not found</div>;
 
   return (
     <div className="flex flex-col">
@@ -33,12 +23,17 @@ export default function UserProfilePage() {
         description={`Overview of ${data.fullName}'s activities and projects.`}
       />
 
-      <div className="flex flex-col gap-6 mt-4">
-        <ProfileHero user={data} />
+      <div className="flex flex-col gap-8 mt-4">
+        {/* Прокидываем theme везде */}
+        <ProfileHero user={data} theme={userTheme} />
 
-        <ProfileStatsCards user={data} />
+        <div className="w-full">
+          <ProfileStatsCards user={data} theme={userTheme} />
+        </div>
 
-        <ProfileDetails user={data} />
+        <SkillsRadarChart theme={userTheme} />
+
+        <ProfileDetails user={data} theme={userTheme} />
       </div>
     </div>
   );

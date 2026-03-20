@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import type { EmployeeProfileResponse } from '../types/employee.types';
+import type { UserTheme } from '../utils/getUserTheme';
 
-interface ProfileDetailsProps {
-  user: EmployeeProfileResponse;
-}
+// Строго типизируем возможные табы
+type TabOption = 'projects' | 'activity';
 
-export const ProfileDetails: React.FC<ProfileDetailsProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<'projects' | 'activity'>('projects');
+export const ProfileDetails: React.FC<{ user: EmployeeProfileResponse; theme: UserTheme }> = ({
+  user,
+  theme,
+}) => {
+  const [activeTab, setActiveTab] = useState<TabOption>('projects');
+
+  // Массив табов с явным указанием типа
+  const TABS: TabOption[] = ['projects', 'activity'];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -17,90 +23,64 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({ user }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6 w-full">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6 w-full overflow-hidden">
+      {/* Tabs Header */}
       <div className="flex border-b border-gray-100 px-6 pt-4">
-        <button
-          onClick={() => setActiveTab('projects')}
-          className={`pb-4 px-2 mr-6 text-sm font-medium transition-colors ${
-            activeTab === 'projects'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Project History
-        </button>
-        <button
-          onClick={() => setActiveTab('activity')}
-          className={`pb-4 px-2 text-sm font-medium transition-colors ${
-            activeTab === 'activity'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Recent Activity
-        </button>
+        {TABS.map(t => (
+          <button
+            key={t}
+            // Теперь TS точно знает, что t — это 'projects' | 'activity', никакого any!
+            onClick={() => setActiveTab(t)}
+            className={`pb-4 px-2 mr-6 text-sm font-semibold relative capitalize transition-colors ${
+              activeTab === t ? theme.text : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {t === 'projects' ? 'Project History' : 'Recent Activity'}
+            {activeTab === t && (
+              <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${theme.border}`} />
+            )}
+          </button>
+        ))}
       </div>
 
       <div className="p-6">
-        {activeTab === 'projects' && (
+        {activeTab === 'projects' ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-gray-100 text-sm text-gray-400">
-                  <th className="pb-3 font-medium">Project Name</th>
-                  <th className="pb-3 font-medium">Role</th>
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Status</th>
+                <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-400 font-bold">
+                  <th className="pb-4">Project</th>
+                  <th className="pb-4 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {user.projects.length > 0 ? (
-                  user.projects.map(project => (
-                    <tr
-                      key={project.id}
-                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                    >
-                      <td className="py-4 text-sm font-medium text-gray-900">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">
-                            {project.name.charAt(0)}
-                          </div>
-                          {project.name}
+                  user.projects.map(p => (
+                    <tr key={p.id} className="group transition-colors hover:bg-gray-50/50">
+                      <td className="py-4 flex items-center gap-3">
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${theme.bg} ${theme.text}`}
+                        >
+                          {p.name.charAt(0)}
                         </div>
+                        <span className="text-sm font-medium text-gray-900">{p.name}</span>
                       </td>
-                      <td className="py-4 text-sm text-gray-600">
-                        {project.userPosition
-                          .replace('_', ' ')
-                          .toLowerCase()
-                          .replace(/\b\w/g, l => l.toUpperCase())}
-                      </td>
-                      <td className="py-4">
+                      <td className="py-4 text-right">
                         <span
-                          className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                            project.projectType === 'BILLABLE'
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
+                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
+                            p.userProjectStatus === 'ACTIVE'
+                              ? `${theme.bg} ${theme.text}`
+                              : 'bg-gray-100 text-gray-500'
                           }`}
                         >
-                          {project.projectType === 'BILLABLE' ? 'Billable' : 'Non-billable'}
-                        </span>
-                      </td>
-                      <td className="py-4">
-                        <span
-                          className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                            project.userProjectStatus === 'ACTIVE'
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {project.userProjectStatus.replace('_', ' ')}
+                          {p.userProjectStatus}
                         </span>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-sm text-gray-400">
+                    <td colSpan={2} className="py-8 text-center text-sm text-gray-400">
                       No projects found.
                     </td>
                   </tr>
@@ -108,31 +88,27 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({ user }) => {
               </tbody>
             </table>
           </div>
-        )}
-
-        {activeTab === 'activity' && (
+        ) : (
+          /* RECENT ACTIVITY TABLE */
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-100 text-sm text-gray-400">
-                  <th className="pb-3 font-medium w-32">Date</th>
-                  <th className="pb-3 font-medium w-48">Project</th>
-                  <th className="pb-3 font-medium w-24 text-right">Hours</th>
-                  <th className="pb-3 font-medium pl-8">Task Description</th>
+                <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-400 font-bold">
+                  <th className="pb-4 w-32">Date</th>
+                  <th className="pb-4 w-48">Project</th>
+                  <th className="pb-4 text-right">Hours</th>
+                  <th className="pb-4 pl-8">Task Description</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {user.recentTimeLogs.length > 0 ? (
                   user.recentTimeLogs.map(log => (
-                    <tr
-                      key={log.id}
-                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                    >
+                    <tr key={log.id} className="group transition-colors hover:bg-gray-50/50">
                       <td className="py-4 text-sm text-gray-500 whitespace-nowrap">
                         {formatDate(log.date)}
                       </td>
                       <td className="py-4 text-sm font-medium text-gray-900">{log.projectName}</td>
-                      <td className="py-4 text-sm font-semibold text-gray-700 text-right">
+                      <td className={`py-4 text-sm font-bold text-right ${theme.text}`}>
                         {log.hours.toFixed(1)}h
                       </td>
                       <td className="py-4 text-sm text-gray-600 pl-8">{log.description}</td>
@@ -140,7 +116,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({ user }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-sm text-gray-400">
+                    <td colSpan={4} className="py-8 text-center text-sm text-gray-400 italic">
                       No recent activity logged.
                     </td>
                   </tr>
