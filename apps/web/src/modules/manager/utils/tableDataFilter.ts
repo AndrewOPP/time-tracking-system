@@ -6,25 +6,49 @@ export interface DashboardFilterCriteria {
   selectedPms: Set<string>;
 }
 
-export const tableDataFilter = (
+export const simpleTableFilter = (
   data: ManagerDashboardRow[],
-  { selectedEmployees, selectedProjects, selectedPms }: DashboardFilterCriteria
+  criteria: DashboardFilterCriteria
 ): ManagerDashboardRow[] => {
   if (!data?.length) return [];
 
-  return data.filter(row => {
-    const matchesEmployee = selectedEmployees.size === 0 || selectedEmployees.has(row.employeeName);
+  const { selectedEmployees, selectedProjects, selectedPms } = criteria;
 
-    const matchesProject =
-      selectedProjects.size === 0 ||
-      (Array.isArray(row.projects) &&
-        row.projects.some(project => selectedProjects.has(project.projectId)));
+  const hasEmpFilter = selectedEmployees.size > 0;
+  const hasProjFilter = selectedProjects.size > 0;
+  const hasPmFilter = selectedPms.size > 0;
 
-    const matchesPm =
-      selectedPms.size === 0 ||
-      (Array.isArray(row.projects) &&
-        row.projects.some(project => project.pmName && selectedPms.has(project.pmName)));
+  if (!hasEmpFilter && !hasProjFilter && !hasPmFilter) {
+    return data;
+  }
 
-    return matchesEmployee && matchesProject && matchesPm;
-  });
+  return data.reduce<ManagerDashboardRow[]>((acc, row) => {
+    if (hasEmpFilter && !selectedEmployees.has(String(row.employeeName))) {
+      return acc;
+    }
+
+    const originalProjects = row.projects || [];
+
+    const filteredProjects = originalProjects.filter(project => {
+      const projectId = String(project.projectId);
+      const pmName = project.pmName ? String(project.pmName) : null;
+
+      const matchesProject = !hasProjFilter || selectedProjects.has(projectId);
+      const matchesPm = !hasPmFilter || (pmName !== null && selectedPms.has(pmName));
+
+      return matchesProject && matchesPm;
+    });
+
+    if ((hasProjFilter || hasPmFilter) && filteredProjects.length === 0) {
+      return acc;
+    }
+
+    acc.push({
+      ...row,
+      allProjects: row.projects,
+      projects: hasProjFilter || hasPmFilter ? filteredProjects : originalProjects,
+    });
+
+    return acc;
+  }, []);
 };

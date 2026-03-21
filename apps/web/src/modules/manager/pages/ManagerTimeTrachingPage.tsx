@@ -8,7 +8,7 @@ import { TableEmptyState } from '../components/TimeTrackingTableComponents/Table
 import { TableErrorState } from '../components/TimeTrackingTableComponents/TableErrorState';
 import { FiltersPopover } from '../components/TimeTrackingTableComponents/FiltersPopover';
 import { useTableFilters } from '../hooks/useTableFilters';
-import { tableDataFilter } from '../utils/tableDataFilter';
+import { simpleTableFilter } from '../utils/tableDataFilter';
 import { ActiveFiltersBar } from '../components/TimeTrackingTableComponents/ActiveFiltersBar';
 
 const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
@@ -43,12 +43,12 @@ export function ManagerTimeTrachingPage() {
   } = useTableFilters();
 
   const filteredData = useMemo(() => {
-    return tableDataFilter(flatTableData, {
+    return simpleTableFilter(flatTableData, {
       selectedEmployees,
       selectedProjects,
       selectedPms,
     });
-  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms]);
+  }, [flatTableData, selectedProjects, selectedPms, selectedEmployees]);
 
   const renderContent = () => {
     if (isError) {

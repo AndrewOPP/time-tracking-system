@@ -46,6 +46,7 @@ export interface ManagerDashboardRow {
   ptoHours: number;
   format: EmploymentFormatValue;
   employedTimePercent: number;
+  allProjects: ProjectData[];
   projects: ProjectData[];
 }
 

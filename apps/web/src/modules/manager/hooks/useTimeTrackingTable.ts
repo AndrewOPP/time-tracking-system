@@ -26,7 +26,7 @@ export const useTimeTrackingTable = ({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getRowId: row => row.userId,
+    getRowId: row => row.employeeName,
   });
 
   const { rows } = table.getRowModel();

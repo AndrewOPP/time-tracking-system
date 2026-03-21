@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { FilterSearchInput } from './FilterSearchInput';
+import { FilterListItem } from './FilterListItem';
 
 interface UniversalFilterPanelProps<T> {
   items: T[];
@@ -36,21 +37,14 @@ export const UniversalFilterPanel = <T extends Record<string, unknown>>({
   }, [items, searchQuery, nameKey]);
 
   return (
-    <div className="flex flex-col h-full w-full">
-      <div className="px-3 py-[12px] border-b border-[#E0E1E2]">
-        <div className="relative flex items-center">
-          <Search className="absolute left-[12px] h-4 w-4 text-[#A1A1AA]" />
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-[36px] pr-3 py-[6px] h-[32px] text-[14px] border border-[#E0E1E2] rounded-[6px] outline-none focus:border-gray-400 placeholder:text-[#A1A1AA]"
-          />
-        </div>
-      </div>
+    <div className="flex flex-col h-full animate-in fade-in zoom-in-[0.98] duration-500">
+      <FilterSearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={searchPlaceholder}
+      />
 
-      <div className="flex-1 overflow-y-auto py-2 px-3 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto py-2 px-3 flex flex-col gap-1 custom-scrollbar">
         {filteredItems.length === 0 ? (
           <div className="text-[14px] text-[#A1A1AA] text-center mt-4">{emptyStateText}</div>
         ) : (
@@ -61,29 +55,13 @@ export const UniversalFilterPanel = <T extends Record<string, unknown>>({
             const isSelected = selectedIds.has(itemId);
 
             return (
-              <div
+              <FilterListItem
                 key={itemId}
+                name={itemName}
+                avatarUrl={itemAvatar}
+                isSelected={isSelected}
                 onClick={() => onToggle(itemId)}
-                className={`flex items-center gap-3 px-2 py-2 rounded-[6px] cursor-pointer transition-all ${
-                  isSelected ? 'bg-[#1F1F1F] text-white' : 'hover:bg-[#F4F4F5] text-[#1F1F1F]'
-                }`}
-              >
-                {itemAvatar ? (
-                  <img
-                    src={itemAvatar}
-                    alt={itemName}
-                    className="h-6 w-6 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="h-6 w-6 rounded-full bg-gray-200 shrink-0" />
-                )}
-
-                <span
-                  className={`text-[14px] leading-none truncate ${isSelected ? 'font-medium' : ''}`}
-                >
-                  {itemName}
-                </span>
-              </div>
+              />
             );
           })
         )}

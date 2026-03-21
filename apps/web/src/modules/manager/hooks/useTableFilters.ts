@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useMemo, useCallback } from 'react';
+import { FILTER_PARAM_KEYS } from '../constants/constants';
 
 export const useTableFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,9 +13,12 @@ export const useTableFilters = () => {
     [searchParams]
   );
 
-  const selectedEmployees = useMemo(() => getFilterSet('employees'), [getFilterSet]);
-  const selectedProjects = useMemo(() => getFilterSet('projects'), [getFilterSet]);
-  const selectedPms = useMemo(() => getFilterSet('pms'), [getFilterSet]);
+  const selectedEmployees = useMemo(
+    () => getFilterSet(FILTER_PARAM_KEYS.EMPLOYEES),
+    [getFilterSet]
+  );
+  const selectedProjects = useMemo(() => getFilterSet(FILTER_PARAM_KEYS.PROJECTS), [getFilterSet]);
+  const selectedPms = useMemo(() => getFilterSet(FILTER_PARAM_KEYS.PMS), [getFilterSet]);
 
   const toggleFilter = useCallback(
     (paramName: string, id: string, currentSet: Set<string>) => {
@@ -46,23 +50,15 @@ export const useTableFilters = () => {
 
   const clearAllFilters = () => {
     const params = new URLSearchParams(searchParams);
-    params.delete('employees');
-    params.delete('projects');
-    params.delete('pms');
+    Object.values(FILTER_PARAM_KEYS).forEach(key => params.delete(key));
     setSearchParams(params);
   };
 
-  const toggleEmployee = (id: string) => toggleFilter('employees', id, selectedEmployees);
-  const toggleProject = (id: string) => toggleFilter('projects', id, selectedProjects);
-  const togglePm = (id: string) => toggleFilter('pms', id, selectedPms);
-
-  const clearFilters = () => {
-    const params = new URLSearchParams(searchParams);
-    params.delete('employees');
-    params.delete('projects');
-    params.delete('pms');
-    setSearchParams(params);
-  };
+  const toggleEmployee = (id: string) =>
+    toggleFilter(FILTER_PARAM_KEYS.EMPLOYEES, id, selectedEmployees);
+  const toggleProject = (id: string) =>
+    toggleFilter(FILTER_PARAM_KEYS.PROJECTS, id, selectedProjects);
+  const togglePm = (id: string) => toggleFilter(FILTER_PARAM_KEYS.PMS, id, selectedPms);
 
   return {
     selectedEmployees,
@@ -72,7 +68,6 @@ export const useTableFilters = () => {
     toggleEmployee,
     toggleProject,
     togglePm,
-    clearFilters,
     clearAllFilters,
     clearCategory,
   };
