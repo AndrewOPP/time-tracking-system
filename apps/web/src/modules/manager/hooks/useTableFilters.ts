@@ -1,74 +1,79 @@
-import { useSearchParams } from 'react-router-dom';
-import { useMemo, useCallback } from 'react';
-import { FILTER_PARAM_KEYS } from '../constants/constants';
+import { CATEGORIES, FILTER_PARAM_KEYS } from '../constants/constants';
+import type { EmploymentFormatValue, RangeType } from '../constants/constants';
+import { useUrlParams } from './useUrlParams';
+
+export interface RangeState {
+  min: number | null;
+  max: number | null;
+  id: string;
+}
+
+type RangeKey = (typeof CATEGORIES)[number]['id'];
+
+export type FilterRanges = Record<RangeKey, RangeState>;
+
+const isRangeKey = (key: string): key is RangeKey => {
+  return CATEGORIES.some(item => item.id === key && item.type === 'range');
+};
 
 export const useTableFilters = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { getSet, getNumber, getString, setValue, toggleInSet, deleteKey, clearAll } =
+    useUrlParams();
 
-  const getFilterSet = useCallback(
-    (paramName: string) => {
-      const paramValue = searchParams.get(paramName);
-      return new Set(paramValue ? paramValue.split(',') : []);
-    },
-    [searchParams]
-  );
+  const selectedEmployees = getSet(FILTER_PARAM_KEYS.EMPLOYEES);
+  const selectedProjects = getSet(FILTER_PARAM_KEYS.PROJECTS);
+  const selectedPms = getSet(FILTER_PARAM_KEYS.PMS);
 
-  const selectedEmployees = useMemo(
-    () => getFilterSet(FILTER_PARAM_KEYS.EMPLOYEES),
-    [getFilterSet]
-  );
-  const selectedProjects = useMemo(() => getFilterSet(FILTER_PARAM_KEYS.PROJECTS), [getFilterSet]);
-  const selectedPms = useMemo(() => getFilterSet(FILTER_PARAM_KEYS.PMS), [getFilterSet]);
+  const selectedFormat = getString(FILTER_PARAM_KEYS.FORMAT) as EmploymentFormatValue | null;
 
-  const toggleFilter = useCallback(
-    (paramName: string, id: string, currentSet: Set<string>) => {
-      const newSet = new Set(currentSet);
+  const getRange = (key: RangeKey): RangeState => ({
+    min: getNumber(`${key}_min`),
+    max: getNumber(`${key}_max`),
+    id: key,
+  });
 
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+  const ranges = Object.fromEntries(CATEGORIES.map(({ id }) => [id, getRange(id)])) as FilterRanges;
 
-      const params = new URLSearchParams(searchParams);
-      if (newSet.size > 0) {
-        params.set(paramName, Array.from(newSet).join(','));
-      } else {
-        params.delete(paramName);
-      }
+  const toggleEmployee = (id: string) => toggleInSet(FILTER_PARAM_KEYS.EMPLOYEES, id);
 
-      setSearchParams(params);
-    },
-    [searchParams, setSearchParams]
-  );
+  const toggleProject = (id: string) => toggleInSet(FILTER_PARAM_KEYS.PROJECTS, id);
 
-  const clearCategory = (paramName: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.delete(paramName);
-    setSearchParams(params);
+  const togglePm = (id: string) => toggleInSet(FILTER_PARAM_KEYS.PMS, id);
+
+  const setFormat = (val: EmploymentFormatValue | null) => setValue(FILTER_PARAM_KEYS.FORMAT, val);
+
+  const setRangeValue = (key: RangeKey, type: RangeType, value: number | null) => {
+    setValue(`${key}_${type}`, value);
+  };
+
+  const clearCategory = (key: string) => {
+    console.log(key, 'key');
+    console.log(isRangeKey(key), 'isRangeKey(key)');
+
+    if (isRangeKey(key)) {
+      deleteKey(`${key}_min`);
+      deleteKey(`${key}_max`);
+    } else {
+      deleteKey(key);
+    }
   };
 
   const clearAllFilters = () => {
-    const params = new URLSearchParams(searchParams);
-    Object.values(FILTER_PARAM_KEYS).forEach(key => params.delete(key));
-    setSearchParams(params);
+    clearAll();
   };
-
-  const toggleEmployee = (id: string) =>
-    toggleFilter(FILTER_PARAM_KEYS.EMPLOYEES, id, selectedEmployees);
-  const toggleProject = (id: string) =>
-    toggleFilter(FILTER_PARAM_KEYS.PROJECTS, id, selectedProjects);
-  const togglePm = (id: string) => toggleFilter(FILTER_PARAM_KEYS.PMS, id, selectedPms);
 
   return {
     selectedEmployees,
     selectedProjects,
     selectedPms,
-
+    selectedFormat,
+    ranges,
     toggleEmployee,
     toggleProject,
     togglePm,
-    clearAllFilters,
+    setFormat,
+    setRangeValue,
     clearCategory,
+    clearAllFilters,
   };
 };

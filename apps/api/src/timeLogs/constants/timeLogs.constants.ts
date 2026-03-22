@@ -38,3 +38,9 @@ export const TIMELOGS_QUERIES_CONFIG = {
   limit: 15,
   weekNumberRange: 5,
 };
+
+export const PROJECT_TYPE = {
+  billable: 'BILLABLE',
+  nonBillable: 'NON_BILLABLE',
+} as const;
+export type ProjectTypeValue = (typeof PROJECT_TYPE)[keyof typeof PROJECT_TYPE];

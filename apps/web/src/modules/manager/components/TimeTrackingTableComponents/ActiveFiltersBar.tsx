@@ -19,6 +19,7 @@ export const ActiveFiltersBar = ({
   const totalFiltersCount = selectedEmployees.size + selectedProjects.size + selectedPms.size;
 
   if (totalFiltersCount === 0) return null;
+  console.log(selectedProjects, 'selectedProjects');
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-5">

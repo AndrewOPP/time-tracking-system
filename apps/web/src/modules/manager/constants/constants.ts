@@ -66,31 +66,33 @@ export const EMPLOYMENT_FORMAT = {
 export type EmploymentFormatValue = (typeof EMPLOYMENT_FORMAT)[keyof typeof EMPLOYMENT_FORMAT];
 
 export const FILTER_PARAM_KEYS = {
+  WEEK_ONE_MIN: 'week1Min',
+  WEEK_ONE_MAX: 'week1Max',
   EMPLOYEES: 'employees',
   PROJECTS: 'projects',
+  FORMAT: 'format',
   PMS: 'pms',
 } as const;
 
-// dotColor will be removed in future tasks
 export const CATEGORIES = [
   { id: 'employee', label: 'Employee', icon: Users },
   { id: 'projects', label: 'Projects', icon: Briefcase },
-  { id: 'week1', label: 'Week 1', icon: null, dotColor: '#F97316' },
-  { id: 'week2', label: 'Week 2', icon: null, dotColor: '#4E916B' },
-  { id: 'week3', label: 'Week 3', icon: null, dotColor: '#4E916B' },
-  { id: 'week4', label: 'Week 4', icon: null, dotColor: '#4E916B' },
-  { id: 'week5', label: 'Week 5', icon: null, dotColor: '#4E916B' },
-  { id: 'week6', label: 'Week 6', icon: null, dotColor: '#F97316' },
-  { id: 'total', label: 'Total', icon: Calculator },
-  { id: 'employedTime', label: 'Employed Time %', icon: Clock },
-  { id: 'pto', label: 'PTO Hours', icon: CalendarOff },
+  { id: 'week1', label: 'Week 1', icon: null, type: 'range' },
+  { id: 'week2', label: 'Week 2', icon: null, type: 'range' },
+  { id: 'week3', label: 'Week 3', icon: null, type: 'range' },
+  { id: 'week4', label: 'Week 4', icon: null, type: 'range' },
+  { id: 'week5', label: 'Week 5', icon: null, type: 'range' },
+  { id: 'week6', label: 'Week 6', icon: null, type: 'range' },
+  { id: 'total', label: 'Total', icon: Calculator, type: 'range' },
+  { id: 'employedPercent', label: 'Employed Time %', icon: Clock, type: 'range' },
+  { id: 'pto', label: 'PTO Hours', icon: CalendarOff, type: 'range' },
   { id: 'pm', label: 'PM', icon: UserCog },
   { id: 'format', label: 'Format', icon: MonitorSmartphone },
 ];
 
 export const FILTER_CONFIG = {
   employee: {
-    cadeAndKey: 'employee',
+    caseAndKey: 'employee',
     idKey: 'employeeName',
     nameKey: 'employeeName',
     avatarKey: 'avatarUrl',
@@ -98,7 +100,7 @@ export const FILTER_CONFIG = {
     emptyText: 'No employees found',
   },
   projects: {
-    cadeAndKey: 'projects',
+    caseAndKey: 'projects',
     idKey: 'projectId',
     nameKey: 'projectName',
     avatarKey: 'projectAvatarUrl',
@@ -106,11 +108,21 @@ export const FILTER_CONFIG = {
     emptyText: 'No projects found',
   },
   pm: {
-    cadeAndKey: 'pm',
+    caseAndKey: 'pm',
     idKey: 'pmName',
     nameKey: 'pmName',
     avatarKey: 'pmAvatarUrl',
     placeholder: 'Search manager',
     emptyText: 'No managers found',
   },
+  format: {
+    caseAndKey: 'pm',
+  },
 } as const;
+
+export const RANGE_MIN_MAX = {
+  min: 'min',
+  max: 'max',
+} as const;
+
+export type RangeType = (typeof RANGE_MIN_MAX)[keyof typeof RANGE_MIN_MAX];

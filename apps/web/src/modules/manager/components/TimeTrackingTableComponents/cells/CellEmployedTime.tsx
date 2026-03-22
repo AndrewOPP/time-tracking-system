@@ -1,14 +1,14 @@
-import type { ProjectData, WeekInfo } from '@/modules/manager/types/managerAIChat.types';
+import type { CalculatedEmployedTimeData } from '@/modules/manager/types/managerAIChat.types';
 import { EmployedTimeBar } from '../EmployedTimeBar';
 
 type Props = {
-  weeksInfo: WeekInfo[];
+  employedTimeData: CalculatedEmployedTimeData;
   totalUserHours: number;
-  projects: ProjectData[];
+  // projects: ProjectData[];
 };
 
-export const CellEmployedTime = ({ weeksInfo, totalUserHours, projects }: Props) => (
+export const CellEmployedTime = ({ employedTimeData, totalUserHours }: Props) => (
   <div className="flex items-center px-5 w-62">
-    <EmployedTimeBar weeksInfo={weeksInfo} totalUserHours={totalUserHours} projects={projects} />
+    <EmployedTimeBar employedTimeData={employedTimeData} totalUserHours={totalUserHours} />
   </div>
 );

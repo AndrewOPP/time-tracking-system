@@ -35,9 +35,13 @@ export function ManagerTimeTrachingPage() {
     selectedEmployees,
     selectedProjects,
     selectedPms,
+    ranges,
+    selectedFormat,
     toggleEmployee,
     toggleProject,
     togglePm,
+    setRangeValue,
+    setFormat,
     clearCategory,
     clearAllFilters,
   } = useTableFilters();
@@ -47,8 +51,10 @@ export function ManagerTimeTrachingPage() {
       selectedEmployees,
       selectedProjects,
       selectedPms,
+      ranges,
+      selectedFormat,
     });
-  }, [flatTableData, selectedProjects, selectedPms, selectedEmployees]);
+  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat]);
 
   const renderContent = () => {
     if (isError) {
@@ -75,13 +81,18 @@ export function ManagerTimeTrachingPage() {
 
       <div className="flex flex-row gap-2 items-center mb-5 mt-4">
         <FiltersPopover
+          weeksInfo={weeksInfo}
           flatTableData={flatTableData}
           selectedEmployees={selectedEmployees}
           selectedProjects={selectedProjects}
           selectedPms={selectedPms}
+          ranges={ranges}
+          selectedFormat={selectedFormat}
           toggleEmployee={toggleEmployee}
           toggleProject={toggleProject}
           togglePm={togglePm}
+          setRangeValue={setRangeValue}
+          setFormat={setFormat}
         />
 
         <input
