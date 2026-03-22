@@ -10,7 +10,7 @@ import { CATEGORIES, FILTER_CONFIG, RANGE_MIN_MAX } from '../../constants/consta
 import type { EmploymentFormatValue } from '../../constants/constants';
 import { UniversalRangeFilterPanel } from './filterPanels/UniversalRangeFilterPanel';
 import type { FilterRanges } from '../../hooks/useTableFilters';
-import { WorkFormatFilterPanel } from './filterPanels/workFormatFilterPanel';
+import { WorkFormatFilterPanel } from './filterPanels/WorkFormatFilterPanel';
 
 export interface FiltersPopoverProps {
   flatTableData: ManagerDashboardRow[];

@@ -19,31 +19,25 @@ export const ActiveFiltersBar = ({
   const totalFiltersCount = selectedEmployees.size + selectedProjects.size + selectedPms.size;
 
   if (totalFiltersCount === 0) return null;
-  console.log(selectedProjects, 'selectedProjects');
+
+  const FILTERS_BADGE = [
+    { icon: Users, label: 'Employee', count: selectedEmployees.size, paramName: 'employees' },
+    { icon: Briefcase, label: 'Projects', count: selectedProjects.size, paramName: 'projects' },
+    { icon: UserCog, label: 'PM', count: selectedPms.size, paramName: 'pms' },
+  ];
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-5">
-      <FilterBadge
-        icon={Users}
-        label="Employee"
-        count={selectedEmployees.size}
-        paramName="employees"
-        onClear={onClearCategory}
-      />
-      <FilterBadge
-        icon={Briefcase}
-        label="Projects"
-        count={selectedProjects.size}
-        paramName="projects"
-        onClear={onClearCategory}
-      />
-      <FilterBadge
-        icon={UserCog}
-        label="PM"
-        count={selectedPms.size}
-        paramName="pms"
-        onClear={onClearCategory}
-      />
+      {FILTERS_BADGE.map(filter => (
+        <FilterBadge
+          key={filter.paramName}
+          icon={filter.icon}
+          label={filter.label}
+          count={filter.count}
+          paramName={filter.paramName}
+          onClear={onClearCategory}
+        />
+      ))}
 
       <button
         onClick={onClearAll}
