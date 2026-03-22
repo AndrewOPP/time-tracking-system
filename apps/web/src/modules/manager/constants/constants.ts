@@ -87,3 +87,30 @@ export const CATEGORIES = [
   { id: 'pm', label: 'PM', icon: UserCog },
   { id: 'format', label: 'Format', icon: MonitorSmartphone },
 ];
+
+export const FILTER_CONFIG = {
+  employee: {
+    cadeAndKey: 'employee',
+    idKey: 'employeeName',
+    nameKey: 'employeeName',
+    avatarKey: 'avatarUrl',
+    placeholder: 'Search employee',
+    emptyText: 'No employees found',
+  },
+  projects: {
+    cadeAndKey: 'projects',
+    idKey: 'projectId',
+    nameKey: 'projectName',
+    avatarKey: 'projectAvatarUrl',
+    placeholder: 'Search project',
+    emptyText: 'No projects found',
+  },
+  pm: {
+    cadeAndKey: 'pm',
+    idKey: 'pmName',
+    nameKey: 'pmName',
+    avatarKey: 'pmAvatarUrl',
+    placeholder: 'Search manager',
+    emptyText: 'No managers found',
+  },
+} as const;

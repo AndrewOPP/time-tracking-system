@@ -6,6 +6,7 @@ import { UniversalFilterPanel } from './filterPanels/UniversalFilterPanel';
 import { extractFilterData } from '../../utils/extractFilterData';
 import type { ManagerDashboardRow } from '../../types/managerAIChat.types';
 import { CategoryList } from '../CategoryList';
+import { FILTER_CONFIG } from '../../constants/constants';
 
 export interface FiltersPopoverProps {
   flatTableData: ManagerDashboardRow[];
@@ -26,7 +27,7 @@ export const FiltersPopover = ({
   toggleProject,
   togglePm,
 }: FiltersPopoverProps) => {
-  const [activeCategory, setActiveCategory] = useState<string>('employee');
+  const [activeCategory, setActiveCategory] = useState<string>(FILTER_CONFIG.employee.cadeAndKey);
   const [isOpen, setIsOpen] = useState(false);
 
   const filtersPanelData = useMemo(() => {
@@ -35,46 +36,46 @@ export const FiltersPopover = ({
 
   const renderRightPanel = () => {
     switch (activeCategory) {
-      case 'employee':
+      case FILTER_CONFIG.employee.cadeAndKey:
         return (
           <UniversalFilterPanel
-            key="employee"
+            key={FILTER_CONFIG.employee.cadeAndKey}
             items={filtersPanelData.users}
             selectedIds={selectedEmployees}
             onToggle={toggleEmployee}
-            idKey="employeeName"
-            nameKey="employeeName"
-            avatarKey="avatarUrl"
-            searchPlaceholder="Search employee"
-            emptyStateText="No employees found"
+            idKey={FILTER_CONFIG.employee.idKey}
+            nameKey={FILTER_CONFIG.employee.nameKey}
+            avatarKey={FILTER_CONFIG.employee.avatarKey}
+            searchPlaceholder={FILTER_CONFIG.employee.placeholder}
+            emptyStateText={FILTER_CONFIG.employee.emptyText}
           />
         );
-      case 'projects':
+      case FILTER_CONFIG.projects.cadeAndKey:
         return (
           <UniversalFilterPanel
-            key="projects"
+            key={FILTER_CONFIG.projects.cadeAndKey}
             items={filtersPanelData.projects}
             selectedIds={selectedProjects}
             onToggle={toggleProject}
-            idKey="projectId"
-            nameKey="projectName"
-            avatarKey="projectAvatarUrl"
-            searchPlaceholder="Search project"
-            emptyStateText="No projects found"
+            idKey={FILTER_CONFIG.projects.idKey}
+            nameKey={FILTER_CONFIG.projects.nameKey}
+            avatarKey={FILTER_CONFIG.projects.avatarKey}
+            searchPlaceholder={FILTER_CONFIG.projects.placeholder}
+            emptyStateText={FILTER_CONFIG.projects.emptyText}
           />
         );
-      case 'pm':
+      case FILTER_CONFIG.pm.cadeAndKey:
         return (
           <UniversalFilterPanel
-            key="pm"
+            key={FILTER_CONFIG.pm.cadeAndKey}
             items={filtersPanelData.pms}
             selectedIds={selectedPms}
             onToggle={togglePm}
-            idKey="pmName"
-            nameKey="pmName"
-            avatarKey="pmAvatarUrl"
-            searchPlaceholder="Search manager"
-            emptyStateText="No managers found"
+            idKey={FILTER_CONFIG.pm.idKey}
+            nameKey={FILTER_CONFIG.pm.nameKey}
+            avatarKey={FILTER_CONFIG.pm.avatarKey}
+            searchPlaceholder={FILTER_CONFIG.pm.placeholder}
+            emptyStateText={FILTER_CONFIG.pm.emptyText}
           />
         );
       default:
