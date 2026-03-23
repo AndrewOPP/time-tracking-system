@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@components/ui/popover'
 import { cn } from '@lib/utils';
 import { UniversalFilterPanel } from './filterPanels/UniversalFilterPanel';
 import { extractFilterData } from '../../utils/extractFilterData';
-import type { ManagerDashboardRow } from '../../types/managerAIChat.types';
+import type { FilterItem, ManagerDashboardRow, PanelConfig } from '../../types/managerAIChat.types';
 import { CategoryList } from '../CategoryList';
 import { FILTER_CONFIG } from '../../constants/constants';
 
@@ -35,59 +35,53 @@ export const FiltersPopover = ({
   }, [flatTableData]);
 
   const renderRightPanel = () => {
-    switch (activeCategory) {
-      case FILTER_CONFIG.employee.cadeAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.employee.cadeAndKey}
-            items={filtersPanelData.users}
-            selectedIds={selectedEmployees}
-            onToggle={toggleEmployee}
-            idKey={FILTER_CONFIG.employee.idKey}
-            nameKey={FILTER_CONFIG.employee.nameKey}
-            avatarKey={FILTER_CONFIG.employee.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.employee.placeholder}
-            emptyStateText={FILTER_CONFIG.employee.emptyText}
-          />
-        );
-      case FILTER_CONFIG.projects.cadeAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.projects.cadeAndKey}
-            items={filtersPanelData.projects}
-            selectedIds={selectedProjects}
-            onToggle={toggleProject}
-            idKey={FILTER_CONFIG.projects.idKey}
-            nameKey={FILTER_CONFIG.projects.nameKey}
-            avatarKey={FILTER_CONFIG.projects.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.projects.placeholder}
-            emptyStateText={FILTER_CONFIG.projects.emptyText}
-          />
-        );
-      case FILTER_CONFIG.pm.cadeAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.pm.cadeAndKey}
-            items={filtersPanelData.pms}
-            selectedIds={selectedPms}
-            onToggle={togglePm}
-            idKey={FILTER_CONFIG.pm.idKey}
-            nameKey={FILTER_CONFIG.pm.nameKey}
-            avatarKey={FILTER_CONFIG.pm.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.pm.placeholder}
-            emptyStateText={FILTER_CONFIG.pm.emptyText}
-          />
-        );
-      default:
-        return (
-          <div
-            key="development"
-            className="flex-1 flex items-center justify-center text-[14px] text-[#A1A1AA] animate-in fade-in duration-500"
-          >
-            Filter in development...
-          </div>
-        );
+    const panelsMap: Record<string, PanelConfig> = {
+      [FILTER_CONFIG.employee.cadeAndKey]: {
+        items: filtersPanelData.users as FilterItem[],
+        selectedIds: selectedEmployees,
+        onToggle: toggleEmployee,
+        config: FILTER_CONFIG.employee,
+      },
+      [FILTER_CONFIG.projects.cadeAndKey]: {
+        items: filtersPanelData.projects as FilterItem[],
+        selectedIds: selectedProjects,
+        onToggle: toggleProject,
+        config: FILTER_CONFIG.projects,
+      },
+      [FILTER_CONFIG.pm.cadeAndKey]: {
+        items: filtersPanelData.pms as FilterItem[],
+        selectedIds: selectedPms,
+        onToggle: togglePm,
+        config: FILTER_CONFIG.pm,
+      },
+    };
+
+    const activePanelProps = panelsMap[activeCategory];
+
+    if (activePanelProps) {
+      return (
+        <UniversalFilterPanel<FilterItem>
+          key={activePanelProps.config.cadeAndKey}
+          items={activePanelProps.items}
+          selectedIds={activePanelProps.selectedIds}
+          onToggle={activePanelProps.onToggle}
+          idKey={activePanelProps.config.idKey}
+          nameKey={activePanelProps.config.nameKey}
+          avatarKey={activePanelProps.config.avatarKey}
+          searchPlaceholder={activePanelProps.config.placeholder}
+          emptyStateText={activePanelProps.config.emptyText}
+        />
+      );
     }
+
+    return (
+      <div
+        key="development"
+        className="flex-1 flex items-center justify-center text-[14px] text-[#A1A1AA] animate-in fade-in duration-500"
+      >
+        Filter in development...
+      </div>
+    );
   };
 
   return (
