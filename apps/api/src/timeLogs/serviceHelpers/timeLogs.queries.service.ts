@@ -129,6 +129,7 @@ export class TimeLogQueriesService {
                   id: true,
                   name: true,
                   avatarUrl: true,
+                  type: true,
                   status: true,
                   projectManager: {
                     select: { realName: true, avatarUrl: true },
@@ -196,6 +197,7 @@ export class TimeLogQueriesService {
           return {
             projectId,
             projectName: userProject.project.name,
+            type: userProject.project.type,
             projectAvatarUrl: userProject.project.avatarUrl ?? '',
             pmName: userProject.project.projectManager?.realName ?? 'No PM',
             pmAvatarUrl: userProject.project.projectManager?.avatarUrl ?? null,

@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai';
+import type { EmploymentFormatValue, ProjectTypeValue } from '../constants/constants';
 
 export interface Message {
   id: number;
@@ -22,6 +23,7 @@ export interface WeekInfo {
 export interface ProjectData {
   projectId: string;
   projectName: string;
+  type: ProjectTypeValue;
   pmName: string;
   projectAvatarUrl: string;
   pmAvatarUrl: string | null;
@@ -42,7 +44,7 @@ export interface ManagerDashboardRow {
   avatarUrl: string | null;
   totalUserHours: number;
   ptoHours: number;
-  format: 'FULL_TIME' | 'PART_TIME';
+  format: EmploymentFormatValue;
   employedTimePercent: number;
   projects: ProjectData[];
 }
