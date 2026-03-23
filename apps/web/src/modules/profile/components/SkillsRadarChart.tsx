@@ -1,30 +1,27 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
 import type { UserTheme } from '../utils/getUserTheme';
 
-// 1. ГЕОМЕТРИЯ ЧАСТИЦ (Вынесена из компонента)
-// Генерируется один раз при инициализации файла. Линтер доволен на 100%.
-const RADAR_PARTICLE_MAP = [...Array(70)].map((_, i) => ({
+const RADAR_PARTICLE_MAP = [...Array(40)].map((_, i) => ({
   id: i,
   size: [0.6, 1.3, 1.8][i % 3],
   top: Math.random() * 100,
   left: Math.random() * 100,
   delay: Math.random() * 10,
   duration: 18 + Math.random() * 12,
-  opacity: 0.08 + Math.random() * 0.3,
+  opacity: 0.08 + Math.random() * 0.2,
 }));
 
 const SKILLS = [
   { name: 'Frontend', value: 90 },
-  { name: 'Backend', value: 65 },
+  { name: 'Backend', value: 75 },
   { name: 'Jokes', value: 100 },
-  { name: 'Design', value: 75 },
-  { name: 'AI', value: 85 },
+  { name: 'Design', value: 65 },
+  { name: 'AI', value: 70 },
   { name: 'Overall', value: 82 },
 ];
 
 export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
-  const size = 420;
+  const size = 400;
   const center = size / 2;
   const radius = size * 0.35;
 
@@ -37,11 +34,9 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
   };
 
   return (
-    <Card className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group">
-      {/* Сетка фона */}
+    <div className="bg-white rounded-2xl border border-gray-200 w-full relative overflow-hidden group">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(#00000008_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
 
-      {/* ЖИВАЯ АНИМАЦИЯ ЦВЕТНЫХ ЧАСТИЦ */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {RADAR_PARTICLE_MAP.map(particle => (
           <div
@@ -57,7 +52,6 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
               opacity: particle.opacity,
             }}
           >
-            {/* Цвет берется из пропса theme */}
             <div
               className="w-full h-full rounded-[1px] rotate-45"
               style={{ backgroundColor: theme.fill }}
@@ -66,13 +60,11 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
         ))}
       </div>
 
-      <CardHeader className="relative z-10 pb-0 pt-6 text-center">
-        <CardTitle className="text-gray-900 font-bold text-lg tracking-tight">
-          Vibe & Skills
-        </CardTitle>
-      </CardHeader>
+      <div className="relative z-10 pb-0 pt-6 px-6">
+        <h3 className="text-gray-900 font-semibold text-sm">Vibe & Skills</h3>
+      </div>
 
-      <CardContent className="relative z-10 flex justify-center p-4">
+      <div className="relative z-10 flex justify-center p-6">
         <svg
           width={size}
           height={size}
@@ -86,7 +78,6 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
             </radialGradient>
           </defs>
 
-          {/* Сетка радара */}
           {[0.2, 0.4, 0.6, 0.8, 1].map(level => (
             <polygon
               key={level}
@@ -100,7 +91,6 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
             />
           ))}
 
-          {/* Фигура скиллов */}
           <polygon
             points={SKILLS.map((s, i) => {
               const p = getPoint(i, (s.value / 100) * radius);
@@ -112,10 +102,10 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
             strokeLinejoin="round"
           />
 
-          {/* Точки и подписи */}
           {SKILLS.map((s, i) => {
             const p = getPoint(i, (s.value / 100) * radius);
             const labelP = getPoint(i, radius + 40);
+
             return (
               <g key={i}>
                 <line
@@ -126,6 +116,7 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
                   stroke="#F1F5F9"
                   strokeWidth="1"
                 />
+
                 <circle
                   cx={p.x}
                   cy={p.y}
@@ -133,22 +124,21 @@ export const SkillsRadarChart: React.FC<{ theme: UserTheme }> = ({ theme }) => {
                   fill={theme.fill}
                   stroke="#FFFFFF"
                   strokeWidth="2"
-                  className="drop-shadow-sm"
                 />
-                <text
-                  x={labelP.x}
-                  y={labelP.y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="text-[11px] font-semibold fill-gray-500 uppercase tracking-wider"
-                >
-                  {s.name}
+
+                <text x={labelP.x} y={labelP.y} textAnchor="middle" dominantBaseline="middle">
+                  <tspan className="text-[11px] font-semibold fill-gray-500 uppercase tracking-wider">
+                    {s.name}
+                  </tspan>
+                  <tspan className="text-[12px] font-bold" fill={theme.fill} dx="6">
+                    {s.value}
+                  </tspan>
                 </text>
               </g>
             );
           })}
         </svg>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

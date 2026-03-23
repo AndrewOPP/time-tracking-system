@@ -2,7 +2,7 @@ import React from 'react';
 import type { EmployeeProfileResponse } from '../types/employee.types';
 import type { UserTheme } from '../utils/getUserTheme';
 
-const PARTICLES = [...Array(20)].map((_, i) => ({
+const PARTICLES = [...Array(15)].map((_, i) => ({
   id: i,
   size: [1, 1.5, 2][i % 3],
   top: Math.random() * 100,
@@ -14,16 +14,14 @@ const PARTICLES = [...Array(20)].map((_, i) => ({
 
 interface ProfileHeroProps {
   user: EmployeeProfileResponse;
-  theme: UserTheme; // Принимаем объект темы
+  theme: UserTheme;
 }
 
 export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
   return (
-    <div className="relative w-full rounded-2xl bg-white shadow-sm border border-gray-100 flex flex-col items-center pb-8">
-      {/* Применяем класс банера из темы */}
-      <div className={`relative w-full h-48 md:h-52 rounded-t-2xl overflow-hidden ${theme.banner}`}>
+    <div className="bg-white rounded-2xl border border-gray-200 w-full flex flex-col overflow-hidden">
+      <div className={`relative w-full h-24 overflow-hidden ${theme.banner}`}>
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40"></div>
-
         <div className="absolute inset-0 z-0 overflow-hidden">
           {PARTICLES.map(particle => (
             <div
@@ -39,42 +37,41 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
                 opacity: particle.opacity,
               }}
             >
-              <div className="w-full h-full bg-white rounded-[1px] rotate-45 blur-[1.5px]"></div>
+              <div className="w-full h-full bg-white rounded-[1px] rotate-45 blur-[1px]"></div>
             </div>
           ))}
         </div>
-
-        <div className="absolute -top-20 -left-20 w-60 h-60 bg-white rounded-full mix-blend-overlay filter blur-[80px] opacity-20 animate-drift-slow"></div>
-        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-white rounded-full mix-blend-overlay filter blur-[80px] opacity-20 animate-drift-slow delay-1000"></div>
       </div>
 
-      <div className="absolute top-28 md:top-36 flex justify-center w-full">
-        <div className="relative w-32 h-32 rounded-full border-4 border-white shadow-md bg-white overflow-hidden">
+      <div className="px-6 pb-6 flex flex-col items-center relative">
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-4 border-white flex-shrink-0 relative -mt-10 z-10">
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-4xl font-bold">
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl font-bold">
               {user.fullName.charAt(0)}
             </div>
           )}
         </div>
-      </div>
 
-      <div className="mt-20 flex flex-col items-center px-4 w-full">
-        <h1 className="text-2xl font-bold text-gray-900">{user.fullName}</h1>
-        <p className="text-gray-500 font-medium">{user.systemRole}</p>
+        <h1 className="text-lg font-bold text-gray-900 mt-2 text-center">{user.fullName}</h1>
+        <p className="text-sm text-gray-500 font-medium text-center">{user.systemRole}</p>
 
-        <div className="flex items-center gap-2 mt-2">
-          <span className="flex items-center gap-1.5 text-sm text-gray-600">
+        <div className="flex flex-col gap-3 w-full pt-5 mt-5 border-t border-gray-100">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-500">Status</span>
             <span
-              className={`w-2 h-2 rounded-full ${user.status === 'ACTIVE' ? 'bg-[#23d36c]' : 'bg-[#f82f2f]'}`}
-            ></span>
-            {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-          </span>
-          <span className="text-gray-300">•</span>
-          <span className="text-sm text-gray-600">
-            {user.workFormat === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
-          </span>
+              className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase ${user.status === 'ACTIVE' ? 'bg-[#23d36c]/10 text-[#23d36c]' : 'bg-[#f82f2f]/10 text-[#f82f2f]'}`}
+            >
+              {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-500">Work Format</span>
+            <span className="text-gray-900 font-medium">
+              {user.workFormat === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
