@@ -1,6 +1,12 @@
 import { Users, Briefcase, UserCog } from 'lucide-react';
 import { FilterBadge } from './FilterBadge';
 
+const FILTER_CONFIG = [
+  { icon: Users, label: 'Employee', paramName: 'employees' },
+  { icon: Briefcase, label: 'Projects', paramName: 'projects' },
+  { icon: UserCog, label: 'PM', paramName: 'pms' },
+] as const;
+
 interface ActiveFiltersBarProps {
   selectedEmployees: Set<string>;
   selectedProjects: Set<string>;
@@ -20,20 +26,20 @@ export const ActiveFiltersBar = ({
 
   if (totalFiltersCount === 0) return null;
 
-  const FILTERS_BADGES = [
-    { icon: Users, label: 'Employee', count: selectedEmployees.size, paramName: 'employees' },
-    { icon: Briefcase, label: 'Projects', count: selectedProjects.size, paramName: 'projects' },
-    { icon: UserCog, label: 'PM', count: selectedPms.size, paramName: 'pms' },
-  ];
+  const countsMap = {
+    employees: selectedEmployees.size,
+    projects: selectedProjects.size,
+    pms: selectedPms.size,
+  };
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-5">
-      {FILTERS_BADGES.map(filter => (
+      {FILTER_CONFIG.map(filter => (
         <FilterBadge
           key={filter.paramName}
           icon={filter.icon}
           label={filter.label}
-          count={filter.count}
+          count={countsMap[filter.paramName]}
           paramName={filter.paramName}
           onClear={onClearCategory}
         />

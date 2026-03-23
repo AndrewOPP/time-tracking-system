@@ -71,7 +71,6 @@ export const FILTER_PARAM_KEYS = {
   PMS: 'pms',
 } as const;
 
-// dotColor will be removed in future tasks
 export const CATEGORIES = [
   { id: 'employee', label: 'Employee', icon: Users },
   { id: 'projects', label: 'Projects', icon: Briefcase },
@@ -86,7 +85,7 @@ export const CATEGORIES = [
   { id: 'pto', label: 'PTO Hours', icon: CalendarOff },
   { id: 'pm', label: 'PM', icon: UserCog },
   { id: 'format', label: 'Format', icon: MonitorSmartphone },
-];
+] as const;
 
 export const FILTER_CONFIG = {
   employee: {

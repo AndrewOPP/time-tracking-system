@@ -49,7 +49,7 @@ export const UniversalFilterPanel = <T extends Record<string, unknown>>({
           <div className="text-[14px] text-[#A1A1AA] text-center mt-4">{emptyStateText}</div>
         ) : (
           filteredItems.map((item, index) => {
-            const itemId = String(item[idKey] || index);
+            const itemId = String(item[idKey] ?? index);
             const itemName = String(item[nameKey] || 'Unnamed');
             const itemAvatar = avatarKey ? (item[avatarKey] as string) : null;
             const isSelected = selectedIds.has(itemId);

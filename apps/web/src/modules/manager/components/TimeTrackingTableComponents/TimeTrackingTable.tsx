@@ -52,7 +52,7 @@ export const TimeTrackingTable = memo(
 
             {virtualRows.map(virtualRow => {
               const row = rows[virtualRow.index];
-              const projectsCount = row.original.projects?.length || 0;
+              const projectsCount = row.original.projects?.length ?? 0;
 
               return (
                 <VirtualTableRow

@@ -13,7 +13,7 @@ interface UseTimeTrackingTableProps {
 const VIRTUALIZER_CONFIG = {
   estimateSize: 72,
   overscan: 10,
-};
+} as const;
 
 export const useTimeTrackingTable = ({
   data,
