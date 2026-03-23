@@ -60,6 +60,12 @@ export const useUrlParams = () => {
     setSearchParams(params);
   };
 
+  const deleteKeys = (keys: string[]) => {
+    const params = new URLSearchParams(searchParams);
+    keys.forEach(k => params.delete(k));
+    setSearchParams(params);
+  };
+
   const clearAll = () => {
     setSearchParams(new URLSearchParams());
   };
@@ -72,6 +78,7 @@ export const useUrlParams = () => {
     setSet,
     toggleInSet,
     deleteKey,
+    deleteKeys,
     clearAll,
     searchParams,
   };

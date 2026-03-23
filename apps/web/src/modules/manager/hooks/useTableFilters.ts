@@ -6,6 +6,7 @@ export interface RangeState {
   min: number | null;
   max: number | null;
   id: string;
+  label: string;
 }
 
 type RangeKey = (typeof CATEGORIES)[number]['id'];
@@ -17,7 +18,7 @@ const isRangeKey = (key: string): key is RangeKey => {
 };
 
 export const useTableFilters = () => {
-  const { getSet, getNumber, getString, setValue, toggleInSet, deleteKey, clearAll } =
+  const { getSet, getNumber, getString, setValue, toggleInSet, deleteKey, clearAll, deleteKeys } =
     useUrlParams();
 
   const selectedEmployees = getSet(FILTER_PARAM_KEYS.EMPLOYEES);
@@ -26,13 +27,16 @@ export const useTableFilters = () => {
 
   const selectedFormat = getString(FILTER_PARAM_KEYS.FORMAT) as EmploymentFormatValue | null;
 
-  const getRange = (key: RangeKey): RangeState => ({
+  const getRange = (key: RangeKey, label: string): RangeState => ({
     min: getNumber(`${key}_min`),
     max: getNumber(`${key}_max`),
     id: key,
+    label: label,
   });
 
-  const ranges = Object.fromEntries(CATEGORIES.map(({ id }) => [id, getRange(id)])) as FilterRanges;
+  const ranges = Object.fromEntries(
+    CATEGORIES.map(({ id, label }) => [id, getRange(id, label)])
+  ) as FilterRanges;
 
   const toggleEmployee = (id: string) => toggleInSet(FILTER_PARAM_KEYS.EMPLOYEES, id);
 
@@ -48,8 +52,7 @@ export const useTableFilters = () => {
 
   const clearCategory = (key: string) => {
     if (isRangeKey(key)) {
-      deleteKey(`${key}_min`);
-      deleteKey(`${key}_max`);
+      deleteKeys([`${key}_min`, `${key}_max`]);
     } else {
       deleteKey(key);
     }

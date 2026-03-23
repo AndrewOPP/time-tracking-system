@@ -68,12 +68,11 @@ export function ManagerTimeTrachingPage() {
     if (filteredData.length === 0) {
       return <TableEmptyState />;
     }
-
     return <TimeTrackingTableSection data={filteredData} weeksInfo={weeksInfo} />;
   };
 
   return (
-    <div className="w-full zoom-in-[0.98] animate-in fade-in duration-500">
+    <div className=" w-full zoom-in-[0.98] animate-in fade-in duration-500">
       <PageHeader
         title="Employee Time Tracking"
         description="Here you can view employee hours and quickly filter data by necessary criteria."

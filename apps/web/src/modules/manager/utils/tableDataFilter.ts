@@ -1,6 +1,7 @@
 import type { FilterRanges } from '../hooks/useTableFilters';
 import type { ManagerDashboardRow } from '../types/managerAIChat.types';
 import type { EmploymentFormatValue } from '../constants/constants';
+import { findActiveRanges } from './findActiveRanges';
 
 export interface DashboardFilterCriteria {
   selectedEmployees: Set<string>;
@@ -29,9 +30,7 @@ export const simpleTableFilter = (
   const hasPmFilter = selectedPms.size > 0;
   const hasFormatFilter = selectedFormat !== null;
 
-  const activeRanges = Object.values(ranges).filter(
-    range => range.min !== null || range.max !== null
-  );
+  const activeRanges = findActiveRanges(ranges);
 
   const hasRangeFilter = activeRanges.length > 0;
 

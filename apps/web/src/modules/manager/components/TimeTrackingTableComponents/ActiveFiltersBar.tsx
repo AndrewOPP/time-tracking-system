@@ -1,7 +1,8 @@
-import { Users, Briefcase, UserCog } from 'lucide-react';
+import { Users, Briefcase, UserCog, type LucideIcon } from 'lucide-react';
 import { FilterBadge } from './FilterBadge';
 import type { FilterRanges } from '../../hooks/useTableFilters';
 import type { EmploymentFormatValue } from '../../constants/constants';
+import { findActiveRanges } from '../../utils/findActiveRanges';
 
 interface ActiveFiltersBarProps {
   selectedEmployees: Set<string>;
@@ -13,6 +14,14 @@ interface ActiveFiltersBarProps {
   selectedFormat: EmploymentFormatValue | null;
 }
 
+type BadgeItem = {
+  icon: LucideIcon;
+  label: string;
+  paramName: string;
+  isActive: boolean;
+  count?: number;
+};
+
 export const ActiveFiltersBar = ({
   ranges,
   selectedFormat,
@@ -23,10 +32,20 @@ export const ActiveFiltersBar = ({
   onClearAll,
 }: ActiveFiltersBarProps) => {
   const totalFiltersCount = selectedEmployees.size + selectedProjects.size + selectedPms.size;
+  const activeRanges = findActiveRanges(ranges);
 
-  if (totalFiltersCount === 0) return null;
+  const range_filters_badges: BadgeItem[] = activeRanges.map(({ label, id, min, max }) => {
+    return {
+      icon: Users,
+      label: label,
+      paramName: id,
+      isActive: !!min || !!max,
+    };
+  });
 
-  const FILTERS_BADGE = [
+  if (totalFiltersCount === 0 && !selectedFormat && range_filters_badges.length === 0) return null;
+
+  const FILTERS_BADGE: BadgeItem[] = [
     {
       icon: Users,
       label: 'Employee',
@@ -54,11 +73,8 @@ export const ActiveFiltersBar = ({
       paramName: 'format',
       isActive: !!selectedFormat,
     },
-    // { icon: UserCog, label: 'PM', count: selectedPms.size, paramName: 'pms' },
-    // { icon: UserCog, label: 'PM', count: selectedPms.size, paramName: 'pms' },
+    ...range_filters_badges,
   ];
-  console.log(!!selectedFormat, '!!selectedFormat');
-  console.log(ranges, 'ranges');
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-5">

@@ -38,7 +38,7 @@ export interface DialogData {
 
 export interface ProjectTrackDialogState {
   isOpen: boolean;
-  dialogData: DialogData | null; // Лучше явно указать null, когда данных нет
+  dialogData: DialogData | null;
   openDialog: (data?: DialogData) => void;
   closeDialog: () => void;
 }
