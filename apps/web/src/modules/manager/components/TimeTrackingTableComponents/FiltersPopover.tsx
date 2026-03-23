@@ -4,10 +4,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@components/ui/popover'
 import { cn } from '@lib/utils';
 import { UniversalFilterPanel } from './filterPanels/UniversalFilterPanel';
 import { extractFilterData } from '../../utils/extractFilterData';
-import type { ManagerDashboardRow, WeekInfo } from '../../types/managerAIChat.types';
+import type {
+  FilterItem,
+  ManagerDashboardRow,
+  PanelConfig,
+  WeekInfo,
+} from '../../types/managerAIChat.types';
 import { CategoryList } from '../CategoryList';
 import { CATEGORIES, FILTER_CONFIG, RANGE_MIN_MAX } from '../../constants/constants';
-import type { EmploymentFormatValue } from '../../constants/constants';
+import type { EmploymentFormatValue, RangeType } from '../../constants/constants';
 import { UniversalRangeFilterPanel } from './filterPanels/UniversalRangeFilterPanel';
 import type { FilterRanges } from '../../hooks/useTableFilters';
 import { WorkFormatFilterPanel } from './filterPanels/WorkFormatFilterPanel';
@@ -23,7 +28,7 @@ export interface FiltersPopoverProps {
   toggleEmployee: (id: string) => void;
   toggleProject: (id: string) => void;
   togglePm: (id: string) => void;
-  setRangeValue: (baseKey: string, type: 'min' | 'max', value: number | null) => void;
+  setRangeValue: (baseKey: string, type: RangeType, value: number | null) => void;
   setFormat: (val: EmploymentFormatValue | null) => void;
 }
 
@@ -49,76 +54,71 @@ export const FiltersPopover = ({
   }, [flatTableData]);
 
   const renderRightPanel = () => {
-    switch (activeCategory) {
-      case FILTER_CONFIG.employee.caseAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.employee.caseAndKey}
-            items={filtersPanelData.users}
-            selectedIds={selectedEmployees}
-            onToggle={toggleEmployee}
-            idKey={FILTER_CONFIG.employee.idKey}
-            nameKey={FILTER_CONFIG.employee.nameKey}
-            avatarKey={FILTER_CONFIG.employee.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.employee.placeholder}
-            emptyStateText={FILTER_CONFIG.employee.emptyText}
-          />
-        );
-      case FILTER_CONFIG.projects.caseAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.projects.caseAndKey}
-            items={filtersPanelData.projects}
-            selectedIds={selectedProjects}
-            onToggle={toggleProject}
-            idKey={FILTER_CONFIG.projects.idKey}
-            nameKey={FILTER_CONFIG.projects.nameKey}
-            avatarKey={FILTER_CONFIG.projects.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.projects.placeholder}
-            emptyStateText={FILTER_CONFIG.projects.emptyText}
-          />
-        );
-      case FILTER_CONFIG.pm.caseAndKey:
-        return (
-          <UniversalFilterPanel
-            key={FILTER_CONFIG.pm.caseAndKey}
-            items={filtersPanelData.pms}
-            selectedIds={selectedPms}
-            onToggle={togglePm}
-            idKey={FILTER_CONFIG.pm.idKey}
-            nameKey={FILTER_CONFIG.pm.nameKey}
-            avatarKey={FILTER_CONFIG.pm.avatarKey}
-            searchPlaceholder={FILTER_CONFIG.pm.placeholder}
-            emptyStateText={FILTER_CONFIG.pm.emptyText}
-          />
-        );
-      case FILTER_CONFIG.format.caseAndKey:
-        return (
-          <WorkFormatFilterPanel
-            key={FILTER_CONFIG.format.caseAndKey}
-            selectedFormat={selectedFormat}
-            setFormat={setFormat}
-          />
-        );
-      default: {
-        const rangeConfig = CATEGORIES.find(category => category.id === activeCategory);
+    const universalPanelsMap: Record<string, PanelConfig> = {
+      [FILTER_CONFIG.employee.caseAndKey]: {
+        items: filtersPanelData.users as FilterItem[],
+        selectedIds: selectedEmployees,
+        onToggle: toggleEmployee,
+        config: FILTER_CONFIG.employee,
+      },
+      [FILTER_CONFIG.projects.caseAndKey]: {
+        items: filtersPanelData.projects as FilterItem[],
+        selectedIds: selectedProjects,
+        onToggle: toggleProject,
+        config: FILTER_CONFIG.projects,
+      },
+      [FILTER_CONFIG.pm.caseAndKey]: {
+        items: filtersPanelData.pms as FilterItem[],
+        selectedIds: selectedPms,
+        onToggle: togglePm,
+        config: FILTER_CONFIG.pm,
+      },
+    };
 
-        if (rangeConfig) {
-          return (
-            <UniversalRangeFilterPanel
-              key={rangeConfig.id}
-              name={rangeConfig.label}
-              selectedMin={ranges[rangeConfig.id]?.min ?? null}
-              selectedMax={ranges[rangeConfig.id]?.max ?? null}
-              toggleMin={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.min, val)}
-              toggleMax={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.max, val)}
-            />
-          );
-        }
+    const activeUniversalPanel = universalPanelsMap[activeCategory];
 
-        return null;
-      }
+    if (activeUniversalPanel) {
+      return (
+        <UniversalFilterPanel<FilterItem>
+          key={activeUniversalPanel.config.caseAndKey}
+          items={activeUniversalPanel.items}
+          selectedIds={activeUniversalPanel.selectedIds}
+          onToggle={activeUniversalPanel.onToggle}
+          idKey={activeUniversalPanel.config.idKey}
+          nameKey={activeUniversalPanel.config.nameKey}
+          avatarKey={activeUniversalPanel.config.avatarKey}
+          searchPlaceholder={activeUniversalPanel.config.placeholder}
+          emptyStateText={activeUniversalPanel.config.emptyText}
+        />
+      );
     }
+
+    if (activeCategory === FILTER_CONFIG.format.caseAndKey) {
+      return (
+        <WorkFormatFilterPanel
+          key={FILTER_CONFIG.format.caseAndKey}
+          selectedFormat={selectedFormat}
+          setFormat={setFormat}
+        />
+      );
+    }
+
+    const rangeConfig = CATEGORIES.find(category => category.id === activeCategory);
+
+    if (rangeConfig) {
+      return (
+        <UniversalRangeFilterPanel
+          key={rangeConfig.id}
+          name={rangeConfig.label}
+          selectedMin={ranges[rangeConfig.id]?.min ?? null}
+          selectedMax={ranges[rangeConfig.id]?.max ?? null}
+          toggleMin={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.min, val)}
+          toggleMax={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.max, val)}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (

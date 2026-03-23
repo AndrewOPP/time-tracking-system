@@ -103,6 +103,8 @@ export function ManagerTimeTrachingPage() {
       </div>
 
       <ActiveFiltersBar
+        ranges={ranges}
+        selectedFormat={selectedFormat}
         selectedEmployees={selectedEmployees}
         selectedProjects={selectedProjects}
         selectedPms={selectedPms}

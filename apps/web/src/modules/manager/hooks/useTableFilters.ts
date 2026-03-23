@@ -47,9 +47,6 @@ export const useTableFilters = () => {
   };
 
   const clearCategory = (key: string) => {
-    console.log(key, 'key');
-    console.log(isRangeKey(key), 'isRangeKey(key)');
-
     if (isRangeKey(key)) {
       deleteKey(`${key}_min`);
       deleteKey(`${key}_max`);

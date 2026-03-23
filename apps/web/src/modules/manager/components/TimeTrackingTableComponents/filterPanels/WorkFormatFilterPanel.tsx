@@ -22,7 +22,7 @@ export const WorkFormatFilterPanel = ({
       <h3 className="text-base font-semibold mb-6 text-[#1F1F1F]">Employment Format</h3>
 
       <div className="w-full flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#6F6F6F] ml-1">Формат</label>
+        <label className="text-[13px] font-medium text-[#6F6F6F] ml-1">Format</label>
 
         <Select
           value={selectedFormat !== null ? selectedFormat : 'all'}

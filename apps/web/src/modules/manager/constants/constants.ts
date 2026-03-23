@@ -116,7 +116,7 @@ export const FILTER_CONFIG = {
     emptyText: 'No managers found',
   },
   format: {
-    caseAndKey: 'pm',
+    caseAndKey: 'format',
   },
 } as const;
 
