@@ -68,7 +68,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Work Format</span>
-            <span className="text-gray-900 font-medium">
+            <span className="text-gray-900 font-medium pr-1">
               {user.workFormat === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
             </span>
           </div>

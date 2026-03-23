@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -9,10 +10,12 @@ import {
   Bot,
   Calendar1,
   PersonStandingIcon,
+  Menu,
 } from 'lucide-react';
 
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/shared/components/ui/sheet';
 import { useAuthStore } from '../../modules/auth/stores/auth.store';
 import { logOut } from '../../modules/auth/api/auth.api';
 import { cn } from '@/shared/lib/utils';
@@ -23,6 +26,7 @@ export const Navigation = () => {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await logOut();
@@ -84,6 +88,7 @@ export const Navigation = () => {
       <Link
         key={item.path}
         to={item.path}
+        onClick={() => setIsMobileOpen(false)}
         className={cn(
           'flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all group',
           isActive
@@ -102,16 +107,22 @@ export const Navigation = () => {
     );
   };
 
-  return (
-    <aside className="h-screen w-64 bg-[#FAFAFA] border-r border-[#E5E5E5] flex flex-col shrink-0 z-40">
+  // ИЗМЕНЕНИЕ 1: Теперь это просто функция, которая возвращает кусок верстки,
+  // а не отдельный React-компонент.
+  const renderNavContent = () => (
+    <div className="flex flex-col h-full bg-[#FAFAFA]">
       <div className="h-[56px] flex items-center justify-center px-4 shrink-0 border-b border-[#E5E5E5]">
         <span
-          onClick={() => navigate(ROUTES.ROOT)}
-          className=" cursor-pointer font-extrabold text-3xl uppercase tracking-widest bg-gradient-to-r from-slate-900 via-gray-300 to-slate-900 bg-clip-text text-transparent animate-text-flow"
+          onClick={() => {
+            navigate(ROUTES.ROOT);
+            setIsMobileOpen(false);
+          }}
+          className="cursor-pointer font-extrabold text-3xl uppercase tracking-widest bg-gradient-to-r from-slate-900 via-gray-300 to-slate-900 bg-clip-text text-transparent animate-text-flow"
         >
           VISO Time
         </span>
       </div>
+
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
         {navItems.map(item => {
           const isActive =
@@ -124,6 +135,7 @@ export const Navigation = () => {
           if (!item.systemRole) {
             return generateNavItem(item, isActive);
           }
+          return null;
         })}
       </nav>
 
@@ -147,6 +159,39 @@ export const Navigation = () => {
           <span className="text-sm font-medium">Log out</span>
         </Button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="md:hidden flex items-center justify-between bg-[#FAFAFA] border-b border-[#E5E5E5] px-4 h-[56px] shrink-0 w-full z-40">
+        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden -ml-2">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64 border-r border-[#E5E5E5]">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            {/* ИЗМЕНЕНИЕ 2: Вызываем как обычную функцию */}
+            {renderNavContent()}
+          </SheetContent>
+        </Sheet>
+
+        <span
+          onClick={() => navigate(ROUTES.ROOT)}
+          className="cursor-pointer font-extrabold text-xl uppercase tracking-widest bg-gradient-to-r from-slate-900 via-gray-300 to-slate-900 bg-clip-text text-transparent"
+        >
+          VISO Time
+        </span>
+
+        <div className="w-10" />
+      </div>
+
+      <aside className="hidden md:flex h-screen w-64 bg-[#FAFAFA] border-r border-[#E5E5E5] flex-col shrink-0 z-40">
+        {/* ИЗМЕНЕНИЕ 3: И здесь тоже вызываем как функцию */}
+        {renderNavContent()}
+      </aside>
+    </>
   );
 };
