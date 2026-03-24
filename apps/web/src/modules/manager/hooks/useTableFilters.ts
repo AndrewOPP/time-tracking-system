@@ -1,4 +1,9 @@
-import { CATEGORIES, CATEGORY_TYPE, FILTER_PARAM_KEYS } from '../constants/constants';
+import {
+  CATEGORIES,
+  CATEGORY_TYPE,
+  FILTER_PARAM_KEYS,
+  RANGE_MIN_MAX,
+} from '../constants/constants';
 import type { EmploymentFormatValue, RangeType } from '../constants/constants';
 import { useUrlParams } from './useUrlParams';
 
@@ -17,6 +22,8 @@ const isRangeKey = (key: string): key is RangeKey => {
   return CATEGORIES.some(item => item.id === key && item.type === CATEGORY_TYPE.range);
 };
 
+const getRangeParamKey = (key: RangeKey, type: RangeType) => `${key}_${type}`;
+
 export const useTableFilters = () => {
   const { getSet, getNumber, getString, setValue, toggleInSet, deleteKey, clearAll, deleteKeys } =
     useUrlParams();
@@ -27,8 +34,8 @@ export const useTableFilters = () => {
   const selectedFormat = getString(FILTER_PARAM_KEYS.FORMAT) as EmploymentFormatValue | null;
 
   const getRange = (key: RangeKey, label: string): RangeState => ({
-    min: getNumber(`${key}_min`),
-    max: getNumber(`${key}_max`),
+    min: getNumber(getRangeParamKey(key, RANGE_MIN_MAX.min)),
+    max: getNumber(getRangeParamKey(key, RANGE_MIN_MAX.max)),
     id: key,
     label: label,
   });
@@ -51,7 +58,10 @@ export const useTableFilters = () => {
 
   const clearCategory = (key: string) => {
     if (isRangeKey(key)) {
-      deleteKeys([`${key}_min`, `${key}_max`]);
+      deleteKeys([
+        getRangeParamKey(key, RANGE_MIN_MAX.min),
+        getRangeParamKey(key, RANGE_MIN_MAX.max),
+      ]);
     } else {
       deleteKey(key);
     }
