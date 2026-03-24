@@ -9,6 +9,10 @@ interface CategoryListProps {
   onSelectCategory: (id: string) => void;
 }
 
+const HOURS_CONFIG = {
+  weekWorkingHours: 40,
+} as const;
+
 export const CategoryList = ({
   activeCategory,
   onSelectCategory,
@@ -25,7 +29,9 @@ export const CategoryList = ({
         );
 
         const weekCategoryDotColor =
-          activeWeekCategory?.workingHours === 40 ? '#4E916B' : '#F97316';
+          activeWeekCategory?.workingHours === HOURS_CONFIG.weekWorkingHours
+            ? '#4E916B'
+            : '#F97316';
 
         return (
           <button
@@ -38,7 +44,7 @@ export const CategoryList = ({
                 : 'text-[#686868] hover:bg-[#F4F4F5]/50'
             )}
           >
-            {Icon ? (
+            {!categoty.id.includes('week') ? (
               <Icon
                 className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#1F1F1F]' : 'text-[#A1A1AA]')}
               />

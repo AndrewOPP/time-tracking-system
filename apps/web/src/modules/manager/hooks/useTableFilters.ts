@@ -1,4 +1,4 @@
-import { CATEGORIES, FILTER_PARAM_KEYS } from '../constants/constants';
+import { CATEGORIES, CATEGORY_TYPE, FILTER_PARAM_KEYS } from '../constants/constants';
 import type { EmploymentFormatValue, RangeType } from '../constants/constants';
 import { useUrlParams } from './useUrlParams';
 
@@ -9,12 +9,12 @@ export interface RangeState {
   label: string;
 }
 
-type RangeKey = (typeof CATEGORIES)[number]['id'];
+export type RangeKey = (typeof CATEGORIES)[number]['id'];
 
 export type FilterRanges = Record<RangeKey, RangeState>;
 
 const isRangeKey = (key: string): key is RangeKey => {
-  return CATEGORIES.some(item => item.id === key && item.type === 'range');
+  return CATEGORIES.some(item => item.id === key && item.type === CATEGORY_TYPE.range);
 };
 
 export const useTableFilters = () => {

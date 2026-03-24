@@ -1,3 +1,4 @@
+import { RANGE_FILTER_KEYS } from '../constants/constants';
 import type { ManagerDashboardRow } from '../types/managerAIChat.types';
 import type { findActiveRanges } from './findActiveRanges';
 
@@ -14,29 +15,25 @@ export const checkRangePasses = (
 ): boolean => {
   let valueToCheck = 0;
 
-  switch (range.id) {
-    case 'total':
-      valueToCheck = row.totalUserHours;
-      break;
-    case 'pto':
-      valueToCheck = row.ptoHours;
-      break;
-    case 'employedPercent':
-      valueToCheck = row.eployedPercent.employedTimePercent;
-      break;
-    case 'week1':
-    case 'week2':
-    case 'week3':
-    case 'week4':
-    case 'week5':
-    case 'week6':
-      valueToCheck = filteredProjects.reduce((sum, p) => {
-        const weekHours = p.weeks[range.id as keyof typeof p.weeks] || 0;
-        return sum + weekHours;
-      }, 0);
-      break;
-    default:
-      return true;
+  if (range.id.startsWith('week')) {
+    valueToCheck = filteredProjects.reduce((sum, p) => {
+      const weekHours = p.weeks[range.id as keyof typeof p.weeks] || 0;
+      return sum + weekHours;
+    }, 0);
+  } else {
+    switch (range.id) {
+      case RANGE_FILTER_KEYS.TOTAL:
+        valueToCheck = row.totalUserHours;
+        break;
+      case RANGE_FILTER_KEYS.PTO:
+        valueToCheck = row.ptoHours;
+        break;
+      case RANGE_FILTER_KEYS.EMPLOYED_PERCENT:
+        valueToCheck = row.eployedPercent.employedTimePercent;
+        break;
+      default:
+        return true;
+    }
   }
 
   return isInRange(valueToCheck, range.min, range.max);

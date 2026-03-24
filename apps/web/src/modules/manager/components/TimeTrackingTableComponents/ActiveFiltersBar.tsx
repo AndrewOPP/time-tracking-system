@@ -1,7 +1,6 @@
-import { Users, Briefcase, UserCog, type LucideIcon } from 'lucide-react';
 import { FilterBadge } from './FilterBadge';
 import type { FilterRanges } from '../../hooks/useTableFilters';
-import type { EmploymentFormatValue } from '../../constants/constants';
+import { CATEGORIES, type EmploymentFormatValue } from '../../constants/constants';
 import { findActiveRanges } from '../../utils/findActiveRanges';
 
 interface ActiveFiltersBarProps {
@@ -14,14 +13,6 @@ interface ActiveFiltersBarProps {
   selectedFormat: EmploymentFormatValue | null;
 }
 
-type BadgeItem = {
-  icon: LucideIcon;
-  label: string;
-  paramName: string;
-  isActive: boolean;
-  count?: number;
-};
-
 export const ActiveFiltersBar = ({
   ranges,
   selectedFormat,
@@ -31,64 +22,45 @@ export const ActiveFiltersBar = ({
   onClearCategory,
   onClearAll,
 }: ActiveFiltersBarProps) => {
-  const totalFiltersCount = selectedEmployees.size + selectedProjects.size + selectedPms.size;
   const activeRanges = findActiveRanges(ranges);
 
-  const range_filters_badges: BadgeItem[] = activeRanges.map(({ label, id, min, max }) => {
-    return {
-      icon: Users,
-      label: label,
-      paramName: id,
-      isActive: !!min || !!max,
-    };
-  });
+  const range_filters_badges = activeRanges.reduce(
+    (acc, { min, max, id }) => {
+      acc[id] = { isActive: !!min || !!max, count: 0 };
+      return acc;
+    },
+    {} as Record<string, { isActive: boolean; count: number }>
+  );
 
-  if (totalFiltersCount === 0 && !selectedFormat && range_filters_badges.length === 0) return null;
-
-  const FILTERS_BADGE: BadgeItem[] = [
-    {
-      icon: Users,
-      label: 'Employee',
-      count: selectedEmployees.size,
-      paramName: 'employees',
-      isActive: selectedEmployees.size > 0,
-    },
-    {
-      icon: Briefcase,
-      label: 'Projects',
-      count: selectedProjects.size,
-      paramName: 'projects',
-      isActive: selectedProjects.size > 0,
-    },
-    {
-      icon: UserCog,
-      label: 'PM',
-      count: selectedPms.size,
-      paramName: 'pms',
-      isActive: selectedPms.size > 0,
-    },
-    {
-      icon: UserCog,
-      label: 'Format',
-      paramName: 'format',
-      isActive: !!selectedFormat,
-    },
+  const badgesMap: Record<string, { count: number; isActive: boolean }> = {
+    employees: { count: selectedEmployees.size, isActive: selectedEmployees.size > 0 },
+    projects: { count: selectedProjects.size, isActive: selectedProjects.size > 0 },
+    pms: { count: selectedPms.size, isActive: selectedPms.size > 0 },
+    format: { count: 0, isActive: !!selectedFormat },
     ...range_filters_badges,
-  ];
+  };
+
+  const hasActiveFilters = Object.values(badgesMap).some(filter => filter.isActive);
+  if (!hasActiveFilters) return null;
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-5">
-      {FILTERS_BADGE.map(filter => (
-        <FilterBadge
-          isActive={filter.isActive}
-          key={filter.paramName}
-          icon={filter.icon}
-          label={filter.label}
-          count={filter.count}
-          paramName={filter.paramName}
-          onClear={onClearCategory}
-        />
-      ))}
+      {CATEGORIES.map(filter => {
+        const filterState = badgesMap[filter.id];
+
+        if (!filterState?.isActive) return null;
+
+        return (
+          <FilterBadge
+            key={filter.id}
+            icon={filter.icon}
+            label={filter.label}
+            count={filterState.count}
+            paramName={filter.id}
+            onClear={onClearCategory}
+          />
+        );
+      })}
 
       <button
         onClick={onClearAll}

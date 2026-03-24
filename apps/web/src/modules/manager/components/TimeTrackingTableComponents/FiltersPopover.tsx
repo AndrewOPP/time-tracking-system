@@ -14,7 +14,7 @@ import { CategoryList } from '../CategoryList';
 import { CATEGORIES, FILTER_CONFIG, RANGE_MIN_MAX } from '../../constants/constants';
 import type { EmploymentFormatValue, RangeType } from '../../constants/constants';
 import { UniversalRangeFilterPanel } from './filterPanels/UniversalRangeFilterPanel';
-import type { FilterRanges } from '../../hooks/useTableFilters';
+import type { FilterRanges, RangeKey } from '../../hooks/useTableFilters';
 import { WorkFormatFilterPanel } from './filterPanels/WorkFormatFilterPanel';
 
 export interface FiltersPopoverProps {
@@ -28,7 +28,7 @@ export interface FiltersPopoverProps {
   toggleEmployee: (id: string) => void;
   toggleProject: (id: string) => void;
   togglePm: (id: string) => void;
-  setRangeValue: (baseKey: string, type: RangeType, value: number | null) => void;
+  setRangeValue: (key: RangeKey, type: RangeType, value: number | null) => void;
   setFormat: (val: EmploymentFormatValue | null) => void;
 }
 

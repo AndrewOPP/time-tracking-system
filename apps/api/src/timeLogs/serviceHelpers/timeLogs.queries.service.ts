@@ -5,7 +5,6 @@ import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.
 import { getWeeksForMonth } from '../utils/monthToWeeks';
 import { format } from 'date-fns';
 import { calculateEmployedTimeData } from '../utils/employedTimeCalculator';
-// import { calculatePaginationOffset } from '../utils/calculatePaginationOffset';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -105,10 +104,8 @@ export class TimeLogQueriesService {
       ],
     };
 
-    // Убрали Promise.all и count-запрос, так как забираем сразу всех
     const users = await this.prisma.user.findMany({
       where: userWhere,
-      // Убрали skip и take
       select: {
         id: true,
         realName: true,
@@ -216,11 +213,10 @@ export class TimeLogQueriesService {
       };
     });
 
-    // Убрали totalPages и nextPage
     return {
       weeksInfo,
       tableData,
-      totalCount: users.length, // Берем из длины массива
+      totalCount: users.length,
     };
   }
 }
