@@ -41,19 +41,19 @@ export const useTableFilters = () => {
   });
 
   const ranges = Object.fromEntries(
-    CATEGORIES.map(({ id, label }) => [id, getRange(id, label)])
+    CATEGORIES.filter(category => category.type === CATEGORY_TYPE.range).map(({ id, label }) => [
+      id,
+      getRange(id, label),
+    ])
   ) as FilterRanges;
 
   const toggleEmployee = (id: string) => toggleInSet(FILTER_PARAM_KEYS.EMPLOYEES, id);
-
   const toggleProject = (id: string) => toggleInSet(FILTER_PARAM_KEYS.PROJECTS, id);
-
   const togglePm = (id: string) => toggleInSet(FILTER_PARAM_KEYS.PMS, id);
-
   const setFormat = (val: EmploymentFormatValue | null) => setValue(FILTER_PARAM_KEYS.FORMAT, val);
 
   const setRangeValue = (key: RangeKey, type: RangeType, value: number | null) => {
-    setValue(`${key}_${type}`, value);
+    setValue(getRangeParamKey(key, type), value);
   };
 
   const clearCategory = (key: string) => {
@@ -65,10 +65,6 @@ export const useTableFilters = () => {
     } else {
       deleteKey(key);
     }
-  };
-
-  const clearAllFilters = () => {
-    clearAll();
   };
 
   return {
@@ -83,6 +79,6 @@ export const useTableFilters = () => {
     setFormat,
     setRangeValue,
     clearCategory,
-    clearAllFilters,
+    clearAllFilters: clearAll,
   };
 };
