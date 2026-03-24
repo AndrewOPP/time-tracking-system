@@ -11,7 +11,7 @@ import type {
   WeekInfo,
 } from '../../types/managerAIChat.types';
 import { CategoryList } from '../CategoryList';
-import { CATEGORIES, FILTER_CONFIG, RANGE_MIN_MAX } from '../../constants/constants';
+import { CATEGORIES, CATEGORY_TYPE, FILTER_CONFIG, RANGE_MIN_MAX } from '../../constants/constants';
 import type { EmploymentFormatValue, RangeType } from '../../constants/constants';
 import { UniversalRangeFilterPanel } from './filterPanels/UniversalRangeFilterPanel';
 import type { FilterRanges, RangeKey } from '../../hooks/useTableFilters';
@@ -103,17 +103,20 @@ export const FiltersPopover = ({
       );
     }
 
-    const rangeConfig = CATEGORIES.find(category => category.id === activeCategory);
+    const rangeConfig = CATEGORIES.find(
+      category => category.id === activeCategory && category.type === CATEGORY_TYPE.range
+    );
 
     if (rangeConfig) {
+      const rangeId = rangeConfig.id as RangeKey;
       return (
         <UniversalRangeFilterPanel
           key={rangeConfig.id}
           name={rangeConfig.label}
-          selectedMin={ranges[rangeConfig.id]?.min ?? null}
-          selectedMax={ranges[rangeConfig.id]?.max ?? null}
-          toggleMin={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.min, val)}
-          toggleMax={val => setRangeValue(rangeConfig.id, RANGE_MIN_MAX.max, val)}
+          selectedMin={ranges[rangeId]?.min ?? null}
+          selectedMax={ranges[rangeId]?.max ?? null}
+          toggleMin={val => setRangeValue(rangeId, RANGE_MIN_MAX.min, val)}
+          toggleMax={val => setRangeValue(rangeId, RANGE_MIN_MAX.max, val)}
         />
       );
     }

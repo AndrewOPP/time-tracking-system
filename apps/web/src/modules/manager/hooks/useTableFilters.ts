@@ -14,7 +14,10 @@ export interface RangeState {
   label: string;
 }
 
-export type RangeKey = (typeof CATEGORIES)[number]['id'];
+export type RangeKey = Extract<
+  (typeof CATEGORIES)[number],
+  { type: typeof CATEGORY_TYPE.range }
+>['id'];
 
 export type FilterRanges = Record<RangeKey, RangeState>;
 
