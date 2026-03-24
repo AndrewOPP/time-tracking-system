@@ -15,6 +15,7 @@ const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
 export function ManagerTimeTrachingPage() {
+  const [querySearch, setQuerySearch] = useState<string>('');
   const { data, isLoading, isError, refetch } = useUsersData(
     CURRENT_MONTH_START,
     CURRENT_MONTH_END
@@ -53,8 +54,17 @@ export function ManagerTimeTrachingPage() {
       selectedPms,
       ranges,
       selectedFormat,
+      searchQuery: querySearch,
     });
-  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat]);
+  }, [
+    flatTableData,
+    selectedEmployees,
+    selectedProjects,
+    selectedPms,
+    ranges,
+    selectedFormat,
+    querySearch,
+  ]);
 
   const renderContent = () => {
     if (isError) {
@@ -96,6 +106,7 @@ export function ManagerTimeTrachingPage() {
 
         <input
           type="text"
+          onChange={e => setQuerySearch(e.currentTarget.value)}
           placeholder="Search by employee, project, or PM..."
           className="py-[10px] px-4 text-[16px] text-[#6F6F6F] border border-[#E0E1E2] h-10 w-full max-w-[505px] rounded-[6px] bg-white outline-none focus:border-gray-400 transition-colors"
         />
