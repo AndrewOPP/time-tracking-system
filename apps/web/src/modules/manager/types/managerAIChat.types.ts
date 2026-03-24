@@ -46,6 +46,7 @@ export interface ManagerDashboardRow {
   ptoHours: number;
   format: EmploymentFormatValue;
   employedTimePercent: number;
+  allProjects: ProjectData[];
   projects: ProjectData[];
 }
 
@@ -54,4 +55,20 @@ export interface ManagerDashboardResponse {
   tableData: ManagerDashboardRow[];
   nextPage: number | null;
   totalCount: number;
+}
+
+export type FilterItem = Record<string, string | null>;
+
+export interface PanelConfig {
+  items: FilterItem[];
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  config: {
+    cadeAndKey: string;
+    idKey: string;
+    nameKey: string;
+    avatarKey?: string;
+    placeholder: string;
+    emptyText: string;
+  };
 }
