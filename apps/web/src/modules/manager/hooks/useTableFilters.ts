@@ -24,7 +24,6 @@ export const useTableFilters = () => {
   const selectedEmployees = getSet(FILTER_PARAM_KEYS.EMPLOYEES);
   const selectedProjects = getSet(FILTER_PARAM_KEYS.PROJECTS);
   const selectedPms = getSet(FILTER_PARAM_KEYS.PMS);
-
   const selectedFormat = getString(FILTER_PARAM_KEYS.FORMAT) as EmploymentFormatValue | null;
 
   const getRange = (key: RangeKey, label: string): RangeState => ({

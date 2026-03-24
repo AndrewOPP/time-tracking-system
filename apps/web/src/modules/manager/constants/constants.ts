@@ -66,8 +66,6 @@ export const EMPLOYMENT_FORMAT = {
 export type EmploymentFormatValue = (typeof EMPLOYMENT_FORMAT)[keyof typeof EMPLOYMENT_FORMAT];
 
 export const FILTER_PARAM_KEYS = {
-  WEEK_ONE_MIN: 'week1Min',
-  WEEK_ONE_MAX: 'week1Max',
   EMPLOYEES: 'employees',
   PROJECTS: 'projects',
   FORMAT: 'format',

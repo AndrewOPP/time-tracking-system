@@ -2,6 +2,7 @@ import type { FilterRanges } from '../hooks/useTableFilters';
 import type { ManagerDashboardRow } from '../types/managerAIChat.types';
 import type { EmploymentFormatValue } from '../constants/constants';
 import { findActiveRanges } from './findActiveRanges';
+import { checkRangePasses } from './checkRangePasses';
 
 export interface DashboardFilterCriteria {
   selectedEmployees: Set<string>;
@@ -11,10 +12,22 @@ export interface DashboardFilterCriteria {
   selectedFormat: EmploymentFormatValue | null;
 }
 
-const isInRange = (value: number, min: number | null, max: number | null) => {
-  if (min !== null && value < min) return false;
-  if (max !== null && value > max) return false;
-  return true;
+const getFilteredProjects = (
+  projects: NonNullable<ManagerDashboardRow['projects']>,
+  selectedProjects: Set<string>,
+  selectedPms: Set<string>,
+  hasProjFilter: boolean,
+  hasPmFilter: boolean
+) => {
+  return projects.filter(project => {
+    const projectId = String(project.projectId);
+    const pmName = project.pmName ? String(project.pmName) : null;
+
+    const matchesProject = !hasProjFilter || selectedProjects.has(projectId);
+    const matchesPm = !hasPmFilter || (pmName !== null && selectedPms.has(pmName));
+
+    return matchesProject && matchesPm;
+  });
 };
 
 export const simpleTableFilter = (
@@ -31,7 +44,6 @@ export const simpleTableFilter = (
   const hasFormatFilter = selectedFormat !== null;
 
   const activeRanges = findActiveRanges(ranges);
-
   const hasRangeFilter = activeRanges.length > 0;
 
   if (!hasEmpFilter && !hasProjFilter && !hasPmFilter && !hasRangeFilter && !hasFormatFilter) {
@@ -48,53 +60,22 @@ export const simpleTableFilter = (
     }
 
     const originalProjects = row.projects || [];
-
-    const filteredProjects = originalProjects.filter(project => {
-      const projectId = String(project.projectId);
-      const pmName = project.pmName ? String(project.pmName) : null;
-
-      const matchesProject = !hasProjFilter || selectedProjects.has(projectId);
-      const matchesPm = !hasPmFilter || (pmName !== null && selectedPms.has(pmName));
-
-      return matchesProject && matchesPm;
-    });
+    const filteredProjects = getFilteredProjects(
+      originalProjects,
+      selectedProjects,
+      selectedPms,
+      hasProjFilter,
+      hasPmFilter
+    );
 
     if ((hasProjFilter || hasPmFilter) && filteredProjects.length === 0) {
       return acc;
     }
 
     if (hasRangeFilter) {
-      const passesAllRanges = activeRanges.every(range => {
-        let valueToCheck = 0;
-
-        switch (range.id) {
-          case 'total':
-            valueToCheck = row.totalUserHours;
-            break;
-          case 'pto':
-            valueToCheck = row.ptoHours;
-            break;
-          case 'employedPercent':
-            valueToCheck = row.eployedPercent.employedTimePercent;
-
-            break;
-          case 'week1':
-          case 'week2':
-          case 'week3':
-          case 'week4':
-          case 'week5':
-          case 'week6':
-            valueToCheck = filteredProjects.reduce((sum, p) => {
-              const weekHours = p.weeks[range.id as keyof typeof p.weeks] || 0;
-              return sum + weekHours;
-            }, 0);
-            break;
-          default:
-            return true;
-        }
-
-        return isInRange(valueToCheck, range.min, range.max);
-      });
+      const passesAllRanges = activeRanges.every(range =>
+        checkRangePasses(range, row, filteredProjects)
+      );
 
       if (!passesAllRanges) {
         return acc;
