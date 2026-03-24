@@ -4,7 +4,6 @@ import { EmployedTimeBar } from '../EmployedTimeBar';
 type Props = {
   employedTimeData: CalculatedEmployedTimeData;
   totalUserHours: number;
-  // projects: ProjectData[];
 };
 
 export const CellEmployedTime = ({ employedTimeData, totalUserHours }: Props) => (
