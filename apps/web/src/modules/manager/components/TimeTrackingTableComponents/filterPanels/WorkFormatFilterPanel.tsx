@@ -1,4 +1,5 @@
 import type { EmploymentFormatValue } from '@/modules/manager/constants/constants';
+import { EMPLOYMENT_FORMAT, FILTER_ALL_VALUE } from '@/modules/manager/constants/constants';
 import {
   Select,
   SelectContent,
@@ -25,9 +26,9 @@ export const WorkFormatFilterPanel = ({
         <label className="text-[13px] font-medium text-[#6F6F6F] ml-1">Format</label>
 
         <Select
-          value={selectedFormat !== null ? selectedFormat : 'all'}
+          value={selectedFormat !== null ? selectedFormat : FILTER_ALL_VALUE}
           onValueChange={val => {
-            if (val === 'all') {
+            if (val === FILTER_ALL_VALUE) {
               setFormat(null);
             } else {
               setFormat(val as EmploymentFormatValue);
@@ -44,13 +45,13 @@ export const WorkFormatFilterPanel = ({
             className="w-[var(--radix-select-trigger-width)]"
           >
             <SelectGroup>
-              <SelectItem className="cursor-pointer" value="all">
+              <SelectItem className="cursor-pointer" value={FILTER_ALL_VALUE}>
                 All
               </SelectItem>
-              <SelectItem className="cursor-pointer" value="FULL_TIME">
+              <SelectItem className="cursor-pointer" value={EMPLOYMENT_FORMAT.fullTime}>
                 Full-time
               </SelectItem>
-              <SelectItem className="cursor-pointer" value="PART_TIME">
+              <SelectItem className="cursor-pointer" value={EMPLOYMENT_FORMAT.partTime}>
                 Part-time
               </SelectItem>
             </SelectGroup>

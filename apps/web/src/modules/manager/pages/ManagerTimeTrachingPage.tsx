@@ -11,14 +11,15 @@ import { useTableFilters } from '../hooks/useTableFilters';
 import { simpleTableFilter } from '../utils/tableDataFilter';
 import { ActiveFiltersBar } from '../components/TimeTrackingTableComponents/ActiveFiltersBar';
 import { useDebounceValue } from 'usehooks-ts';
-import { Search } from 'lucide-react';
+import { SearchInput } from '../components/TimeTrackingTableComponents/SearchInput';
 
 const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+const DEBOUNCE_DELAY = 300;
 
 export function ManagerTimeTrachingPage() {
   const [querySearch, setQuerySearch] = useState<string>('');
-  const [debouncedSearch] = useDebounceValue(querySearch, 300);
+  const [debouncedSearch] = useDebounceValue(querySearch, DEBOUNCE_DELAY);
 
   const { data, isLoading, isError, refetch } = useUsersData(
     CURRENT_MONTH_START,
@@ -80,7 +81,11 @@ export function ManagerTimeTrachingPage() {
     }
 
     if (filteredData.length === 0) {
-      return <TableEmptyState />;
+      const emptyMessage = debouncedSearch
+        ? 'No data found for your search'
+        : 'No data found for the selected filters';
+
+      return <TableEmptyState message={emptyMessage} />;
     }
     return <TimeTrackingTableSection data={filteredData} weeksInfo={weeksInfo} />;
   };
@@ -108,16 +113,12 @@ export function ManagerTimeTrachingPage() {
           setFormat={setFormat}
         />
 
-        <div className="relative w-full max-w-[505px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6F6F6F] pointer-events-none" />
-          <input
-            type="text"
-            value={querySearch}
-            onChange={e => setQuerySearch(e.currentTarget.value)}
-            placeholder="Search by employee, project, or PM..."
-            className="pl-3 pr-10 py-[10px] text-[16px] text-[#1F1F1F] placeholder:text-[#6F6F6F] border border-[#E0E1E2] h-10 w-full rounded-[6px] bg-white outline-none focus:border-gray-400 transition-colors"
-          />
-        </div>
+        <SearchInput
+          value={querySearch}
+          onChange={setQuerySearch}
+          placeholder="Search by employee, project, or PM..."
+          className="max-w-[505px]"
+        />
       </div>
 
       <ActiveFiltersBar

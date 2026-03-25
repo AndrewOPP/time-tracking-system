@@ -22,8 +22,11 @@ export const FilterBadge = ({ icon: Icon, label, count, paramName, onClear }: Fi
         <span> {label}</span>
       )}
 
-      <button onClick={() => onClear(paramName)} className="ml-1  text-[#1F1F1F] cursor-pointer">
-        <X className="h-4 w-4" />
+      <button
+        onClick={() => onClear(paramName)}
+        className="ml-1 pt-[2px]  text-[#1F1F1F] cursor-pointer"
+      >
+        <X className="h-4 w-4 " />
       </button>
     </div>
   );
