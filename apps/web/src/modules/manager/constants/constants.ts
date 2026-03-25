@@ -151,3 +151,10 @@ export const RANGE_MIN_MAX = {
 } as const;
 
 export type RangeType = (typeof RANGE_MIN_MAX)[keyof typeof RANGE_MIN_MAX];
+
+export const VALID_RANGE_OPTIONS_CONFIG = {
+  range_items_count: 21,
+  range_step: 10,
+};
+
+export const FILTER_ALL_VALUE = 'all';

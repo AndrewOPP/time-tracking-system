@@ -1,6 +1,6 @@
 import { PROJECT_TYPE } from '../constants/timeLogs.constants';
 import { CalculatedEmployedTimeData, ProjectData } from '../types/timeLogs.types';
-import { calculatePercentage } from './mathUtils';
+import { calculatePercentage } from './math.utils';
 import { WeekBoundary } from './monthToWeeks';
 
 interface CalculatorInput {
