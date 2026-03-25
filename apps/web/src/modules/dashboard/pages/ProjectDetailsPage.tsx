@@ -37,7 +37,7 @@ export const ProjectDetailsPage = () => {
   return (
     <div className="w-full pb-10 animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
       <BackButton title="Back to projects" route={ROUTES.DASHBOARD} />
-      <div className="px-4 flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
         <ProjectSidebar project={project} currentStatus={currentStatus} />
 
         <div className="flex-1 w-full flex flex-col gap-6">

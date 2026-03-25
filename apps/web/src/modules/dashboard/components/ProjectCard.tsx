@@ -17,7 +17,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card
       onClick={() => navigate(`${ROUTES.DASHBOARD}/${project.id}`)}
-      className="w-full max-w-[320px]  py-4 rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+      className="w-full max-w-[320px] py-4 rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
     >
       <CardContent className="px-5">
         <div className="flex gap-4 items-center">

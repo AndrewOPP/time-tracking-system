@@ -32,14 +32,14 @@ export const RangeDropdown = ({
       value={selectedValue !== null ? String(selectedValue) : 'all'}
       onValueChange={val => onChange(val === 'all' ? null : Number(val))}
     >
-      <SelectTrigger className="w-full h-10 border-[#E0E1E2] bg-white shadow-sm hover:border-gray-400 transition-colors cursor-pointer">
+      <SelectTrigger className="w-full h-10 border-[#E0E1E2] bg-white shadow-none hover:border-gray-400 transition-colors cursor-pointer outline-none">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
 
       <SelectContent
         position="popper"
         sideOffset={4}
-        className="w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]"
+        className="shadow-none border-[#E0E1E2] w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]"
       >
         <SelectGroup>
           <SelectItem className="cursor-pointer" value="all">
