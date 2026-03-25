@@ -117,7 +117,6 @@ export function ManagerTimeTrachingPage() {
           value={querySearch}
           onChange={setQuerySearch}
           placeholder="Search by employee, project, or PM..."
-          className="max-w-[505px]"
         />
       </div>
 

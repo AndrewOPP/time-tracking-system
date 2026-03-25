@@ -4,17 +4,11 @@ interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  className?: string;
 }
 
-export const SearchInput = ({
-  value,
-  onChange,
-  placeholder = 'Search...',
-  className = '',
-}: SearchInputProps) => {
+export const SearchInput = ({ value, onChange, placeholder = 'Search...' }: SearchInputProps) => {
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`relative w-full max-w-[505px]`}>
       <input
         type="text"
         value={value}
