@@ -1,3 +1,5 @@
+import { ProjectTypeValue } from '../constants/timeLogs.constants';
+
 export interface user {
   sub: string;
   email: string;
@@ -6,6 +8,7 @@ export interface user {
 
 export interface ProjectData {
   projectId: string;
+  type: ProjectTypeValue;
   projectName: string;
   projectAvatarUrl: string;
   pmName: string;
@@ -30,4 +33,21 @@ export interface ManagerDashboardRow {
   format: string;
   employedTimePercent: number;
   projects: ProjectData[];
+}
+
+export interface CalculatedEmployedTimeData {
+  hours: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+  visualPercents: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+  employedTimePercent: number;
+  monthWorkingHours: number;
 }

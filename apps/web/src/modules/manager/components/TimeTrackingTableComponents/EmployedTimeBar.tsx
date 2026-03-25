@@ -1,25 +1,21 @@
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@components/ui/tooltip';
 import React from 'react';
-import type { ProjectData, WeekInfo } from '../../types/managerAIChat.types';
+import type { CalculatedEmployedTimeData } from '../../types/managerAIChat.types';
 import { BAR_CONFIG } from '../../constants/constants';
-import { calculateEmployedTimeData } from '../../utils/employedTimeCalculator';
 import { formatHours } from '../../utils/formatHours';
-import { calculatePercentage } from '../../utils/mathUtils';
 import { EmployeeTimeBarTooltipContent } from '../EmployeeTimeBarTooltipContent';
+import { calculatePercentage } from '../../utils/mathUtils';
 
 interface EmployedTimeBarProps {
+  employedTimeData: CalculatedEmployedTimeData;
   totalUserHours: number;
-  weeksInfo: WeekInfo[];
-  projects: ProjectData[];
 }
 
 export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
+  employedTimeData,
   totalUserHours,
-  weeksInfo,
-  projects,
 }) => {
-  const { hours, visualPercents, employedTimePercent, monthWorkingHours } =
-    calculateEmployedTimeData({ totalUserHours, weeksInfo, projects });
+  const { hours, visualPercents, employedTimePercent, monthWorkingHours } = employedTimeData;
 
   const getPercent = (hoursValue: number) =>
     totalUserHours > 0 ? calculatePercentage(hoursValue, monthWorkingHours) : 0;

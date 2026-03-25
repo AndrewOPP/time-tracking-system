@@ -4,6 +4,7 @@ import { user } from '../types/timeLogs.types';
 import { TIME_LOG_ERRORS, TIMELOGS_QUERIES_CONFIG } from '../constants/timeLogs.constants';
 import { getWeeksForMonth } from '../utils/monthToWeeks';
 import { format } from 'date-fns';
+import { calculateEmployedTimeData } from '../utils/employedTimeCalculator';
 
 @Injectable()
 export class TimeLogQueriesService {
@@ -206,6 +207,7 @@ export class TimeLogQueriesService {
         avatarUrl: user.avatarUrl,
         totalUserHours,
         ptoHours: totalPto,
+        eployedPercent: calculateEmployedTimeData({ totalUserHours, weeksInfo, projects }),
         format: user.workFormat,
         projects,
       };

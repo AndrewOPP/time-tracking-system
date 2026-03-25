@@ -35,9 +35,13 @@ export function ManagerTimeTrachingPage() {
     selectedEmployees,
     selectedProjects,
     selectedPms,
+    ranges,
+    selectedFormat,
     toggleEmployee,
     toggleProject,
     togglePm,
+    setRangeValue,
+    setFormat,
     clearCategory,
     clearAllFilters,
   } = useTableFilters();
@@ -47,8 +51,10 @@ export function ManagerTimeTrachingPage() {
       selectedEmployees,
       selectedProjects,
       selectedPms,
+      ranges,
+      selectedFormat,
     });
-  }, [flatTableData, selectedProjects, selectedPms, selectedEmployees]);
+  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat]);
 
   const renderContent = () => {
     if (isError) {
@@ -62,12 +68,11 @@ export function ManagerTimeTrachingPage() {
     if (filteredData.length === 0) {
       return <TableEmptyState />;
     }
-
     return <TimeTrackingTableSection data={filteredData} weeksInfo={weeksInfo} />;
   };
 
   return (
-    <div className="w-full zoom-in-[0.98] animate-in fade-in duration-500">
+    <div className=" w-full zoom-in-[0.98] animate-in fade-in duration-500">
       <PageHeader
         title="Employee Time Tracking"
         description="Here you can view employee hours and quickly filter data by necessary criteria."
@@ -75,13 +80,18 @@ export function ManagerTimeTrachingPage() {
 
       <div className="flex flex-row gap-2 items-center mb-5 mt-4">
         <FiltersPopover
+          weeksInfo={weeksInfo}
           flatTableData={flatTableData}
           selectedEmployees={selectedEmployees}
           selectedProjects={selectedProjects}
           selectedPms={selectedPms}
+          ranges={ranges}
+          selectedFormat={selectedFormat}
           toggleEmployee={toggleEmployee}
           toggleProject={toggleProject}
           togglePm={togglePm}
+          setRangeValue={setRangeValue}
+          setFormat={setFormat}
         />
 
         <input
@@ -92,6 +102,8 @@ export function ManagerTimeTrachingPage() {
       </div>
 
       <ActiveFiltersBar
+        ranges={ranges}
+        selectedFormat={selectedFormat}
         selectedEmployees={selectedEmployees}
         selectedProjects={selectedProjects}
         selectedPms={selectedPms}

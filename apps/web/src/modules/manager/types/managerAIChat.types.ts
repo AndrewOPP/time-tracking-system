@@ -13,6 +13,23 @@ export interface ChatStore {
   clearMessages: () => void;
 }
 
+export interface CalculatedEmployedTimeData {
+  hours: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+  visualPercents: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+  employedTimePercent: number;
+  monthWorkingHours: number;
+}
+
 export interface WeekInfo {
   weekNumber: number;
   startDate: string;
@@ -44,8 +61,8 @@ export interface ManagerDashboardRow {
   avatarUrl: string | null;
   totalUserHours: number;
   ptoHours: number;
+  eployedPercent: CalculatedEmployedTimeData;
   format: EmploymentFormatValue;
-  employedTimePercent: number;
   allProjects: ProjectData[];
   projects: ProjectData[];
 }
@@ -64,7 +81,7 @@ export interface PanelConfig {
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
   config: {
-    cadeAndKey: string;
+    caseAndKey: string;
     idKey: string;
     nameKey: string;
     avatarKey?: string;

@@ -1,10 +1,11 @@
-import { PROJECT_TYPE } from '../constants/constants';
-import type { ProjectData, WeekInfo } from '../types/managerAIChat.types';
-import { calculatePercentage } from '../utils/mathUtils';
+import { PROJECT_TYPE } from '../constants/timeLogs.constants';
+import { CalculatedEmployedTimeData, ProjectData } from '../types/timeLogs.types';
+import { calculatePercentage } from './math.utils';
+import { WeekBoundary } from './monthToWeeks';
 
 interface CalculatorInput {
   totalUserHours: number;
-  weeksInfo: WeekInfo[];
+  weeksInfo: WeekBoundary[];
   projects: ProjectData[];
 }
 
@@ -12,7 +13,7 @@ export const calculateEmployedTimeData = ({
   totalUserHours,
   weeksInfo,
   projects,
-}: CalculatorInput) => {
+}: CalculatorInput): CalculatedEmployedTimeData => {
   const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
 
   const billableHours = projects
