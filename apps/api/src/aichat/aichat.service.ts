@@ -99,7 +99,7 @@ export class AichatService {
                 workFormat: {
                   type: 'string',
                   description:
-                    'OMIT this field unless the user specifically asks for fulltime or part-time.',
+                    'OMIT this field unless the user specifically asks for FULL_TIME or PART_TIME.',
                 },
                 projectDomain: {
                   type: 'string',

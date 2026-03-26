@@ -53,6 +53,7 @@ export const AI_PROMPTS = {
 export const TOOL_DESCRIPTIONS = {
   GET_TECH:
     'CRITICAL: ALWAYS call this FIRST when the user asks for developers by role (e.g., "backend", "frontend", "design"). It returns the exact list of skills that you MUST pass into searchEmployees.',
+
   SEARCH_EMPLOYEES:
     'Searches employees by skills, workload, availability, OR real name. WARNING: If searching by specific name, ONLY pass realName, do NOT pass skills.',
   SEARCH_PROJECTS: 'Searches for projects by name, Project Manager, or domain.',

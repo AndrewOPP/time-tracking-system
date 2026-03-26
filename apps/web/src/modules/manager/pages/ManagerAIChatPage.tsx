@@ -2,14 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { ChatSuggestions } from '../components/ChatPageComponents/ChatSuggestions';
-import { AssistantMessage } from '../components/ChatPageComponents/AssistantMessage';
-import { UserMessage } from '../components/ChatPageComponents/UserMessage';
 import { ErrorMessage } from '../components/ChatPageComponents/ErrorMessage';
 import { LoadingIndicator } from '../components/ChatPageComponents/LoadingIndicator';
 import { ChatInput } from '../components/ChatPageComponents/ChatInput';
 
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { useChatStore } from '../types/stores/useChatStore';
+import { ChatMessage } from '../components/ChatPageComponents/ChatMessage';
 
 export function ManagerAIChatPage() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -102,26 +101,7 @@ export function ManagerAIChatPage() {
           ) : (
             <div className="flex flex-col gap-10">
               {messages.map((message: UIMessage) => {
-                const textContent = message.parts
-                  ?.filter(part => part.type === 'text')
-                  .map(part => part.text)
-                  .join('');
-
-                const isTyping = message.role === 'assistant' && !textContent && isLoading;
-
-                return (
-                  <div key={message.id} className="flex flex-col w-full">
-                    {message.role === 'user' ? (
-                      <UserMessage content={textContent} />
-                    ) : (
-                      <AssistantMessage
-                        content={textContent}
-                        isReady={isReady}
-                        isTyping={isTyping}
-                      />
-                    )}
-                  </div>
-                );
+                return <ChatMessage message={message} isReady={isReady} isLoading={isLoading} />;
               })}
 
               {error && <ErrorMessage onRetry={() => regenerate()} />}
