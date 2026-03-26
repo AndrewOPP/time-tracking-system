@@ -32,6 +32,7 @@ enum TechnologyType {
   DESIGN
   AI
 }
+
 enum AuthProvider {
   GOOGLE
   GITHUB
@@ -45,6 +46,14 @@ enum UserRole {
   HR
   ACCOUNTANT
   ADMIN
+}
+
+enum ProjectDomain {
+  FINTECH
+  HEALTHCARE
+  E_COMMERCE
+  FOODTECH
+  EDTECH
 }
 
 model Technology {
@@ -90,7 +99,7 @@ model User {
   technologies    UserTechnology[]
 
   timeLogs        TimeLog[]
-  ptoLogs PtoLog[]
+  ptoLogs         PtoLog[]
 
   @@map("user")
 }
@@ -107,6 +116,7 @@ model Project {
   id               String        @id @default(uuid())
   name             String
   description      String?
+  domain           ProjectDomain?
   emoji            String?
   status           ProjectStatus
   type             ProjectType   @default(BILLABLE)
@@ -122,8 +132,6 @@ model Project {
   technologies   Technology[]
 
   timeLogs       TimeLog[]
-
-
 
   @@map("project")
 }
@@ -175,7 +183,6 @@ model TimeLog {
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-
 
   @@index([userId, date])
   @@index([projectId, date])

@@ -11,6 +11,7 @@ import {
   TechnologyType,
   UserRole,
   AuthProvider,
+  ProjectDomain,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import { CONFIG, TECHNOLOGIES } from './constants';
@@ -132,6 +133,7 @@ async function createUserTechs(users: User[], technologies: Technology[]) {
 }
 
 async function cleanDatabase() {
+  await prisma.timeLog.deleteMany();
   await prisma.userProject.deleteMany();
   await prisma.userTechnology.deleteMany();
 
@@ -187,6 +189,7 @@ async function createProject(count: number, managers: User[]) {
       name: projectName,
       emoji: faker.internet.emoji(),
       status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
+      domain: faker.helpers.arrayElement(Object.values(ProjectDomain)),
       startDate: faker.date.past(),
       description: faker.lorem.paragraphs(2),
       endDate: faker.date.future(),
@@ -241,6 +244,64 @@ async function addUsersToProjects(projects: Project[], users: User[]) {
   return activeUserIds;
 }
 
+async function createTimeLogs() {
+  const userProjects = await prisma.userProject.findMany();
+
+  const userProjectsMap = new Map<string, string[]>();
+  for (const up of userProjects) {
+    if (!userProjectsMap.has(up.userId)) {
+      userProjectsMap.set(up.userId, []);
+    }
+    userProjectsMap.get(up.userId)!.push(up.projectId);
+  }
+
+  const userIds = Array.from(userProjectsMap.keys());
+
+  const halfUsersCount = Math.floor(userIds.length * 0.5);
+  const selectedUsers = faker.helpers.arrayElements(userIds, halfUsersCount);
+
+  const timeLogsData = [];
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  for (const userId of selectedUsers) {
+    const userProjectIds = userProjectsMap.get(userId)!;
+    const numLogs = faker.number.int({ min: 1, max: 2 });
+
+    const usedDates = new Set<string>();
+
+    for (let i = 0; i < numLogs; i++) {
+      const projectId = faker.helpers.arrayElement(userProjectIds);
+
+      let logDate = faker.date.between({ from: startOfMonth, to: endOfMonth });
+      let dateString = logDate.toISOString().split('T')[0];
+
+      while (usedDates.has(`${projectId}-${dateString}`)) {
+        logDate = faker.date.between({ from: startOfMonth, to: endOfMonth });
+        dateString = logDate.toISOString().split('T')[0];
+      }
+
+      usedDates.add(`${projectId}-${dateString}`);
+
+      timeLogsData.push({
+        userId,
+        projectId,
+        date: logDate,
+        hours: faker.number.float({ min: 1, max: 8, fractionDigits: 1 }),
+        description: faker.lorem.sentence(),
+      });
+    }
+  }
+
+  await prisma.timeLog.createMany({
+    data: timeLogsData,
+    skipDuplicates: true,
+  });
+
+  return timeLogsData.length;
+}
+
 async function addTechnologiesToProjects(projects: Project[], technologies: Technology[]) {
   if (!projects.length || !technologies.length) return;
 
@@ -286,6 +347,8 @@ async function main() {
 
   await addTechnologiesToProjects(projects, technologies);
 
+  const totalLogsCreated = await createTimeLogs();
+
   const assignedManagerIds = new Set(
     projects.map(p => p.projectManagerId).filter(Boolean) as string[]
   );
@@ -303,6 +366,7 @@ async function main() {
     'Total Technologies': technologies.length,
     'Inactive (Bench)': CONFIG.USERS_COUNT + CONFIG.MANAGERS_COUNT - allToActivate.size,
     'Projects Created': projects.length,
+    'TimeLogs Created': totalLogsCreated,
   });
 
   console.log('\n✨ Seeding completed!');

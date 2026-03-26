@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@ui/avatar';
 import { cn } from '@/shared/lib/utils';
 import { formatToEnglishDate } from '../utils/formatToEnglishDate';
 import type { ProjectDetails } from '../types/project.api.types';
+import { firstCharToUpperCase } from '@/shared/utils/firstCharToUpperCase';
 
 interface ProjectSidebarProps {
   project: ProjectDetails;
@@ -62,8 +63,8 @@ export const ProjectSidebar = ({ project, currentStatus }: ProjectSidebarProps) 
             <span className="text-gray-500 flex items-center gap-2">
               <Globe className="w-4 h-4" /> Domain
             </span>
-            <span className="font-medium text-slate-900">
-              {project.domain?.slice(0, 3).join(', ') || '—'}
+            <span className="font-medium text-slate-900 text-transform:uppercase;">
+              {firstCharToUpperCase(project.domain.toLocaleLowerCase()) || '—'}
             </span>
           </div>
         </div>

@@ -29,6 +29,7 @@ export function ManagerAIChatPage() {
       },
     }),
   });
+  console.log(error, 'error');
 
   const isLoading = status === 'submitted' || status === 'streaming';
   const isReady = status === 'ready';
