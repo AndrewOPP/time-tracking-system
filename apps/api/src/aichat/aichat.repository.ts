@@ -5,59 +5,64 @@ import {
   UserStatus,
   Prisma,
 } from '@time-tracking-app/database/index';
-import { AI_CHAT_CONFIG, AI_CHAT_DB_VALUES } from './constants/aichat.constants';
+import { AI_CONFIG, UserSystemRole } from './constants/aichat.constants';
 
 @Injectable()
 export class AichatRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async getTechnologiesByType(type: TechnologyType) {
+  async getTechnologiesByType(type: TechnologyType) {
     return this.prisma.technology.findMany({
       where: { type },
       select: { name: true },
     });
   }
 
-  public async findEmployees(where: Prisma.UserWhereInput, dateRange: { gte: Date; lte: Date }) {
+  async findUsersWithDetails(
+    where: Prisma.UserWhereInput,
+    firstDayOfMonth: Date,
+    lastDayOfMonth: Date
+  ) {
     return this.prisma.user.findMany({
       where,
       include: {
         technologies: { include: { technology: true }, orderBy: { rating: 'desc' } },
         projects: {
-          // eslint-disable-next-line
-          where: { status: AI_CHAT_DB_VALUES.STATUS_ACTIVE as any },
+          where: { status: 'ACTIVE' },
           include: { project: { include: { projectManager: true } } },
         },
-        timeLogs: { where: { date: dateRange } },
-        ptoLogs: { where: { date: dateRange } },
+        timeLogs: { where: { date: { gte: firstDayOfMonth, lte: lastDayOfMonth } } },
+        ptoLogs: { where: { date: { gte: firstDayOfMonth, lte: lastDayOfMonth } } },
       },
-      take: AI_CHAT_CONFIG.MAX_DB_TAKE,
+      take: AI_CONFIG.USERS_FETCH_LIMIT,
     });
   }
 
-  public async findProjects(where: Prisma.ProjectWhereInput, dateRange: { gte: Date; lte: Date }) {
+  async findProjectsWithDetails(
+    where: Prisma.ProjectWhereInput,
+    startOfMonth: Date,
+    endOfMonth: Date
+  ) {
     return this.prisma.project.findMany({
       where,
       include: {
         projectManager: true,
         users: { include: { user: true } },
-        timeLogs: { where: { date: dateRange } },
+        timeLogs: { where: { date: { gte: startOfMonth, lte: endOfMonth } } },
       },
-      take: AI_CHAT_CONFIG.DEFAULT_RESULTS_LIMIT,
+      take: AI_CONFIG.PROJECTS_FETCH_LIMIT,
     });
   }
 
-  public async findAlternativeEmployees() {
+  async findAvailableUsersAlternatives() {
     return this.prisma.user.findMany({
       where: {
-        // eslint-disable-next-line
-        systemRole: AI_CHAT_DB_VALUES.ROLE_EMPLOYEE as any,
+        systemRole: UserSystemRole.EMPLOYEE,
         isActive: true,
         status: UserStatus.ACTIVE,
-        // eslint-disable-next-line
-        projects: { none: { status: AI_CHAT_DB_VALUES.STATUS_ACTIVE as any } },
+        projects: { none: { status: 'ACTIVE' } },
       },
-      take: AI_CHAT_CONFIG.ALTERNATIVES_TAKE,
+      take: AI_CONFIG.ALTERNATIVES_FETCH_LIMIT,
     });
   }
 }
