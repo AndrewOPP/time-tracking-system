@@ -1,4 +1,4 @@
-import { TechnologyType } from '@time-tracking-app/database/index';
+import { ProjectDomain, TechnologyType } from '@time-tracking-app/database/index';
 
 // ==========================================================================
 // TYPES & ENUMS
@@ -62,10 +62,9 @@ export const AI_CONFIG = {
 // ==========================================================================
 // PROMPTS & MESSAGES
 // ==========================================================================
-// export const AI_PROMPTS_ADDITIONS = {
-//   CRITICAL_RULE:
-//     "\n\nCRITICAL RULE: If the user asks about a specific person by name (e.g., \"Andrew\"), you MUST call 'searchEmployees' with the 'realName' parameter. DO NOT pass any other filters like 'skills' or 'loadStatus' when searching by name!",
-// };
+
+const availableDomains = Object.values(ProjectDomain).join(', ');
+const availableTechnologyType = Object.values(TechnologyType).join(', ');
 
 export const AI_PROMPTS_ADDITIONS = {
   CRITICAL_RULE:
@@ -73,11 +72,11 @@ export const AI_PROMPTS_ADDITIONS = {
 };
 
 export const AI_TOOL_DESCRIPTIONS = {
-  GET_TECH_BY_CATEGORY:
-    'CRITICAL: ALWAYS call this FIRST when the user asks for developers by role (e.g., "backend", "frontend", "design"). If user used about "developer", it means that you can choose "backend" or "frontend" role by yourself  It returns the exact list of skills that you MUST pass into searchEmployees.',
+  GET_TECH_BY_CATEGORY: `CRITICAL: ALWAYS call this FIRST ONLY when the user explicitly asks for developers by a SPECIFIC role only like these values: ${availableTechnologyType}. If the user just asks for general "developers" without specifying a role, DO NOT call this tool and DO NOT guess roles. It returns the exact list of skills that you can use with searchEmployees.`,
   SEARCH_EMPLOYEES:
     'Searches employees by skills, workload, availability, OR real name. WARNING: If searching by specific name, ONLY pass realName, do NOT pass skills. If searching by one specific thing, NEVER add any more parameters',
-  SEARCH_PROJECTS: 'Searches for projects by name, Project Manager, or domain.',
+  SEARCH_PROJECTS:
+    'Searches for projects by name, Project Manager, or domain. Always give answers with PM or No PM if project has no PM',
 };
 
 export const AI_SCHEMA_DESCRIPTIONS = {
@@ -94,15 +93,14 @@ export const AI_SCHEMA_DESCRIPTIONS = {
   EXCLUDE_NAMES:
     'CRITICAL: If the user asks for "more" or "other" candidates, you MUST look at your previous messages, take the exact names of the employees you ALREADY showed them, and pass them in this array to exclude them from the new search.',
   PROJECT_NAME:
-    'Name of the project. DO NOT split names with commas, hyphens, or "and". "Rolfson, Jones and Fahey" is ONE full project name. NEVER extract a manager name from it.',
+    'Name of the project. DO NOT split names with commas, hyphens, or "and". "Rolfson, Jones and Fahey" is ONE full project name. NEVER extract a manager name from it. If the user asks for all projects, you MUST OMIT this parameter entirely.',
   PROJECT_MANAGER_NAME:
     'Name of the PM. OMIT THIS FIELD ENTIRELY unless the user explicitly asks for a Project Manager (e.g., "managed by Johan").',
   PROJECT_DOMAIN_PROJECT: `
     Project domain.
 
     STRICT RULES:
-    - Include this field ONLY if the user explicitly typed a domain (e.g. "Fintech", "E-commerce").
-    - If the user did NOT mention a domain → DO NOT include this field at all.
+    - CRITICAL: You MUST use one of these exact values: ${availableDomains}. You cant use any of these values for other tools. It will be an error.
     - NEVER guess the domain.
     - NEVER default to any domain.
     - Example of WRONG behavior:
@@ -146,10 +144,14 @@ export const AI_PROJECT_DOMAIN = {
   ANY: 'ANY',
 } as const;
 
-export const UserSystemRole = {
+export const USER_SYSTEM_ROLE = {
   EMPLOYEE: 'EMPLOYEE',
   MANAGER: 'MANAGER',
   HR: 'HR',
   ACCOUNTANT: 'ACCOUNTANT',
   ADMIN: 'ADMIN',
+} as const;
+
+export const PROJECT_STATUS = {
+  ACTIVE: 'ACTIVE',
 } as const;

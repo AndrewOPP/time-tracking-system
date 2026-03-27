@@ -5,7 +5,7 @@ import {
   UserStatus,
   Prisma,
 } from '@time-tracking-app/database/index';
-import { AI_CONFIG, UserSystemRole } from './constants/aichat.constants';
+import { AI_CONFIG, PROJECT_STATUS, USER_SYSTEM_ROLE } from './constants/aichat.constants';
 
 @Injectable()
 export class AichatRepository {
@@ -28,7 +28,7 @@ export class AichatRepository {
       include: {
         technologies: { include: { technology: true }, orderBy: { rating: 'desc' } },
         projects: {
-          where: { status: 'ACTIVE' },
+          where: { status: PROJECT_STATUS.ACTIVE },
           include: { project: { include: { projectManager: true } } },
         },
         timeLogs: { where: { date: { gte: firstDayOfMonth, lte: lastDayOfMonth } } },
@@ -57,10 +57,10 @@ export class AichatRepository {
   async findAvailableUsersAlternatives() {
     return this.prisma.user.findMany({
       where: {
-        systemRole: UserSystemRole.EMPLOYEE,
+        systemRole: USER_SYSTEM_ROLE.EMPLOYEE,
         isActive: true,
         status: UserStatus.ACTIVE,
-        projects: { none: { status: 'ACTIVE' } },
+        projects: { none: { status: PROJECT_STATUS.ACTIVE } },
       },
       take: AI_CONFIG.ALTERNATIVES_FETCH_LIMIT,
     });

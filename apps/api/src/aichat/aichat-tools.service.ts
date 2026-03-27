@@ -1,13 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  TechnologyType,
-  Prisma,
-  UserWorkFormat,
-  ProjectDomain,
-} from '@time-tracking-app/database/index';
-import { calculateEmployedTimeData } from 'src/timeLogs/utils/employedTimeCalculator';
-import { getWeeksForMonth } from 'src/timeLogs/utils/monthToWeeks';
-import { PROJECT_TYPE, TIMELOGS_QUERIES_CONFIG } from 'src/timeLogs/constants/timeLogs.constants';
+import { TechnologyType, Prisma, ProjectDomain } from '@time-tracking-app/database/index';
 import {
   AI_CONFIG,
   AI_LOAD_STATUS,
@@ -16,10 +8,11 @@ import {
   AI_WORK_FORMAT,
   SearchEmployeesArgs,
   SearchProjectsArgs,
-  UserSystemRole,
+  USER_SYSTEM_ROLE,
 } from './constants/aichat.constants';
 import { AichatRepository } from './aichat.repository';
-import { ProjectData } from 'src/timeLogs/types/timeLogs.types';
+import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
+import { RawProject, RawUser } from './types/aichat.types';
 
 @Injectable()
 export class AichatToolsService {
@@ -43,7 +36,7 @@ export class AichatToolsService {
           { username: { contains: args.realName, mode: 'insensitive' } },
         ];
       } else {
-        where.systemRole = UserSystemRole.EMPLOYEE;
+        where.systemRole = USER_SYSTEM_ROLE.EMPLOYEE;
 
         if (args.skills?.length) {
           where.AND = args.skills.map(skill => ({
@@ -89,75 +82,11 @@ export class AichatToolsService {
         return this.getAlternatives();
       }
 
-      let processedUsers = users.map(user => {
-        const totalUserHours = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
-        const ptoHours = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
-
-        const projectsData: ProjectData[] = user.projects.map(up => {
-          const projectLogs = user.timeLogs.filter(log => log.projectId === up.projectId);
-          const perProjectTotal = projectLogs.reduce((sum, log) => sum + Number(log.hours), 0);
-
-          return {
-            projectId: up.project.id,
-            projectName: up.project.name,
-            pmName:
-              up.project.projectManager?.realName ||
-              up.project.projectManager?.username ||
-              AI_MESSAGES.UNASSIGNED_PM,
-            pmAvatarUrl: up.project.projectManager?.avatarUrl || null,
-            projectAvatarUrl: up.project.avatarUrl ?? '',
-            type:
-              up.project.type === PROJECT_TYPE.billable
-                ? PROJECT_TYPE.billable
-                : PROJECT_TYPE.nonBillable,
-            perProjectTotal,
-            weeks: {
-              week1: 0,
-              week2: 0,
-              week3: 0,
-              week4: 0,
-              week5: 0,
-              week6: 0,
-            },
-          };
-        });
-
-        const hoursPerDay =
-          user.workFormat === UserWorkFormat.PART_TIME
-            ? AI_CONFIG.PART_TIME_HOURS
-            : AI_CONFIG.FULL_TIME_HOURS;
-
-        let weeksInfo = getWeeksForMonth(currentYear, currentMonth + 1, hoursPerDay);
-
-        weeksInfo = weeksInfo.filter(
-          week =>
-            week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
-        );
-
-        const stats = calculateEmployedTimeData({
-          totalUserHours: totalUserHours + ptoHours,
-          weeksInfo: weeksInfo,
-          projects: projectsData,
-        });
-
-        return {
-          id: user.id,
-          name: user.realName || user.username || user.email,
-          skills:
-            user.technologies.length > 0
-              ? user.technologies.map(t => t.technology.name)
-              : [AI_MESSAGES.NO_SKILLS],
-          workFormat: user.workFormat,
-          activeProjects: projectsData.map(p => ({
-            name: p.projectName,
-            pm: p.pmName,
-            hoursSpent: p.perProjectTotal,
-          })),
-          stats,
-          ptoHours,
-          totalLoggedHours: totalUserHours,
-        };
-      });
+      let processedUsers = mapUsersToAiResponse(
+        users as unknown as RawUser[],
+        currentYear,
+        currentMonth
+      );
 
       if (!args.realName) {
         if (loadStatus === AI_LOAD_STATUS.AVAILABLE) {
@@ -185,10 +114,6 @@ export class AichatToolsService {
   }
 
   async handleSearchProjects(args: SearchProjectsArgs) {
-    console.log('\n--- 🔍 AI SEARCH PROJECTS: INCOMING ARGS ---');
-    console.log(JSON.stringify(args, null, 2));
-    console.log('--------------------------------------------\n');
-
     try {
       const where: Prisma.ProjectWhereInput = {};
       const andConditions: Prisma.ProjectWhereInput[] = [];
@@ -207,11 +132,6 @@ export class AichatToolsService {
                 realName: { contains: args.projectManagerName, mode: 'insensitive' },
               },
             },
-            {
-              projectManager: {
-                username: { contains: args.projectManagerName, mode: 'insensitive' },
-              },
-            },
           ],
         });
       }
@@ -224,10 +144,6 @@ export class AichatToolsService {
         where.AND = andConditions;
       }
 
-      // 🛠 ЛОГ: Смотрим, какой WHERE уходит в Prisma
-      console.log('📝 [SearchProjects] Prisma WHERE clause:');
-      console.log(JSON.stringify(where, null, 2));
-
       const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
@@ -237,46 +153,11 @@ export class AichatToolsService {
         endOfMonth
       );
 
-      // 🛠 ЛОГ: Сколько проектов нашли
-      console.log(`✅ [SearchProjects] Found projects count: ${projects.length}`);
-
       if (projects.length === 0) {
-        console.log('⚠️ [SearchProjects] Returning NO_PROJECTS_FOUND message');
         return { message: AI_MESSAGES.NO_PROJECTS_FOUND };
       }
 
-      return projects.map(project => {
-        const teamMembers = project.users.map(up => {
-          const userLogsOnProject = project.timeLogs.filter(log => log.userId === up.userId);
-          const perProjectTotal = userLogsOnProject.reduce(
-            (sum, log) => sum + Number(log.hours),
-            0
-          );
-
-          return {
-            name: up.user.realName || up.user.username,
-            position: up.position,
-            perProjectTotalHours: perProjectTotal,
-          };
-        });
-
-        const totalProjectHours = project.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
-
-        return {
-          projectName: project.name,
-          status: project.status,
-          domain: project.domain,
-          projectManager:
-            project.projectManager?.realName ||
-            project.projectManager?.username ||
-            AI_MESSAGES.UNASSIGNED_PM,
-          type: project.type,
-          startDate: project.startDate,
-          totalTeamMembers: teamMembers.length,
-          totalProjectHoursThisMonth: totalProjectHours,
-          teamMembers,
-        };
-      });
+      return mapProjectsToAiResponse(projects as unknown as RawProject[]);
     } catch (error) {
       console.error('❌ [SearchProjects] Error executing search:', error);
       return { error: AI_MESSAGES.PROJECT_DATA_ERROR };
