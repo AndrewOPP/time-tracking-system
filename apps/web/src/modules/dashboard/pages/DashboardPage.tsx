@@ -15,7 +15,7 @@ export const DashboardPage = () => {
         description="Here are all the projects you are working on. Select the one you need to view details and log working hours."
       />
 
-      <div className="px-4">
+      <div>
         {isLoading && (
           <div className="flex flex-wrap gap-4">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -42,7 +42,7 @@ export const DashboardPage = () => {
         )}
 
         {!isLoading && !isError && projects && projects.length > 0 && (
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 pl-0">
             {projects.map(project => (
               <ProjectCard key={project.id} project={project} />
             ))}

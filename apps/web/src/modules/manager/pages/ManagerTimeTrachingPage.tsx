@@ -10,11 +10,17 @@ import { FiltersPopover } from '../components/TimeTrackingTableComponents/Filter
 import { useTableFilters } from '../hooks/useTableFilters';
 import { simpleTableFilter } from '../utils/tableDataFilter';
 import { ActiveFiltersBar } from '../components/TimeTrackingTableComponents/ActiveFiltersBar';
+import { useDebounceValue } from 'usehooks-ts';
+import { SearchInput } from '../components/TimeTrackingTableComponents/SearchInput';
 
 const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+const DEBOUNCE_DELAY = 300;
 
 export function ManagerTimeTrachingPage() {
+  const [querySearch, setQuerySearch] = useState<string>('');
+  const [debouncedSearch] = useDebounceValue(querySearch, DEBOUNCE_DELAY);
+
   const { data, isLoading, isError, refetch } = useUsersData(
     CURRENT_MONTH_START,
     CURRENT_MONTH_END
@@ -53,8 +59,17 @@ export function ManagerTimeTrachingPage() {
       selectedPms,
       ranges,
       selectedFormat,
+      searchQuery: debouncedSearch,
     });
-  }, [flatTableData, selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat]);
+  }, [
+    flatTableData,
+    selectedEmployees,
+    selectedProjects,
+    selectedPms,
+    ranges,
+    selectedFormat,
+    debouncedSearch,
+  ]);
 
   const renderContent = () => {
     if (isError) {
@@ -66,7 +81,11 @@ export function ManagerTimeTrachingPage() {
     }
 
     if (filteredData.length === 0) {
-      return <TableEmptyState />;
+      const emptyMessage = debouncedSearch
+        ? 'No data found for your search'
+        : 'No data found for the selected filters';
+
+      return <TableEmptyState message={emptyMessage} />;
     }
     return <TimeTrackingTableSection data={filteredData} weeksInfo={weeksInfo} />;
   };
@@ -94,10 +113,10 @@ export function ManagerTimeTrachingPage() {
           setFormat={setFormat}
         />
 
-        <input
-          type="text"
+        <SearchInput
+          value={querySearch}
+          onChange={setQuerySearch}
           placeholder="Search by employee, project, or PM..."
-          className="py-[10px] px-4 text-[16px] text-[#6F6F6F] border border-[#E0E1E2] h-10 w-full max-w-[505px] rounded-[6px] bg-white outline-none focus:border-gray-400 transition-colors"
         />
       </div>
 

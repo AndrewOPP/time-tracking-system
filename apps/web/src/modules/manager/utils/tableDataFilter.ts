@@ -10,6 +10,7 @@ export interface DashboardFilterCriteria {
   selectedPms: Set<string>;
   ranges: FilterRanges;
   selectedFormat: EmploymentFormatValue | null;
+  searchQuery: string;
 }
 
 const getFilteredProjects = (
@@ -17,7 +18,9 @@ const getFilteredProjects = (
   selectedProjects: Set<string>,
   selectedPms: Set<string>,
   hasProjFilter: boolean,
-  hasPmFilter: boolean
+  hasPmFilter: boolean,
+  searchQuery: string,
+  isEmployeeMatch: boolean
 ) => {
   return projects.filter(project => {
     const projectId = String(project.projectId);
@@ -26,7 +29,17 @@ const getFilteredProjects = (
     const matchesProject = !hasProjFilter || selectedProjects.has(projectId);
     const matchesPm = !hasPmFilter || (pmName !== null && selectedPms.has(pmName));
 
-    return matchesProject && matchesPm;
+    let matchesSearch = true;
+    if (searchQuery) {
+      const projectNameMatch = String(project.projectName || '')
+        .toLowerCase()
+        .includes(searchQuery);
+      const pmNameMatch = pmName ? pmName.toLowerCase().includes(searchQuery) : false;
+
+      matchesSearch = isEmployeeMatch || projectNameMatch || pmNameMatch;
+    }
+
+    return matchesProject && matchesPm && matchesSearch;
   });
 };
 
@@ -36,17 +49,26 @@ export const simpleTableFilter = (
 ): ManagerDashboardRow[] => {
   if (!data?.length) return [];
 
-  const { selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat } = criteria;
+  const { selectedEmployees, selectedProjects, selectedPms, ranges, selectedFormat, searchQuery } =
+    criteria;
+  const cleanSearchQuery = (searchQuery || '').trim().toLowerCase();
 
   const hasEmpFilter = selectedEmployees.size > 0;
   const hasProjFilter = selectedProjects.size > 0;
   const hasPmFilter = selectedPms.size > 0;
   const hasFormatFilter = selectedFormat !== null;
-
   const activeRanges = findActiveRanges(ranges);
   const hasRangeFilter = activeRanges.length > 0;
+  const hasSearchFilter = cleanSearchQuery.length > 0;
 
-  if (!hasEmpFilter && !hasProjFilter && !hasPmFilter && !hasRangeFilter && !hasFormatFilter) {
+  if (
+    !hasEmpFilter &&
+    !hasProjFilter &&
+    !hasPmFilter &&
+    !hasRangeFilter &&
+    !hasFormatFilter &&
+    !hasSearchFilter
+  ) {
     return data;
   }
 
@@ -59,16 +81,24 @@ export const simpleTableFilter = (
       return acc;
     }
 
+    const isEmployeeMatch = hasSearchFilter
+      ? String(row.employeeName || '')
+          .toLowerCase()
+          .includes(cleanSearchQuery)
+      : true;
+
     const originalProjects = row.projects || [];
     const filteredProjects = getFilteredProjects(
       originalProjects,
       selectedProjects,
       selectedPms,
       hasProjFilter,
-      hasPmFilter
+      hasPmFilter,
+      cleanSearchQuery,
+      isEmployeeMatch
     );
 
-    if ((hasProjFilter || hasPmFilter) && filteredProjects.length === 0) {
+    if ((hasProjFilter || hasPmFilter || hasSearchFilter) && filteredProjects.length === 0) {
       return acc;
     }
 
@@ -85,7 +115,8 @@ export const simpleTableFilter = (
     acc.push({
       ...row,
       allProjects: row.allProjects || originalProjects,
-      projects: hasProjFilter || hasPmFilter ? filteredProjects : originalProjects,
+      projects:
+        hasProjFilter || hasPmFilter || hasSearchFilter ? filteredProjects : originalProjects,
     });
 
     return acc;

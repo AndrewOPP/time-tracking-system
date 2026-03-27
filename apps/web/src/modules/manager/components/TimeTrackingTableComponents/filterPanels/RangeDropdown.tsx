@@ -30,7 +30,7 @@ export const RangeDropdown = ({
       value={selectedValue !== null ? String(selectedValue) : FILTER_ALL_VALUE}
       onValueChange={val => onChange(val === FILTER_ALL_VALUE ? null : Number(val))}
     >
-      <SelectTrigger className="w-full h-10 border-[#E0E1E2] bg-white shadow-sm hover:border-gray-400 transition-colors cursor-pointer">
+      <SelectTrigger className="w-full h-10 border-[#E0E1E2] bg-white shadow-none hover:border-gray-400 transition-colors cursor-pointer outline-none">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
 
