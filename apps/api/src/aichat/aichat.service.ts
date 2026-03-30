@@ -7,11 +7,15 @@ import {
   AI_CONFIG,
   AI_PROMPTS_ADDITIONS,
   AI_TOOL_DESCRIPTIONS,
-  AI_LOAD_STATUS,
 } from './constants/aichat.constants';
 import { cleanMessages } from './utils/cleanHistory';
 import { AichatToolsService } from './aichat-tools.service';
-import { getTechSchema, searchEmployeesSchema, searchProjectsSchema } from './schemas/ai.schemas';
+import {
+  getTechSchema,
+  searchEmployeesSchema,
+  getProjectTeamSchema,
+  getPmPortfolioSchema,
+} from './schemas/ai.schemas';
 
 @Injectable()
 export class AichatService {
@@ -46,18 +50,34 @@ export class AichatService {
             execute: async args => {
               return this.dbToolsService.handleSearchEmployees({
                 ...args,
-                loadStatus: args.loadStatus || AI_LOAD_STATUS.ALL,
               });
             },
           }),
 
-          searchProjects: tool({
-            description: AI_TOOL_DESCRIPTIONS.SEARCH_PROJECTS,
-            inputSchema: searchProjectsSchema,
+          getProjectTeam: tool({
+            description: AI_TOOL_DESCRIPTIONS.GET_PROJECT_TEAM,
+            inputSchema: getProjectTeamSchema,
             execute: async args => {
-              return this.dbToolsService.handleSearchProjects(args);
+              return this.dbToolsService.handleGetProjectTeam(args);
             },
           }),
+
+          getPmPortfolio: tool({
+            description: AI_TOOL_DESCRIPTIONS.GET_PM_PORTFOLIO,
+            inputSchema: getPmPortfolioSchema,
+            execute: async args => {
+              return this.dbToolsService.handleGetPmPortfolio(args);
+            },
+          }),
+
+          //TODO: Left it for the future
+          // evaluateCandidates: tool({
+          //   description: AI_TOOL_DESCRIPTIONS.EVALUATE_CANDIDATES,
+          //   inputSchema: evaluateCandidatesSchema,
+          //   execute: async args => {
+          //     return this.dbToolsService.handleEvaluateCandidates(args);
+          //   },
+          // }),
         },
       });
     } catch (error) {

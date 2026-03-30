@@ -1,9 +1,8 @@
-import { UserWorkFormat } from '@time-tracking-app/database/index';
 import { ProjectData } from 'src/timeLogs/types/timeLogs.types';
 import { PROJECT_TYPE, TIMELOGS_QUERIES_CONFIG } from 'src/timeLogs/constants/timeLogs.constants';
 import { calculateEmployedTimeData } from 'src/timeLogs/utils/employedTimeCalculator';
 import { getWeeksForMonth } from 'src/timeLogs/utils/monthToWeeks';
-import { AI_CONFIG, AI_MESSAGES } from './constants/aichat.constants';
+import { AI_MESSAGES } from './constants/aichat.constants';
 import { RawProject, RawUser } from './types/aichat.types';
 
 export function mapUsersToAiResponse(users: RawUser[], currentYear: number, currentMonth: number) {
@@ -40,10 +39,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       };
     });
 
-    const hoursPerDay =
-      user.workFormat === UserWorkFormat.PART_TIME
-        ? AI_CONFIG.PART_TIME_HOURS
-        : AI_CONFIG.FULL_TIME_HOURS;
+    const hoursPerDay = 8;
 
     let weeksInfo = getWeeksForMonth(currentYear, currentMonth + 1, hoursPerDay);
 
@@ -55,7 +51,20 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       totalUserHours: totalUserHours + ptoHours,
       weeksInfo: weeksInfo,
       projects: projectsData,
+      workFormat: user.workFormat,
     });
+
+    const aiStats = {
+      totalUserHours: stats.totalUserHours,
+      billableHours: stats.hours.billable,
+      overtime: stats.hours.overtime,
+      untracked: stats.hours.untracked,
+      nonBillable: stats.hours.nonBillable,
+      billableHoursPercent: stats.aiChatVisualPercents.billable,
+      untrackedHoursPercent: stats.aiChatVisualPercents.untracked,
+      nonBillableHoursPercent: stats.aiChatVisualPercents.nonBillable,
+      employedTimePercent: stats.employedTimePercent,
+    };
 
     return {
       id: user.id,
@@ -70,7 +79,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
         pm: p.pmName,
         hoursSpent: p.perProjectTotal,
       })),
-      stats,
+      aiStats,
       ptoHours,
       totalLoggedHours: totalUserHours,
     };
@@ -96,6 +105,7 @@ export function mapProjectsToAiResponse(projects: RawProject[]) {
       projectName: project.name,
       status: project.status,
       domain: project.domain,
+      technologies: project.technologies,
       projectManager:
         project.projectManager?.realName ||
         project.projectManager?.username ||

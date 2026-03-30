@@ -201,13 +201,20 @@ export class TimeLogQueriesService {
           };
         });
 
+      const userWorkFormat = user.workFormat;
+
       return {
         userId: user.id,
         employeeName: user.realName || user.email,
         avatarUrl: user.avatarUrl,
         totalUserHours,
         ptoHours: totalPto,
-        eployedPercent: calculateEmployedTimeData({ totalUserHours, weeksInfo, projects }),
+        eployedPercent: calculateEmployedTimeData({
+          totalUserHours,
+          weeksInfo,
+          projects,
+          workFormat: userWorkFormat,
+        }),
         format: user.workFormat,
         projects,
       };

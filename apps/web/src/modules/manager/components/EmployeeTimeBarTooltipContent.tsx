@@ -1,27 +1,21 @@
 import { TooltipContent } from '@components/ui/tooltip';
 import { TooltipRow } from './TimeTrackingTableComponents/TooltipRow';
 import { BAR_CONFIG } from '../constants/constants';
+import type { CalculatedEmployedTimeData } from '../types/managerAIChat.types';
 
 interface EmployeeTimeBarTooltipContentProps {
-  hours: {
-    billable: number;
-    nonBillable: number;
-    overtime: number;
-    untracked: number;
-  };
+  tooltipData: CalculatedEmployedTimeData['tooltip'];
   totalUserHours: number;
-  employedTimePercent: number | string;
-  getPercent: (value: number) => number;
   formatHours: (value: number) => string;
 }
 
 export const EmployeeTimeBarTooltipContent = ({
-  hours,
+  tooltipData,
   totalUserHours,
-  employedTimePercent,
-  getPercent,
   formatHours,
 }: EmployeeTimeBarTooltipContentProps) => {
+  const { hours, percents } = tooltipData;
+
   return (
     <TooltipContent
       side="top"
@@ -32,7 +26,7 @@ export const EmployeeTimeBarTooltipContent = ({
           <TooltipRow
             title={BAR_CONFIG.titles.billable}
             hoursValue={hours.billable}
-            percent={getPercent(hours.billable)}
+            percent={percents.billable}
             color={BAR_CONFIG.colors.billable}
           />
         )}
@@ -40,7 +34,7 @@ export const EmployeeTimeBarTooltipContent = ({
           <TooltipRow
             title={BAR_CONFIG.titles.nonBillable}
             hoursValue={hours.nonBillable}
-            percent={getPercent(hours.nonBillable)}
+            percent={percents.nonBillable}
             color={BAR_CONFIG.colors.nonBillable}
           />
         )}
@@ -48,7 +42,7 @@ export const EmployeeTimeBarTooltipContent = ({
           <TooltipRow
             title={BAR_CONFIG.titles.overtime}
             hoursValue={hours.overtime}
-            percent={getPercent(hours.overtime)}
+            percent={percents.overtime}
             color={BAR_CONFIG.colors.overtime}
           />
         )}
@@ -56,15 +50,16 @@ export const EmployeeTimeBarTooltipContent = ({
           <TooltipRow
             title={BAR_CONFIG.titles.untracked}
             hoursValue={hours.untracked}
-            percent={getPercent(hours.untracked)}
+            percent={percents.untracked}
             color={BAR_CONFIG.colors.untracked.text}
             dotColor={BAR_CONFIG.colors.untracked.bg}
           />
         )}
+
         <div className="col-span-3 border-t border-dashed border-[#D1D5DB] my-0.5" />
 
         <div className="font-semibold text-[#1F1F1F]">Total</div>
-        <div className="font-semibold text-right text-[#1F1F1F]">{employedTimePercent}%</div>
+        <div className="font-semibold text-right text-[#1F1F1F]">{percents.total}%</div>
         <div className="font-semibold text-right text-[#1F1F1F]">
           [{formatHours(totalUserHours)}]
         </div>

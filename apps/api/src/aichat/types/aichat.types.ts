@@ -9,7 +9,6 @@ export interface SearchEmployeesArgs {
   limit?: number;
   workFormat?: UserWorkFormat;
   realName?: string;
-  loadStatus?: 'AVAILABLE' | 'OVERLOADED' | 'ALL';
   projectDomain?: ProjectDomain;
 }
 
@@ -78,6 +77,7 @@ export interface RawProject {
   status: string;
   domain: string;
   type: string;
+  technologies: string[];
   startDate: Date | null;
   projectManager?: RawProjectManager | null;
   users: RawProjectTeamMember[];

@@ -64,6 +64,14 @@ export function AssistantMessage({
                     {...props}
                   />
                 ),
+
+                img: ({ ...props }) => (
+                  <img
+                    className="max-w-full max-h-10 object-contain rounded-md my-4 bg-slate-50"
+                    alt={props.alt || 'Изображение'}
+                    {...props}
+                  />
+                ),
               }}
             >
               {block}

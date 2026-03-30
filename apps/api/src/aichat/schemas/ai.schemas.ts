@@ -1,10 +1,13 @@
 import { jsonSchema } from 'ai';
 import { TechnologyType } from '@time-tracking-app/database';
 import {
-  AI_LOAD_STATUSES,
   AI_PROJECT_DOMAINS,
   AI_SCHEMA_DESCRIPTIONS,
+  AI_SKILL_FORMATS,
   AI_WORK_FORMATS,
+  EvaluateCandidatesArgs,
+  GetPmPortfolioArgs,
+  GetProjectTeamArgs,
   GetTechByCategoryArgs,
   SearchEmployeesArgs,
   SearchProjectsArgs,
@@ -35,10 +38,19 @@ export const searchEmployeesSchema = jsonSchema<SearchEmployeesArgs>({
       type: 'string',
       description: AI_SCHEMA_DESCRIPTIONS.REAL_NAME,
     },
-    loadStatus: {
+
+    minLoadPercent: {
+      type: 'number',
+      description: AI_SCHEMA_DESCRIPTIONS.MIN_LOAD_PERCENT_DESC,
+    },
+    maxLoadPercent: {
+      type: 'number',
+      description: AI_SCHEMA_DESCRIPTIONS.MAX_LOAD_PERCENT_DESC,
+    },
+    skillMode: {
       type: 'string',
-      enum: AI_LOAD_STATUSES,
-      description: AI_SCHEMA_DESCRIPTIONS.LOAD_STATUS,
+      enum: AI_SKILL_FORMATS,
+      description: AI_SCHEMA_DESCRIPTIONS.SKILL_MODE,
     },
     workFormat: {
       type: 'string',
@@ -54,6 +66,12 @@ export const searchEmployeesSchema = jsonSchema<SearchEmployeesArgs>({
       type: 'string',
       enum: AI_PROJECT_DOMAINS,
       description: AI_SCHEMA_DESCRIPTIONS.PROJECT_DOMAIN_EMPLOYEE,
+    },
+
+    systemRole: {
+      type: 'string',
+      enum: ['EMPLOYEE', 'MANAGER'],
+      description: AI_SCHEMA_DESCRIPTIONS.SYSTEM_ROLE_DESC,
     },
   },
 });
@@ -75,4 +93,42 @@ export const searchProjectsSchema = jsonSchema<SearchProjectsArgs>({
       description: AI_SCHEMA_DESCRIPTIONS.PROJECT_DOMAIN_PROJECT,
     },
   },
+});
+
+export const getProjectTeamSchema = jsonSchema<GetProjectTeamArgs>({
+  type: 'object',
+  properties: {
+    projectName: {
+      type: 'string',
+      description: AI_SCHEMA_DESCRIPTIONS.PROJECT_TEAM_NAME_DESC,
+    },
+  },
+  required: ['projectName'],
+});
+
+export const getPmPortfolioSchema = jsonSchema<GetPmPortfolioArgs>({
+  type: 'object',
+  properties: {
+    managerName: {
+      type: 'string',
+      description: AI_SCHEMA_DESCRIPTIONS.PM_PORTFOLIO_MANAGER_DESC,
+    },
+  },
+  required: ['managerName'],
+});
+
+export const evaluateCandidatesSchema = jsonSchema<EvaluateCandidatesArgs>({
+  type: 'object',
+  properties: {
+    projectName: {
+      type: 'string',
+      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
+    },
+    candidateNames: {
+      type: 'array',
+      items: { type: 'string' },
+      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
+    },
+  },
+  required: ['projectName', 'candidateNames'],
 });

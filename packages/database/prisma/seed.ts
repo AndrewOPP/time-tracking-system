@@ -18,12 +18,12 @@ import { CONFIG, TECHNOLOGIES } from './constants';
 
 const prisma = new PrismaClient();
 
-function createUserData() {
+function createUserData(userRole: UserRole) {
   return {
     email: faker.internet.email(),
     realName: faker.person.fullName(),
     username: faker.internet.username(),
-    systemRole: UserRole.EMPLOYEE,
+    systemRole: userRole === UserRole.EMPLOYEE ? UserRole.EMPLOYEE : UserRole.MANAGER,
     isActive: true,
     avatarUrl: faker.image.avatar(),
     provider: AuthProvider.GOOGLE,
@@ -142,8 +142,8 @@ async function cleanDatabase() {
   await prisma.user.deleteMany();
 }
 
-async function createUsers(count: number) {
-  const usersData = Array.from({ length: count }).map(() => createUserData());
+async function createUsers(count: number, userRole: UserRole) {
+  const usersData = Array.from({ length: count }).map(() => createUserData(userRole));
 
   await prisma.user.createMany({
     data: usersData,
@@ -267,7 +267,7 @@ async function createTimeLogs() {
 
   for (const userId of selectedUsers) {
     const userProjectIds = userProjectsMap.get(userId)!;
-    const numLogs = faker.number.int({ min: 1, max: 2 });
+    const numLogs = faker.number.int({ min: 6, max: 15 });
 
     const usedDates = new Set<string>();
 
@@ -288,7 +288,7 @@ async function createTimeLogs() {
         userId,
         projectId,
         date: logDate,
-        hours: faker.number.float({ min: 1, max: 8, fractionDigits: 1 }),
+        hours: faker.number.float({ min: 12, max: 24, fractionDigits: 1 }),
         description: faker.lorem.sentence(),
       });
     }
@@ -333,9 +333,9 @@ async function main() {
 
   await cleanDatabase();
 
-  const managers = await createUsers(CONFIG.MANAGERS_COUNT);
+  const managers = await createUsers(CONFIG.MANAGERS_COUNT, UserRole.MANAGER);
 
-  const users = await createUsers(CONFIG.USERS_COUNT);
+  const users = await createUsers(CONFIG.USERS_COUNT, UserRole.EMPLOYEE);
 
   const technologies = await createTechnologies();
 

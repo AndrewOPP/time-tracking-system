@@ -28,7 +28,6 @@ export class AichatRepository {
       include: {
         technologies: { include: { technology: true }, orderBy: { rating: 'desc' } },
         projects: {
-          where: { status: PROJECT_STATUS.ACTIVE },
           include: { project: { include: { projectManager: true } } },
         },
         timeLogs: { where: { date: { gte: firstDayOfMonth, lte: lastDayOfMonth } } },
@@ -47,6 +46,7 @@ export class AichatRepository {
       where,
       include: {
         projectManager: true,
+        technologies: { select: { name: true } },
         users: { include: { user: true } },
         timeLogs: { where: { date: { gte: startOfMonth, lte: endOfMonth } } },
       },

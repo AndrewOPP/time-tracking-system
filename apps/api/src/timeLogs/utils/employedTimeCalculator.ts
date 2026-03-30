@@ -1,20 +1,20 @@
+import { AI_WORK_FORMAT } from 'src/aichat/constants/aichat.constants';
 import { PROJECT_TYPE } from '../constants/timeLogs.constants';
-import { CalculatedEmployedTimeData, ProjectData } from '../types/timeLogs.types';
+import { CalculatedEmployedTimeData, CalculatorInput } from '../types/timeLogs.types';
 import { calculatePercentage } from './math.utils';
-import { WeekBoundary } from './monthToWeeks';
 
-interface CalculatorInput {
-  totalUserHours: number;
-  weeksInfo: WeekBoundary[];
-  projects: ProjectData[];
-}
+const roundHours = (hours: number): number => Number(hours.toFixed(1));
 
 export const calculateEmployedTimeData = ({
   totalUserHours,
   weeksInfo,
   projects,
+  workFormat = AI_WORK_FORMAT.FULL_TIME,
 }: CalculatorInput): CalculatedEmployedTimeData => {
-  const monthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
+  const baseMonthWorkingHours = weeksInfo.reduce((sum, week) => sum + week.workingHours, 0);
+
+  const monthWorkingHours =
+    workFormat === AI_WORK_FORMAT.PART_TIME ? baseMonthWorkingHours * 0.5 : baseMonthWorkingHours;
 
   const billableHours = projects
     .filter(project => project.type === PROJECT_TYPE.billable)
@@ -39,17 +39,34 @@ export const calculateEmployedTimeData = ({
   );
   const visualUntrackedPercent = calculatePercentage(untrackedHours, visualTotal, 2);
   const visualOvertimePercent = calculatePercentage(overtimeHours, visualTotal, 2);
+
+  const baseBillableHours = billableHours * baseScale;
+  const baseNonBillableHours = nonBillableHours * baseScale;
+
+  const tooltipBillablePercent = calculatePercentage(baseBillableHours, monthWorkingHours);
+  const tooltipNonBillablePercent = calculatePercentage(baseNonBillableHours, monthWorkingHours);
+  const tooltipOvertimePercent = calculatePercentage(overtimeHours, monthWorkingHours);
+  const tooltipUntrackedPercent = calculatePercentage(untrackedHours, monthWorkingHours, 2);
+
+  const aiChatBillableHoursPercent = calculatePercentage(baseBillableHours, monthWorkingHours);
+  const aiChatNonBillableHoursPercent = calculatePercentage(
+    baseNonBillableHours,
+    monthWorkingHours,
+    2
+  );
+  const aiChatUntrackedHoursPercent = calculatePercentage(untrackedHours, monthWorkingHours, 2);
+
   const employedTimePercent = calculatePercentage(
-    billableHours + nonBillableHours + overtimeHours,
+    billableHours + nonBillableHours,
     monthWorkingHours
   );
 
   return {
     hours: {
-      billable: billableHours,
-      nonBillable: nonBillableHours,
-      untracked: untrackedHours,
-      overtime: overtimeHours,
+      billable: roundHours(billableHours),
+      nonBillable: roundHours(nonBillableHours),
+      untracked: roundHours(untrackedHours),
+      overtime: roundHours(overtimeHours),
     },
     visualPercents: {
       billable: visualBillablePercent,
@@ -57,7 +74,28 @@ export const calculateEmployedTimeData = ({
       untracked: visualUntrackedPercent,
       overtime: visualOvertimePercent,
     },
-    employedTimePercent,
-    monthWorkingHours,
+    aiChatVisualPercents: {
+      billable: aiChatBillableHoursPercent,
+      nonBillable: aiChatNonBillableHoursPercent,
+      untracked: aiChatUntrackedHoursPercent,
+    },
+    tooltip: {
+      hours: {
+        billable: roundHours(baseBillableHours),
+        nonBillable: roundHours(baseNonBillableHours),
+        overtime: roundHours(overtimeHours),
+        untracked: roundHours(untrackedHours),
+      },
+      percents: {
+        billable: tooltipBillablePercent,
+        nonBillable: tooltipNonBillablePercent,
+        overtime: tooltipOvertimePercent,
+        total: employedTimePercent,
+        untracked: tooltipUntrackedPercent,
+      },
+    },
+    employedTimePercent: roundHours(employedTimePercent),
+    monthWorkingHours: roundHours(monthWorkingHours),
+    totalUserHours: roundHours(totalUserHours),
   };
 };

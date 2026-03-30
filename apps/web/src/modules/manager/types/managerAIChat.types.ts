@@ -26,6 +26,21 @@ export interface CalculatedEmployedTimeData {
     untracked: number;
     overtime: number;
   };
+  tooltip: {
+    hours: {
+      billable: number;
+      nonBillable: number;
+      overtime: number;
+      untracked: number;
+    };
+    percents: {
+      billable: number;
+      nonBillable: number;
+      overtime: number;
+      total: number;
+      untracked: number;
+    };
+  };
   employedTimePercent: number;
   monthWorkingHours: number;
 }
