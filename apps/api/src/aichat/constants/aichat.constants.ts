@@ -13,11 +13,18 @@ export type AiProjectDomain =
   | 'FOODTECH'
   | 'EDTECH'
   | 'ANY';
+export type AiValidationFormat = 'EMPLOYEES' | 'ALTERNATIVES' | 'PROJECT_TEAM' | 'PM_PORTFOLIO';
 
 export type SystemRole = 'EMPLOYEE' | 'MANAGER';
 
 export const AI_LOAD_STATUSES: AiLoadStatus[] = ['AVAILABLE', 'OVERLOADED', 'ALL'];
 export const AI_WORK_FORMATS: AiWorkFormat[] = ['FULL_TIME', 'PART_TIME', 'ANY'];
+export const AI_VALIDATION_FORMATS: AiValidationFormat[] = [
+  'EMPLOYEES',
+  'ALTERNATIVES',
+  'PROJECT_TEAM',
+  'PM_PORTFOLIO',
+];
 export const AI_SKILL_FORMATS: AiSkillFormat[] = ['AND', 'OR', ''];
 
 export const AI_PROJECT_DOMAINS: AiProjectDomain[] = [
@@ -104,63 +111,69 @@ export const AI_TOOL_DESCRIPTIONS = {
   GET_PM_PORTFOLIO:
     'Use ONLY when the user asks which projects a specific Project Manager (PM) is managing.',
 
+  FINALIZE_AND_VALIDATE_RESPONSE: `
+    ⚠️ CRITICAL: YOU MUST CALL THIS TOOL BEFORE SHOWING ANY DATA TO THE USER. 
+    Once you have gathered data from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio', and selected the entities you want to display, you MUST pass them to this tool for a final database validation. 
+    If this tool returns an error, you MUST correct your data and call it again.
+  `,
+
   EVALUATE_CANDIDATES:
     'Use to evaluate candidates for a specific project. CRITICAL (TOOL CHAINING): If the user asks to FIRST find candidates (e.g., "Find 5 developers and evaluate them for project X"), you MUST follow 2 steps: STEP 1 - call searchEmployees. STEP 2 - take the names from step 1 and IMMEDIATELY call evaluateCandidates. Only respond to the user after step 2.',
 };
 
 export const AI_SCHEMA_DESCRIPTIONS = {
   GET_PROJECT_TEAM_SYS_INSTUCRION: `
-          Show the project team.
+    Show the project team.
 
-          Template:
-          ### **[Project Name]**
-          - 📌 **Status:** [Status]
-          - 👤 **PM:** [PM Name or Unassigned]
-          - 🏷️ **Domain:** [Domain]
-          - ⚙️ **Technologies:** [Technologies]
-          - 👥 **Team Members:**
-            - [Employee Name] — [Hours logged] hours logged
-        `,
+    Template:
+    ### **[Project Name]**
+    - 📌 **Status:** [Status]
+    - 👤 **PM:** [PM Name or Unassigned]
+    - 🏷️ **Domain:** [Domain]
+    - ⚙️ **Technologies:** [Technologies]
+    - 👥 **Team Members:**
+      - [Employee Name] — [Hours logged] hours logged
+  `,
   GET_PM_PROJECTS_SYS_INSTUCRION: `
-          Show the manager's projects.
-          Provide a short reasoning about workload based on number of projects and team sizes.
+    Show the manager's projects.
+    Provide a short reasoning about workload based on number of projects and team sizes.
 
-          Template:
-          ### **[Project Name]**
-          - 📌 **Status:** [Status]
-          - 🏷️ **Domain:** [Domain]
-          - 👥 **Team Size:** [Team Size]
-        `,
+    Template:
+    ### **[Project Name]**
+    - 📌 **Status:** [Status]
+    - 🏷️ **Domain:** [Domain]
+    - 👥 **Team Size:** [Team Size]
+  `,
   ALTERNATIVES_SYS_INSTRUCTION:
     'No candidates were found for the requested workload. Suggest alternatives and explain they are similar specialists.',
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
-          CRITICAL (REASONING & FORMATTING RULES): Strictly follow these rules to meet HR guidelines. Use EXACT data from the 'aiStats' object for each user. Do NOT hallucinate numbers.
+    CRITICAL (REASONING & FORMATTING RULES): Strictly follow these rules to meet HR guidelines. Use EXACT data from the 'aiStats' object for each user. Do NOT hallucinate numbers.
 
-          (EXPLANATION): For each candidate, list matching required skills. Explicitly state Employed Time % and hours, broken down using the aiStats object.
+    (EXPLANATION): For each candidate, list matching required skills. Explicitly state Employed Time % and hours, broken down using the aiStats object.
 
-          (AVAILABILITY): Employees with aiStats.totalPercent between 0–90% are available. Mention this when comparing candidates.
+    (AVAILABILITY): Employees with aiStats.totalPercent between 0–90% are available. Mention this when comparing candidates.
 
-          (OVERLOAD): If aiStats.totalPercent > 100 or aiStats.overtimeHours > 0, add:
-          "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
+    (OVERLOAD): If aiStats.totalPercent > 100 or aiStats.overtimeHours > 0, add:
+    "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
 
-          (NEAR LIMIT): If aiStats.totalPercent is between 91 and 100 inclusive, add:
-          "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
+    (NEAR LIMIT): If aiStats.totalPercent is between 91 and 100 inclusive, add:
+    "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
 
-          (UNTRACKED TIME): If aiStats.untrackedHours > 0, add:
-          "Note: [aiStats.untrackedPercent]% of this employee's time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
+    (UNTRACKED TIME): If aiStats.untrackedHours > 0, add:
+    "Note: [aiStats.untrackedPercent]% of this employee's time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
 
-          (WORK FORMAT): When comparing candidates or availability, explain differences: Part-time vs Full-time free hours.
+    (WORK FORMAT): When comparing candidates or availability, explain differences: Part-time vs Full-time free hours.
 
-          GENERAL TEMPLATE:
-          ### **[Name]**
-          - 🛠 **Skills:** [List of all users skills]
-          - 💼 **Format:** [Work Format]
-          - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalHours]h [if billableHours > 0: | Billable: aiStats.billableHoursPercent% ([aiStats.billableHours]h)] [if nonBillableHours > 0: | Non-Billable: aiStats.nonBillableHoursPercent% ([aiStats.nonBillableHours]h)] [if untrackedHours > 0: | Untracked: aiStats.untrackedHoursPercent% ([aiStats.untrackedHours]h)])
-          [If aiStats.overtimeHours > 0 add line: - 🚨 **Overtime:** [aiStats.overtimeHours]h]
-          - 📁 **Active Projects:** [List] or None (Don't show this line if user asked about managers)
-          - 💡 **HR Analysis:** [2-3 sentence explanation with warnings].
+    GENERAL TEMPLATE:
+    ### **[Name]**
+    - 🛠 **Skills:** [List of all users skills]
+    - 💼 **Format:** [Work Format]
+    - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalHours]h [if billableHours > 0: | Billable: aiStats.billableHoursPercent% ([aiStats.billableHours]h)] [if nonBillableHours > 0: | Non-Billable: aiStats.nonBillableHoursPercent% ([aiStats.nonBillableHours]h)] [if untrackedHours > 0: | Untracked: aiStats.untrackedHoursPercent% ([aiStats.untrackedHours]h)])
+    - [If aiStats.overtimeHours > 0 add line: 🚨 **Overtime:** [aiStats.overtimeHours]h]
+    - 📁 **Active Projects:** [List] or None (Don't show this line if user asked about managers)
+    - 💡 **HR Analysis:** [2-3 sentence explanation with warnings].
 
-        `,
+  `,
   TECH_CATEGORY: 'Category of tech',
   SKILLS_LIST: `
     List of required skills. 
@@ -270,11 +283,19 @@ export const PROJECT_STATUS = {
 export const TOOL_RETURN_STATUS = {
   NOT_FOUND: 'not_found',
   SUCCESS: 'success',
+  VALIDATION_FAILED: 'validation_failed',
 } as const;
 
 export const AI_SKILL_FORMATS_OBJ = {
   AND: 'AND',
   OR: 'OR',
+} as const;
+
+export const AI_VALIDATION_FORMAT = {
+  EMPLOYEES: 'EMPLOYEES',
+  ALTERNATIVES: 'ALTERNATIVES',
+  PROJECT_TEAM: 'PROJECT_TEAM',
+  PM_PORTFOLIO: 'PM_PORTFOLIO',
 } as const;
 
 export interface GetProjectTeamArgs {

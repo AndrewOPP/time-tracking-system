@@ -6,6 +6,7 @@ import {
   AI_PROJECT_DOMAIN,
   AI_SCHEMA_DESCRIPTIONS,
   AI_SKILL_FORMATS_OBJ,
+  AI_VALIDATION_FORMAT,
   AI_WORK_FORMAT,
   GetPmPortfolioArgs,
   GetProjectTeamArgs,
@@ -16,6 +17,7 @@ import {
 import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
 import { RawProject, RawUser } from './types/aichat.types';
+import { ValidateResponseArgs } from './schemas/ai-validation.schema';
 
 @Injectable()
 export class AichatToolsService {
@@ -204,6 +206,126 @@ export class AichatToolsService {
       message: AI_MESSAGES.EXACT_MATCH_NOT_FOUND,
       alternatives: availableUsers.map(user => ({ name: user.realName || user.username })),
     };
+  }
+
+  async handleFinalizeAndValidateResponse(args: ValidateResponseArgs) {
+    const errors: string[] = [];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+    try {
+      if (args.responseType === AI_VALIDATION_FORMAT.EMPLOYEES && args.candidates) {
+        for (const candidate of args.candidates) {
+          const users = await this.aichatRepo.findUsersWithDetails(
+            { OR: [{ realName: candidate.name }, { username: candidate.name }] },
+            firstDayOfMonth,
+            lastDayOfMonth
+          );
+
+          if (users.length === 0) {
+            errors.push(
+              `Validation Error: Candidate "${candidate.name}" does not exist in the database. Remove them from your response.`
+            );
+            continue;
+          }
+
+          const mappedUsers = mapUsersToAiResponse(
+            users as unknown as RawUser[],
+            currentYear,
+            currentMonth
+          );
+          const realUser = mappedUsers[0];
+
+          if (
+            candidate.employedTimePercent !== undefined &&
+            candidate.employedTimePercent !== realUser.aiStats.employedTimePercent
+          ) {
+            errors.push(
+              `Validation Error: Candidate "${candidate.name}" has an ACTUAL employed time of ${realUser.aiStats.employedTimePercent}%, NOT ${candidate.employedTimePercent}%. Update your data.`
+            );
+          }
+
+          if (candidate.skills && candidate.skills.length > 0) {
+            const realSkillsLower = realUser.skills.map(s => s.toLowerCase());
+            for (const claimedSkill of candidate.skills) {
+              if (claimedSkill === AI_MESSAGES.NO_SKILLS) continue;
+
+              if (!realSkillsLower.includes(claimedSkill.toLowerCase())) {
+                errors.push(
+                  `Validation Error: Candidate "${candidate.name}" does NOT have the skill "${claimedSkill}". Their actual skills are: ${realUser.skills.join(', ')}.`
+                );
+              }
+            }
+          }
+        }
+      }
+
+      if (args.responseType === AI_VALIDATION_FORMAT.ALTERNATIVES && args.candidates) {
+        for (const candidate of args.candidates) {
+          const users = await this.aichatRepo.findAvailableUsersAlternatives();
+          const exists = users.some(
+            u => u.realName === candidate.name || u.username === candidate.name
+          );
+          if (!exists) {
+            errors.push(
+              `Validation Error: Alternative candidate "${candidate.name}" is not in the list of available alternatives.`
+            );
+          }
+        }
+      }
+
+      if (args.responseType === AI_VALIDATION_FORMAT.PROJECT_TEAM && args.projectTeamDetails) {
+        const projects = await this.aichatRepo.findProjectsWithDetails(
+          { name: { equals: args.projectTeamDetails.projectName, mode: 'insensitive' } },
+          firstDayOfMonth,
+          lastDayOfMonth
+        );
+        if (projects.length === 0) {
+          errors.push(
+            `Validation Error: Project "${args.projectTeamDetails.projectName}" does not exist.`
+          );
+        }
+      }
+
+      if (errors.length > 0) {
+        return {
+          status: TOOL_RETURN_STATUS.VALIDATION_FAILED,
+          message:
+            'CRITICAL: You hallucinated or distorted data. Fix the errors below and call this tool again.',
+          errors: errors,
+        };
+      }
+
+      if (args.responseType === AI_VALIDATION_FORMAT.PM_PORTFOLIO && args.pmPortfolioDetails) {
+        const projects = await this.aichatRepo.findProjectsWithDetails(
+          {
+            projectManager: {
+              realName: { contains: args.pmPortfolioDetails.managerName, mode: 'insensitive' },
+            },
+          },
+          firstDayOfMonth,
+          lastDayOfMonth
+        );
+
+        if (projects.length === 0) {
+          errors.push(
+            `Validation Error: Project Manager "${args.pmPortfolioDetails.managerName}" does not exist or has no active projects.`
+          );
+        }
+      }
+
+      return {
+        status: TOOL_RETURN_STATUS.SUCCESS,
+        message:
+          'Data successfully validated against the database. You are now authorized to stream the final response to the user using this EXACT data.',
+      };
+    } catch (error) {
+      console.error('Validation Tool Error:', error);
+      return { error: 'Internal validation error.' };
+    }
   }
 
   // DOTO: left in for the future

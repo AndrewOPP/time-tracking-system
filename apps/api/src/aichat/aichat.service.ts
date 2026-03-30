@@ -16,6 +16,7 @@ import {
   getProjectTeamSchema,
   getPmPortfolioSchema,
 } from './schemas/ai.schemas';
+import { validateResponseSchema } from './schemas/ai-validation.schema';
 
 @Injectable()
 export class AichatService {
@@ -67,6 +68,14 @@ export class AichatService {
             inputSchema: getPmPortfolioSchema,
             execute: async args => {
               return this.dbToolsService.handleGetPmPortfolio(args);
+            },
+          }),
+
+          finalizeAndValidateResponse: tool({
+            description: AI_TOOL_DESCRIPTIONS.FINALIZE_AND_VALIDATE_RESPONSE,
+            inputSchema: validateResponseSchema,
+            execute: async args => {
+              return this.dbToolsService.handleFinalizeAndValidateResponse(args);
             },
           }),
 
