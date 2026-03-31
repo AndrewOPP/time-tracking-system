@@ -17,6 +17,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       return {
         projectId: up.project.id,
         projectName: up.project.name,
+        domain: up.project.domain,
         pmName:
           up.project.projectManager?.realName ||
           up.project.projectManager?.username ||
@@ -75,6 +76,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
           : [AI_MESSAGES.NO_SKILLS],
       workFormat: user.workFormat,
       activeProjects: projectsData.map(p => ({
+        domain: p.domain,
         name: p.projectName,
         pm: p.pmName,
         hoursSpent: p.perProjectTotal,

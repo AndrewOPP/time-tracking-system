@@ -18,6 +18,7 @@ import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
 import { RawProject, RawUser } from './types/aichat.types';
 import { ValidateResponseArgs } from './schemas/ai-validation.schema';
+import { EvaluateCandidatesArgs } from './schemas/ai.schemas';
 
 @Injectable()
 export class AichatToolsService {
@@ -328,98 +329,123 @@ export class AichatToolsService {
     }
   }
 
-  // DOTO: left in for the future
-  // async handleEvaluateCandidates(args: EvaluateCandidatesArgs) {
-  //   try {
-  //     const currentDate = new Date();
-  //     const currentYear = currentDate.getFullYear();
-  //     const currentMonth = currentDate.getMonth();
-  //     const startOfMonth = new Date(currentYear, currentMonth, 1);
-  //     const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+  async handleEvaluateCandidates(args: EvaluateCandidatesArgs) {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
+      const startOfMonth = new Date(currentYear, currentMonth, 1);
+      const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
-  //     const projects = await this.aichatRepo.findProjectsWithDetails(
-  //       { name: { contains: args.projectName, mode: 'insensitive' } },
-  //       startOfMonth,
-  //       endOfMonth
-  //     );
-  //     if (projects.length === 0) return { error: AI_MESSAGES.NO_PROJECTS_FOUND };
-  //     const targetProject = projects[0];
+      const users = await this.aichatRepo.findUsersWithDetails(
+        {
+          isActive: true,
+          systemRole: USER_SYSTEM_ROLE.EMPLOYEE,
+        },
+        startOfMonth,
+        endOfMonth
+      );
 
-  //     const users = await this.aichatRepo.findUsersWithDetails(
-  //       {
-  //         OR: args.candidateNames.map(name => ({
-  //           realName: { contains: name, mode: 'insensitive' },
-  //         })),
-  //       },
-  //       startOfMonth,
-  //       endOfMonth
-  //     );
+      if (users.length === 0) return { status: 'success', candidates: [] };
 
-  //     const mappedUsers = mapUsersToAiResponse(
-  //       users as unknown as RawUser[],
-  //       currentYear,
-  //       currentMonth
-  //     );
-  //     // eslint-disable-next-line
-  //     const approved: any[] = [];
-  //     // eslint-disable-next-line
-  //     const rejected: any[] = [];
+      const mappedUsers = mapUsersToAiResponse(
+        users as unknown as RawUser[],
+        currentYear,
+        currentMonth
+      );
 
-  //     mappedUsers.forEach(user => {
-  //       let score = 1.0;
-  //       const rejectReasons: string[] = [];
+      const weights = {
+        skills: 0.35,
+        availability: args.targetDomain ? 0.3 : 0.5,
+        domain: args.targetDomain ? 0.2 : 0,
+        risk: 0.15,
+      };
 
-  //       if (user.aiStats.employedTimePercent >= 100) {
-  //         score -= 0.6;
-  //         rejectReasons.push(
-  //           `Overloaded: current workload is ${user.aiStats.employedTimePercent}%.`
-  //         );
-  //       } else if (user.aiStats.employedTimePercent > 80) {
-  //         score -= 0.3;
-  //         rejectReasons.push(
-  //           `High workload (${user.aiStats.employedTimePercent}%), risk of delays.`
-  //         );
-  //       }
+      const allScoredCandidates = mappedUsers.map((mappedUser, index) => {
+        const rawUser = users[index];
+        const stats = mappedUser.aiStats;
 
-  //       if (user.aiStats.untracked > 10) {
-  //         score -= 0.2;
-  //         rejectReasons.push(`Has ${user.aiStats.untracked}% untracked time.`);
-  //       }
+        let skillsScore = 100;
+        let skillsReasoning = 'No specific skills requested';
+        if (args.requiredSkills?.length > 0) {
+          const userSkillsLower = mappedUser.skills.map(s => s.toLowerCase());
+          const matched = args.requiredSkills.filter(req =>
+            userSkillsLower.includes(req.toLowerCase())
+          );
+          skillsScore = Math.round((matched.length / args.requiredSkills.length) * 100);
+          const missing = args.requiredSkills.filter(
+            req => !userSkillsLower.includes(req.toLowerCase())
+          );
+          skillsReasoning =
+            missing.length > 0 ? `Missing: ${missing.join(', ')}` : 'All required skills present';
+        }
 
-  //       const evaluationResult = {
-  //         name: user.name,
-  //         score: Number(score.toFixed(1)),
-  //         stats: user.aiStats,
-  //         reasons: rejectReasons.length > 0 ? rejectReasons : ['Perfect fit time-wise'],
-  //       };
+        let availabilityScore = Math.max(0, 100 - stats.employedTimePercent);
+        if (mappedUser.workFormat === 'PART_TIME') {
+          availabilityScore = Math.round(availabilityScore * 0.5);
+        }
+        const availabilityReasoning = `${availabilityScore}% available capacity (Format: ${mappedUser.workFormat})`;
 
-  //       if (score >= 0.5) {
-  //         approved.push(evaluationResult);
-  //       } else {
-  //         rejected.push(evaluationResult);
-  //       }
-  //     });
+        let domainScore = 0;
+        let domainReasoning = 'No matching domain experience';
+        if (args.targetDomain) {
+          const matchingProjects = rawUser.projects.filter(
+            p => p.project.domain?.toLowerCase() === args.targetDomain?.toLowerCase()
+          );
+          if (matchingProjects.length > 0) {
+            domainScore = matchingProjects.length >= 2 ? 100 : 70;
+            domainReasoning = `Experience in ${args.targetDomain}: ${matchingProjects.length} project(s)`;
+          }
+        }
 
-  //     return {
-  //       status: 'success',
-  //       projectDetails: { name: targetProject.name, domain: targetProject.domain },
-  //       evaluation: { approved, rejected },
-  //       _system_instruction: `
-  //         Format candidate evaluation results for project targetProject.name.
+        let riskScore = 100;
+        const risks: string[] = [];
+        if (stats.employedTimePercent > 100) {
+          riskScore -= 50;
+          risks.push('Overloaded');
+        }
+        if (stats.overtime > 0) {
+          riskScore -= 30;
+          risks.push('Has overtime');
+        }
+        if (stats.untracked > 15) {
+          riskScore -= 35;
+          risks.push('High untracked hours');
+        }
 
-  //         RULES:
-  //         1. Show "✅ Approved Candidates" first. Explain their score >= 0.5.
-  //         3. Use reasons and score for explanation.
+        const riskReasoning = risks.length > 0 ? risks.join(', ') : 'Low risk';
 
-  //         Template:
-  //         ### **[Name]** (Score: [X.X])
-  //         - 📊 **Workload:** [X]%
-  //         - 💡 **Verdict:** [Explanation based on reasons]
-  //       `,
-  //     };
-  //   } catch (error) {
-  //     console.log(error);
-  //     return { error: 'Error evaluating candidates.' };
-  //   }
-  // }
+        const totalScore = Math.round(
+          skillsScore * weights.skills +
+            availabilityScore * weights.availability +
+            domainScore * weights.domain +
+            riskScore * weights.risk
+        );
+
+        return {
+          name: mappedUser.name,
+          totalScore,
+          criteria: {
+            skillsMatch: { score: skillsScore, reasoning: skillsReasoning },
+            availability: { score: availabilityScore, reasoning: availabilityReasoning },
+            domainExperience: { score: domainScore, reasoning: domainReasoning },
+            riskLevel: { score: Math.max(0, riskScore), reasoning: riskReasoning },
+          },
+        };
+      });
+
+      const topCandidates = allScoredCandidates
+        .sort((a, b) => b.totalScore - a.totalScore)
+        .slice(0, args.limit || 5);
+      console.log('🔥 СКОРИНГ ОТРАБОТАЛ:', JSON.stringify(topCandidates, null, 2));
+      return {
+        status: 'success',
+        appliedWeights: weights,
+        candidates: topCandidates,
+      };
+    } catch (error) {
+      console.error('Evaluate Error:', error);
+      return { error: 'Failed to score candidates' };
+    }
+  }
 }

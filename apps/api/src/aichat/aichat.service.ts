@@ -15,6 +15,7 @@ import {
   searchEmployeesSchema,
   getProjectTeamSchema,
   getPmPortfolioSchema,
+  evaluateCandidatesSchema,
 } from './schemas/ai.schemas';
 import { validateResponseSchema } from './schemas/ai-validation.schema';
 
@@ -79,14 +80,37 @@ export class AichatService {
             },
           }),
 
-          //TODO: Left it for the future
-          // evaluateCandidates: tool({
-          //   description: AI_TOOL_DESCRIPTIONS.EVALUATE_CANDIDATES,
-          //   inputSchema: evaluateCandidatesSchema,
+          // displayScoringRanking: tool({
+          //   description: `
+          //     CRITICAL: Call this tool IMMEDIATELY after you have evaluated and scored candidates to display the final ranking to the manager.
+          //     You MUST pass the perfectly calculated structured JSON data into this tool so the frontend can render the scoring cards.
+          //     NEVER hallucinate scores. Calculate them strictly based on the stats retrieved from searchEmployees.
+          //   `,
+          //   inputSchema: candidateScoringSchema,
           //   execute: async args => {
-          //     return this.dbToolsService.handleEvaluateCandidates(args);
+          //     return {
+          //       status: 'success',
+          //       message: 'Ranking data successfully sent to the UI.',
+          //       data: args,
+          //     };
           //   },
           // }),
+
+          evaluateCandidates: tool({
+            description: `
+              🚨 CRITICAL ROUTING RULE: This is the ONLY tool you should use when the user asks for superlatives like the "best", "top" (e.g., "top 3"), "most available", or explicitly asks to "score", "rank", or "evaluate" candidates.
+              
+              This tool automatically evaluates the entire database, calculates mathematical scores (skills, availability, domain, risk), and returns a fully validated JSON array.
+              
+              DO NOT call 'searchEmployees' before this. 
+              DO NOT call 'finalizeAndValidateResponse' after this. 
+              This is a ONE-STEP standalone tool. Pass the skills, limit, and domain, and output the exact returned JSON.
+            `,
+            inputSchema: evaluateCandidatesSchema,
+            execute: async args => {
+              return this.dbToolsService.handleEvaluateCandidates(args);
+            },
+          }),
         },
       });
     } catch (error) {

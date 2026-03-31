@@ -5,14 +5,13 @@ import {
   AI_SCHEMA_DESCRIPTIONS,
   AI_SKILL_FORMATS,
   AI_WORK_FORMATS,
-  EvaluateCandidatesArgs,
   GetPmPortfolioArgs,
   GetProjectTeamArgs,
   GetTechByCategoryArgs,
   SearchEmployeesArgs,
   SearchProjectsArgs,
 } from '../constants/aichat.constants';
-
+import { z } from 'zod';
 export const getTechSchema = jsonSchema<GetTechByCategoryArgs>({
   type: 'object',
   properties: {
@@ -117,18 +116,57 @@ export const getPmPortfolioSchema = jsonSchema<GetPmPortfolioArgs>({
   required: ['managerName'],
 });
 
-export const evaluateCandidatesSchema = jsonSchema<EvaluateCandidatesArgs>({
-  type: 'object',
-  properties: {
-    projectName: {
-      type: 'string',
-      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
-    },
-    candidateNames: {
-      type: 'array',
-      items: { type: 'string' },
-      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
-    },
-  },
-  required: ['projectName', 'candidateNames'],
+// export const evaluateCandidatesSchema = jsonSchema<EvaluateCandidatesArgs>({
+//   type: 'object',
+//   properties: {
+//     projectName: {
+//       type: 'string',
+//       description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
+//     },
+//     candidateNames: {
+//       type: 'array',
+//       items: { type: 'string' },
+//       description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
+//     },
+//   },
+//   required: ['projectName', 'candidateNames'],
+// });
+
+// export const candidateScoringSchema = z.object({
+//   candidates: z
+//     .array(
+//       z.object({
+//         name: z.string().describe('Real name of the candidate'),
+//         totalScore: z.number().describe('Weighted final score from 0 to 100'),
+//         criteria: z.object({
+//           skillsMatch: z.object({
+//             score: z.number().min(0).max(100),
+//             reasoning: z.string().describe('Explanation, e.g., "Missing: Node.js"'),
+//           }),
+//           availability: z.object({
+//             score: z.number().min(0).max(100),
+//             reasoning: z
+//               .string()
+//               .describe('Explanation, e.g., "25% capacity available (40h). Format: Part-time"'),
+//           }),
+//           domainExperience: z.object({
+//             score: z.number().min(0).max(100),
+//             reasoning: z.string().describe('Explanation, e.g., "Worked on 2 FoodTech projects"'),
+//           }),
+//           riskLevel: z.object({
+//             score: z.number().min(0).max(100),
+//             reasoning: z.string().describe('Explanation, e.g., "Overloaded: 105%, 24h overtime"'),
+//           }),
+//         }),
+//       })
+//     )
+//     .describe('Array of candidates ranked from highest totalScore to lowest'),
+// });
+
+export const evaluateCandidatesSchema = z.object({
+  requiredSkills: z.array(z.string()).describe('Skills required for the project'),
+  targetDomain: z.string().optional().describe('Project domain, e.g., "FoodTech"'),
+  limit: z.number().optional().default(5).describe('How many top candidates to return'),
 });
+
+export type EvaluateCandidatesArgs = z.infer<typeof evaluateCandidatesSchema>;

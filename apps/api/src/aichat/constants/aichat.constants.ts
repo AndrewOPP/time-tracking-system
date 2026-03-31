@@ -96,15 +96,18 @@ export const AI_TOOL_DESCRIPTIONS = {
   GET_TECH_BY_CATEGORY: `CRITICAL: ALWAYS call this FIRST ONLY when the user explicitly asks for developers by a SPECIFIC role only like these values: ${availableTechnologyType}. If the user just asks for general "developers" without specifying a role, DO NOT call this tool and DO NOT guess roles. It returns the exact list of skills that you can use with searchEmployees.`,
 
   SEARCH_EMPLOYEES: `
-    Searches employees OR Project Managers (PMs). You can search by skills, workload ranges, work format, or real name. 
-    
-    CRITICAL WORKLOAD RULES:
-    - DEFAULT WORKLOAD: If the user does not specify availability or workload, you MUST set minLoadPercent to 0 and maxLoadPercent to 1000.
-    - If user asks for "available", set maxLoadPercent to 90.
-    - If user asks for "overloaded", set minLoadPercent to 101, set maxLoadPercent to 1000.
-    - If user asks for "> 0%" or "working", set minLoadPercent to 1 (and keep maxLoadPercent at 1000).
-    - You can combine minLoadPercent and maxLoadPercent for specific ranges.
-  `,
+  Searches employees OR Project Managers (PMs) for general, unranked lists.
+  
+  🚫 CRITICAL ROUTING AVOIDANCE: 
+  NEVER use this tool if the prompt contains words like "best", "top", "most available", "score", or "rank". For superlatives and rankings, you MUST use the 'evaluateCandidates' tool instead.
+  Use THIS tool ONLY when the user wants a simple, unranked list (e.g., "Find React developers", "Show me available people").
+  
+  CRITICAL WORKLOAD RULES (For simple lists only):
+  - DEFAULT WORKLOAD: If availability is not mentioned, set minLoadPercent to 0 and maxLoadPercent to 1000.
+  - If user asks for "available" (but NOT "most available"): set maxLoadPercent to 90.
+  - If user asks for "overloaded": set minLoadPercent to 101, maxLoadPercent to 1000.
+  - If user asks for "> 0%" or "working": set minLoadPercent to 1, maxLoadPercent to 1000.
+`,
 
   GET_PROJECT_TEAM: 'Use ONLY when the user asks about a specific project team or project details.',
 
@@ -112,10 +115,12 @@ export const AI_TOOL_DESCRIPTIONS = {
     'Use ONLY when the user asks which projects a specific Project Manager (PM) is managing.',
 
   FINALIZE_AND_VALIDATE_RESPONSE: `
-    ⚠️ CRITICAL: YOU MUST CALL THIS TOOL BEFORE SHOWING ANY DATA TO THE USER. 
-    Once you have gathered data from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio', and selected the entities you want to display, you MUST pass them to this tool for a final database validation. 
-    If this tool returns an error, you MUST correct your data and call it again.
-  `,
+  ⚠️ CRITICAL: YOU MUST CALL THIS TOOL BEFORE SHOWING ANY DATA TO THE USER, WITH ONE EXCEPTION. 
+  
+  Once you have gathered data from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio', you MUST pass them to this tool for a final database validation. If it returns an error, correct the data and call it again.
+  
+  🚨 THE EXCEPTION: DO NOT use this tool if you just used the 'evaluateCandidates' tool. The scoring tool already returns pre-validated, UI-ready JSON. If you are showing rankings/scores, completely skip this validation step and output the scoring JSON directly.
+`,
 
   EVALUATE_CANDIDATES:
     'Use to evaluate candidates for a specific project. CRITICAL (TOOL CHAINING): If the user asks to FIRST find candidates (e.g., "Find 5 developers and evaluate them for project X"), you MUST follow 2 steps: STEP 1 - call searchEmployees. STEP 2 - take the names from step 1 and IMMEDIATELY call evaluateCandidates. Only respond to the user after step 2.',

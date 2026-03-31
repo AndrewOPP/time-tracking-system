@@ -1,8 +1,10 @@
+// AssistantMessage.tsx
 import ReactMarkdown from 'react-markdown';
 import { Copy, ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { LoadingIndicator } from './LoadingIndicator';
 import { messageStatusTypes } from '../../constants/constants';
+import { ScoringCards, type ScoringCandidate } from './ScoringCards'; // <--- Импорт карточек
 
 export function AssistantMessage({
   content,
@@ -25,6 +27,7 @@ export function AssistantMessage({
       console.error('Error copying text: ', err);
     }
   };
+
   const blocks = useMemo(() => {
     return content.split(/\n\s*\n/);
   }, [content]);
@@ -34,16 +37,16 @@ export function AssistantMessage({
   }
 
   return (
-    <div className="flex flex-col w-full max-w-full">
+    <div className="flex flex-col w-full max-w-full overflow-hidden">
       <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-3">
         AI Assistant
       </span>
 
-      <div className="text-[15px] text-slate-800 leading-relaxed">
+      <div className="text-[15px] text-slate-800 leading-relaxed w-full">
         {blocks.map((block, index) => (
           <div
             key={index}
-            className="fade-in-block"
+            className="fade-in-block w-full"
             style={{
               animationDelay: `${Math.min(index * 80, 400)}ms`,
               animationFillMode: 'both',
@@ -64,7 +67,6 @@ export function AssistantMessage({
                     {...props}
                   />
                 ),
-
                 img: ({ ...props }) => (
                   <img
                     className="max-w-full max-h-10 object-contain rounded-md my-4 bg-slate-50"
@@ -72,6 +74,57 @@ export function AssistantMessage({
                     {...props}
                   />
                 ),
+
+                // eslint-disable-next-line
+                code: ({ node, inline, className, children, ...props }: any) => {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const isJson = match && match[1] === 'json';
+                  const rawString = String(children);
+
+                  if (!inline && isJson) {
+                    try {
+                      const data = JSON.parse(rawString.replace(/\n$/, '')) as ScoringCandidate[];
+
+                      if (Array.isArray(data) && data.length > 0 && 'totalScore' in data[0]) {
+                        return <ScoringCards candidates={data} />;
+                      }
+                    } catch {
+                      if (rawString.trimStart().startsWith('[')) {
+                        return (
+                          <div className="py-2 px-3 bg-slate-50/80 text-slate-500 rounded-md text-[13px] font-medium my-3 border border-slate-100 w-max flex items-center">
+                            Generating cards
+                            <span className="ml-0.5 flex">
+                              <span className="animate-pulse">.</span>
+                              <span className="animate-pulse" style={{ animationDelay: '200ms' }}>
+                                .
+                              </span>
+                              <span className="animate-pulse" style={{ animationDelay: '400ms' }}>
+                                .
+                              </span>
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      // Если это какой-то другой сломанный JSON (не наш), рендерим как обычно
+                      return (
+                        <code className="block bg-slate-100 p-2 text-xs overflow-x-auto">
+                          {rawString}
+                        </code>
+                      );
+                    }
+                  }
+
+                  // Обычный инлайн-код
+                  return (
+                    <code
+                      className={`${className} bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[13px] font-mono`}
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                },
               }}
             >
               {block}

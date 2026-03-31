@@ -11,6 +11,7 @@ export interface ProjectData {
   projectId: string;
   type: ProjectTypeValue;
   projectName: string;
+  domain?: string;
   projectAvatarUrl: string;
   pmName: string;
   pmAvatarUrl: string | null;
