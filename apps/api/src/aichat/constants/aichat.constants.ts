@@ -82,8 +82,7 @@ export const AI_CONFIG = {
 const availableDomains = Object.values(ProjectDomain).join(', ');
 
 export const AI_PROMPTS_ADDITIONS = {
-  CRITICAL_RULE:
-    "\n\nCRITICAL RULE: If the user searches for an EMPLOYEE by name (e.g., \"Find Andrew\"), you MUST call 'searchEmployees' with the 'realName' parameter and NO other filters. HOWEVER, if the user explicitly asks for PROJECTS managed by someone (e.g., \"projects managed by Johan\"), you MUST use 'searchProjects' with the 'projectManagerName' parameter instead!",
+  CRITICAL_RULE: `CRITICAL: If searching for an EMPLOYEE by name (e.g., "Find Andrew"), call 'searchEmployees' with ONLY 'realName'. If searching for PROJECTS managed by someone (e.g., "projects managed by Johan"), use 'searchProjects' with ONLY 'projectManagerName'.`,
 };
 
 export interface EvaluateCandidatesArgs {
@@ -93,55 +92,42 @@ export interface EvaluateCandidatesArgs {
 
 export const AI_TOOL_DESCRIPTIONS = {
   GET_TECH_BY_CATEGORY: `
-  CRITICAL ROLE CHECK: You MUST ONLY call this tool if the user explicitly mentions the role "backend" or "frontend". 
-  
-  🚫 ABSOLUTE PROHIBITION: 
-  - If the role is NOT "backend" or "frontend" (e.g., "Fullstack", "Mobile", "QA", "Designer"), you MUST NOT call this tool.
-  - NEVER invent, assume, or guess the category yourself. Call this tool ONLY if the category is EXPLICITLY provided by the user in their prompt.
-  - If the user asks for general "developers" without a specific role, SKIP this tool.
-
-  CHAINING RULE: This tool returns a list of skills. AFTER receiving the result, you MUST:
-  1. Re-analyze the original user query for any other constraints (workload, limit, etc.).
-  2. IMMEDIATELY call "searchEmployees".
-  3. Pass the EXACT list of skills from this tool into the "skills" parameter of "searchEmployees".
-  
-  NEVER respond to the user until you have completed the "searchEmployees" call with these skills.
-`,
+    Call ONLY if user EXPLICITLY mentions "backend" or "frontend". 
+    🚫 DO NOT call for "Fullstack", "Mobile", "QA", "Designer" or general "developers". DO NOT guess the category.
+    CHAINING RULE:
+    1. Call this tool.
+    2. IMMEDIATELY call "searchEmployees" passing the EXACT returned skills into the "skills" parameter.
+    3. Do not respond to the user until step 2 is complete.
+  `,
 
   SEARCH_EMPLOYEES: `
-    Searches employees OR Project Managers (PMs). You can search by skills, workload ranges, work format, or real name. 
-    
-    CRITICAL ARGUMENT RULES:
-    - NEVER invent, hallucinate, or assume search arguments. 
-    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
-
-    CRITICAL WORKLOAD RULES:
-    - DEFAULT WORKLOAD: If the user does not specify availability or workload, you MUST set minLoadPercent to 0 and maxLoadPercent to 1000.
-    - If user asks for "available", set maxLoadPercent to 99%.
-    - If user asks for "overloaded", set minLoadPercent to 101%, set maxLoadPercent to 1000%.
-    - If user asks for "> 0%" or "working", set minLoadPercent to 1%.
-    - You can combine minLoadPercent and maxLoadPercent for specific ranges.
+    Search employees/PMs by skills, workload, format, or name. Extract arguments exactly.
+    WORKLOAD RULES:
+    - Default: minLoadPercent=0, maxLoadPercent=1000.
+    - "Available/Free": maxLoadPercent=99.
+    - "Overloaded": minLoadPercent=101, maxLoadPercent=1000.
+    - "Working/Active (>0%)": minLoadPercent=1.
   `,
 
-  GET_PROJECT_TEAM: 'Use ONLY when the user asks about a specific project team or project details.',
+  GET_PROJECT_TEAM: 'Use ONLY for specific project team/details requests.',
 
-  GET_PM_PORTFOLIO:
-    'Use ONLY when the user asks which projects a specific Project Manager (PM) is managing.',
+  GET_PM_PORTFOLIO: 'Use ONLY to find projects managed by a specific PM.',
 
   FINALIZE_AND_VALIDATE_RESPONSE: `
-    ⚠️ CRITICAL: YOU MUST CALL THIS TOOL BEFORE SHOWING ANY DATA TO THE USER. 
-    Once you have gathered data from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio', and selected the entities you want to display, you MUST pass them to this tool for a final database validation. 
-    If this tool returns an error, you MUST correct your data and call it again.
+    ⚠️ CRITICAL: MUST CALL BEFORE SHOWING DATA. 
+    Pass selected entities from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio' for validation. If error, correct data and recall.
   `,
 
-  EVALUATE_CANDIDATES:
-    'Use to evaluate candidates for a specific project. CRITICAL (TOOL CHAINING): If the user asks to FIRST find candidates (e.g., "Find 5 developers and evaluate them for project X"), you MUST follow 2 steps: STEP 1 - call searchEmployees. STEP 2 - take the names from step 1 and IMMEDIATELY call evaluateCandidates. Only respond to the user after step 2.',
+  EVALUATE_CANDIDATES: `
+    CHAINING RULE for finding & evaluating:
+    1. Call searchEmployees.
+    2. Pass resulting names to evaluateCandidates IMMEDIATELY.
+    Respond to user ONLY after step 2.
+  `,
 };
 
 export const AI_SCHEMA_DESCRIPTIONS = {
   GET_PROJECT_TEAM_SYS_INSTUCRION: `
-    Show the project team.
-
     Template:
     ### **[Project Name]**
     - 📌 **Status:** [Status]
@@ -153,9 +139,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
       - [Employee Name] — [Hours logged] hours logged
   `,
   GET_PM_PROJECTS_SYS_INSTUCRION: `
-    Show the manager's projects.
-    Provide a short reasoning about workload based on number of projects and team sizes.
-
+    Include short reasoning about workload based on projects/team size.
     Template:
     ### **[Project Name]**
     - 📌 **Status:** [status]
@@ -164,130 +148,65 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     - 🕒 **Total Project Hours (Month):** [totalProjectHoursThisMonth]h
     - 🔨 **Team Breakdown:**
       * [teamMembers.name] ([teamMembers.position]) — [teamMembers.perProjectTotalHours]h
-      * [teamMembers.name] ([teamMembers.position]) — [teamMembers.perProjectTotalHours]h
   `,
   ALTERNATIVES_SYS_INSTRUCTION:
-    'No candidates were found for the requested workload. Suggest alternatives and explain they are similar specialists.',
+    'No candidates found for requested workload. Suggest these alternatives as similar specialists.',
 
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
-    CRITICAL ARGUMENT RULES:
-    - NEVER invent, hallucinate, or assume search arguments. 
-    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
+    Extract arguments EXACTLY. Do not hallucinate numbers. Use EXACT 'aiStats'.
+    
+    RULES:
+    - State matching required skills.
+    - Availability: 0–99% is available.
+    - Overload (>100% or overtime>0): Add "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
+    - Near Limit (90-100%): Add "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
+    - Untracked (>0h): Add "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
+    - Account for Part-time vs Full-time differences.
+    - ZERO-VALUE: Output all fields exactly as below, even if 0.
 
-    CRITICAL (REASONING & FORMATTING RULES): Strictly follow these rules to meet HR guidelines. Use EXACT data from the 'aiStats' object for each user. Do NOT hallucinate numbers.
-
-    (EXPLANATION): For each candidate, list matching required skills. Explicitly state Employed Time % and hours, broken down using the aiStats object.
-
-    (AVAILABILITY): Employees with aiStats.totalPercent between 0–99% are available. Mention this when comparing candidates.
-
-    (OVERLOAD): If aiStats.totalPercent > 100 or aiStats.overtimeHours > 0, add:
-    "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
-
-    (NEAR LIMIT): If aiStats.totalPercent is between 90 and 100 inclusive, add:
-    "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
-
-    (UNTRACKED TIME): If aiStats.untrackedHours > 0, add:
-    "Note: [aiStats.untrackedPercent]% of this employee's time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
-
-    (WORK FORMAT): When comparing candidates or availability, explain differences: Part-time vs Full-time free hours.
-
-    ⚠️ CRITICAL ZERO-VALUE RULE: You MUST output all fields (PTO, Billable, Non-Billable, Untracked) EXACTLY as shown in the template below. NEVER omit a section just because its value is 0. If a value is 0, output "0".
-
-    GENERAL TEMPLATE:
+    TEMPLATE:
     ### **[Name]**
     - 🛠 **Skills:** [List of all users skills]
     - 💼 **Format:** [Work Format]
     - ⛵ **PTO:** [ptoHours]h
     - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untrackedHours]h))
-    - [If aiStats.overtimeHours > 0 add line: 🚨 **Overtime:** [aiStats.overtimeHours]h]
+    - [If overtimeHours > 0: 🚨 **Overtime:** [aiStats.overtimeHours]h]
     - 📁 **Active Projects:**
       * [Project Name] (PM: [PM Name]) - [hoursSpent]h
-      * [Project Name] (PM: [PM Name]) - [hoursSpent]h
-      (If no projects: output "None" or skip if user asked about managers)
-    - 💡 **HR Analysis:** [2-3 sentence explanation with warnings].
-
+      (If none: "None")
+    - 💡 **HR Analysis:** [2-3 sentence HR evaluation/warnings].
   `,
-  TECH_CATEGORY: `
-    The technology category. 
-    ⚠️ CRITICAL: You MUST use one of these exact values in UPPERCASE: 
-    - "BACKEND"
-    - "FRONTEND"
-    
-    DO NOT use any other values or lowercase strings.
-  `,
+  TECH_CATEGORY: 'MUST be exactly "BACKEND" or "FRONTEND". No other values.',
   SKILLS_LIST: `
-    CRITICAL ARGUMENT RULES:
-    - NEVER invent, hallucinate, or assume search arguments. 
-    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
-
-    List of required skills. 
-    RULE 1: If the user asks for MULTIPLE skills, put ALL of them into a SINGLE array.
-    RULE 2: Leave this array EMPTY if the user says "any".
-    RULE 3: Use  tool "getTechnologiesByCategory" ONLY if the user asks for a broad category (e.g., "frontend developers", "backend stack") without naming specific tools. If specific skills are mentioned (e.g., "React", "Node"), skip this and call "searchEmployees" directly.
-    RULE 4: If you used getTechnologiesByCategory tool, you MUST add returned skills to that parament.
-    RULE 5: 🚫 EXACT MATCH ONLY. Search strictly for the skills explicitly mentioned by the user or for the skills from getTechnologiesByCategory tool. Do NOT invent, guess, hallucinate, or add related skills that the user did not directly ask for.
+    RULES:
+    1. Multiple skills: put in ONE array.
+    2. "Any" skills: empty array.
+    3. Broad category ("frontend devs"): use getTechnologiesByCategory. Specific skills ("React"): skip tool, use searchEmployees directly.
+    4. Exact match ONLY. Extract exactly as requested/returned by tools.
   `,
-  EMPLOYEE_LIMIT: `The maximum number of employees to return. This value depends primarily on the users explicit request (e.g., if they ask for 10 candidates, set to 10). CRITICAL: If the user asks for a general count or quantity (e.g., "How many?"), you MUST set this limit to 50 to ensure an accurate calculation for the processedUsers out of all users report. Default is 5.`,
-  REAL_NAME: 'Real name of the employee. Use this if the user asks for a specific person.',
-
-  WORK_FORMAT: `
-    OMIT this field unless the user specifically asks for FULL_TIME or PART_TIME. 
-    ⚠️ CRITICAL REASONING RULE: Remember that PART_TIME employees have a baseline of 50% fewer working hours per month compared to FULL_TIME employees. You MUST account for this reduced baseline when evaluating their availability, calculating their workload percentages, or comparing their free hours to full-time staff.
-  `,
-  PROJECT_DOMAIN_EMPLOYEE:
-    'OMIT this field unless a specific domain (e.g. Fintech) is explicitly mentioned in the user prompt.',
+  EMPLOYEE_LIMIT:
+    'Max employees to return. Default 5. If user asks "How many?" or general count, set to 50.',
+  REAL_NAME: 'Real name of the employee.',
+  WORK_FORMAT:
+    'OMIT unless specified. ⚠️ Remember: PART_TIME has 50% fewer baseline hours than FULL_TIME. Adjust calculations/comparisons accordingly.',
+  PROJECT_DOMAIN_EMPLOYEE: 'OMIT unless a specific domain is explicitly mentioned.',
   EXCLUDE_NAMES:
-    'CRITICAL: If the user asks for "more" or "other" candidates, you MUST look at your previous messages, take the exact names of the employees you ALREADY showed them, and pass them in this array to exclude them from the new search.',
+    'Pass names of employees ALREADY shown in chat history if user asks for "more/other".',
   PROJECT_NAME:
-    'Name of the project. DO NOT split names with commas, hyphens, or "and". "Rolfson, Jones and Fahey" is ONE full project name. NEVER extract a manager name from it. If the user asks for all projects, you MUST OMIT this parameter entirely.',
-  PROJECT_MANAGER_NAME:
-    'Name of the PM. OMIT THIS FIELD ENTIRELY unless the user explicitly asks for a Project Manager (e.g., "managed by Johan").',
-  PROJECT_DOMAIN_PROJECT: `
-    Project domain.
-
-    STRICT RULES:
-    - CRITICAL: You MUST use one of these exact values: ${availableDomains}. You cant use any of these values for other tools. It will be an error.
-    - NEVER guess the domain.
-    - NEVER default to any domain.
-    - Example of WRONG behavior:
-      User: "Find project Blanda - Welch"
-      ❌ { projectName: "Blanda - Welch", projectDomain: "E_COMMERCE" }
-      ✅ { projectName: "Blanda - Welch" }
-
-      User: "Tell me Olin Braun projects"
-      ❌ { projectManagerName: "Olin Braun", projectDomain: "E_COMMERCE" }
-      ✅ { projectManagerName: "Olin Braun" }
-    `,
-  SKILL_MODE: `
-  "OR" (default): match ANY skill.
-  "AND": match ALL skills.
-  Use "AND" ONLY if user explicitly requires multiple skills ("and", "must have").
-  Otherwise use "OR".
-`,
-
-  PROJECT_TEAM_NAME_DESC:
-    'CRITICAL: Use this tool to find out the team composition of a specific project. Enter the project name',
-  PM_PORTFOLIO_MANAGER_DESC:
-    'CRITICAL: Use this tool to find all projects managed by a specific Project Manager (PM)',
-
-  EVALUATE_PROJECT_NAME_DESC: 'The name of the project to which we want to assign people',
-
-  EVALUATE_CANDIDATES_DESC: 'An array of candidate names to evaluate (e.g., ["John", "Peter"])',
-
-  SYSTEM_ROLE_DESC:
-    'CRITICAL: If the user is looking for developers or engineers, pass "EMPLOYEE". If the user explicitly asks for a Project Manager (PM, managers), you MUST pass "MANAGER".',
-
-  MIN_LOAD_PERCENT_DESC: `
-    Minimum employed time percentage. Default is 0. 
-    ⚠️ CRITICAL: If the user asks for "overloaded" or "overworking" employees, you MUST set this to 101. 
-    This value is a TOP PRIORITY and must be preserved even when searching by skills.`,
-
-  MAX_LOAD_PERCENT_DESC: `
-    Maximum workload percentage. 
-    ⚠️ CRITICAL AVAILABILITY RULE: 
-    - If user query implies "available", "free", "has capacity", or "not busy", you MUST set this to 99.
-    - Otherwise, use 1000. 
-    - 🔒 PERSISTENCE: This value is the MOST IMPORTANT filter. If you are calling this tool as a second step (e.g., after "getTechnologiesByCategory"), you MUST RE-APPLY this 99 value from the original user intent. NEVER reset it to 1000 if the user asked for someone available.`,
+    'Full project name. Do not split names. Do not extract manager names from it. OMIT if asking for all projects.',
+  PROJECT_MANAGER_NAME: 'PM Name. OMIT entirely unless user explicitly asks for a PM.',
+  PROJECT_DOMAIN_PROJECT: `Project domain. MUST be one of: ${availableDomains}. NEVER guess or default. OMIT if not specified.`,
+  SKILL_MODE:
+    '"OR" (default, match ANY). "AND" (match ALL - use ONLY if user explicitly requires "must have" or "and").',
+  PROJECT_TEAM_NAME_DESC: 'Project name to find team composition.',
+  PM_PORTFOLIO_MANAGER_DESC: 'PM name to find all their managed projects.',
+  EVALUATE_PROJECT_NAME_DESC: 'Project name for candidate assignment.',
+  EVALUATE_CANDIDATES_DESC: 'Array of candidate names to evaluate (e.g., ["John", "Peter"]).',
+  SYSTEM_ROLE_DESC: 'Pass "EMPLOYEE" for devs/engineers. Pass "MANAGER" for PMs.',
+  MIN_LOAD_PERCENT_DESC:
+    'Min employed time %. Default 0. ⚠️ If user asks for "overloaded", set to 101. Preserve this value strictly.',
+  MAX_LOAD_PERCENT_DESC:
+    'Max workload %. ⚠️ "Available/Free" = 99. Otherwise = 1000. 🔒 PERSISTENCE: Maintain this intent across chained tool calls.',
 };
 
 export const AI_MESSAGES = {
