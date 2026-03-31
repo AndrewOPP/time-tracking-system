@@ -149,14 +149,35 @@ export class AichatToolsService {
       const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+      const normalizeString = (str: string) =>
+        str
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}\s]/gu, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      const normalizedQuery = normalizeString(args.projectName);
+
+      if (!normalizedQuery) {
+        return { message: AI_MESSAGES.NO_PROJECTS_FOUND };
+      }
+
+      const firstWord = normalizedQuery.split(' ')[0];
+
       const projects = await this.aichatRepo.findProjectsWithDetails(
-        { name: { contains: args.projectName, mode: 'insensitive' } },
+        { name: { contains: firstWord, mode: 'insensitive' } },
         startOfMonth,
         endOfMonth
       );
 
-      if (projects.length === 0) return { message: AI_MESSAGES.NO_PROJECTS_FOUND };
-      const mappedProjects = mapProjectsToAiResponse(projects as unknown as RawProject[]);
+      const matchedProjects = projects.filter(project => {
+        const normalizedProjectName = normalizeString(project.name);
+        return normalizedProjectName.includes(normalizedQuery);
+      });
+
+      if (matchedProjects.length === 0) return { message: AI_MESSAGES.NO_PROJECTS_FOUND };
+
+      const mappedProjects = mapProjectsToAiResponse(matchedProjects as unknown as RawProject[]);
 
       return {
         status: TOOL_RETURN_STATUS.SUCCESS,

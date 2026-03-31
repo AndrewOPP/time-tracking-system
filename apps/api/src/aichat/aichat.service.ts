@@ -8,7 +8,6 @@ import {
   AI_PROMPTS_ADDITIONS,
   AI_TOOL_DESCRIPTIONS,
 } from './constants/aichat.constants';
-import { cleanMessages } from './utils/cleanHistory';
 import { AichatToolsService } from './aichat-tools.service';
 import {
   getTechSchema,
@@ -28,8 +27,7 @@ export class AichatService {
   // eslint-disable-next-line
   async generateResponseStream(messages: UIMessage[]): Promise<any> {
     try {
-      const cleanHistory = cleanMessages(messages);
-      const trimmedMessages = cleanHistory.slice(-AI_CONFIG.MAX_HISTORY_MESSAGES);
+      const trimmedMessages = messages.slice(-AI_CONFIG.MAX_HISTORY_MESSAGES);
 
       return streamText({
         model: openai(this.configService.getOrThrow('AI_MODEL')),

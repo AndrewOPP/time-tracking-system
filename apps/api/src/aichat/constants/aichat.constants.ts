@@ -80,7 +80,6 @@ export const AI_CONFIG = {
 // ==========================================================================
 
 const availableDomains = Object.values(ProjectDomain).join(', ');
-const availableTechnologyType = Object.values(TechnologyType).join(', ');
 
 export const AI_PROMPTS_ADDITIONS = {
   CRITICAL_RULE:
@@ -93,16 +92,34 @@ export interface EvaluateCandidatesArgs {
 }
 
 export const AI_TOOL_DESCRIPTIONS = {
-  GET_TECH_BY_CATEGORY: `CRITICAL: ALWAYS call this FIRST ONLY when the user explicitly asks for developers by a SPECIFIC role only like these values: ${availableTechnologyType}. If the user just asks for general "developers" without specifying a role, DO NOT call this tool and DO NOT guess roles. It returns the exact list of skills that you can use with searchEmployees.`,
+  GET_TECH_BY_CATEGORY: `
+  CRITICAL ROLE CHECK: You MUST ONLY call this tool if the user explicitly mentions the role "backend" or "frontend". 
+  
+  🚫 ABSOLUTE PROHIBITION: 
+  - If the role is NOT "backend" or "frontend" (e.g., "Fullstack", "Mobile", "QA", "Designer"), you MUST NOT call this tool.
+  - NEVER invent, assume, or guess the category yourself. Call this tool ONLY if the category is EXPLICITLY provided by the user in their prompt.
+  - If the user asks for general "developers" without a specific role, SKIP this tool.
+
+  CHAINING RULE: This tool returns a list of skills. AFTER receiving the result, you MUST:
+  1. Re-analyze the original user query for any other constraints (workload, limit, etc.).
+  2. IMMEDIATELY call "searchEmployees".
+  3. Pass the EXACT list of skills from this tool into the "skills" parameter of "searchEmployees".
+  
+  NEVER respond to the user until you have completed the "searchEmployees" call with these skills.
+`,
 
   SEARCH_EMPLOYEES: `
     Searches employees OR Project Managers (PMs). You can search by skills, workload ranges, work format, or real name. 
     
+    CRITICAL ARGUMENT RULES:
+    - NEVER invent, hallucinate, or assume search arguments. 
+    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
+
     CRITICAL WORKLOAD RULES:
     - DEFAULT WORKLOAD: If the user does not specify availability or workload, you MUST set minLoadPercent to 0 and maxLoadPercent to 1000.
-    - If user asks for "available", set maxLoadPercent to 90.
-    - If user asks for "overloaded", set minLoadPercent to 101, set maxLoadPercent to 1000.
-    - If user asks for "> 0%" or "working", set minLoadPercent to 1 (and keep maxLoadPercent at 1000).
+    - If user asks for "available", set maxLoadPercent to 99%.
+    - If user asks for "overloaded", set minLoadPercent to 101%, set maxLoadPercent to 1000%.
+    - If user asks for "> 0%" or "working", set minLoadPercent to 1%.
     - You can combine minLoadPercent and maxLoadPercent for specific ranges.
   `,
 
@@ -130,6 +147,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     - 📌 **Status:** [Status]
     - 👤 **PM:** [PM Name or Unassigned]
     - 🏷️ **Domain:** [Domain]
+    - ⌛  **Start date:** [startDate.split("T")[0]]
     - ⚙️ **Technologies:** [Technologies]
     - 👥 **Team Members:**
       - [Employee Name] — [Hours logged] hours logged
@@ -140,23 +158,32 @@ export const AI_SCHEMA_DESCRIPTIONS = {
 
     Template:
     ### **[Project Name]**
-    - 📌 **Status:** [Status]
-    - 🏷️ **Domain:** [Domain]
-    - 👥 **Team Size:** [Team Size]
+    - 📌 **Status:** [status]
+    - 🏷️ **Domain:** [domain]
+    - 👥 **Team Size:** [totalTeamMembers]
+    - 🕒 **Total Project Hours (Month):** [totalProjectHoursThisMonth]h
+    - 🔨 **Team Breakdown:**
+      * [teamMembers.name] ([teamMembers.position]) — [teamMembers.perProjectTotalHours]h
+      * [teamMembers.name] ([teamMembers.position]) — [teamMembers.perProjectTotalHours]h
   `,
   ALTERNATIVES_SYS_INSTRUCTION:
     'No candidates were found for the requested workload. Suggest alternatives and explain they are similar specialists.',
+
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
+    CRITICAL ARGUMENT RULES:
+    - NEVER invent, hallucinate, or assume search arguments. 
+    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
+
     CRITICAL (REASONING & FORMATTING RULES): Strictly follow these rules to meet HR guidelines. Use EXACT data from the 'aiStats' object for each user. Do NOT hallucinate numbers.
 
     (EXPLANATION): For each candidate, list matching required skills. Explicitly state Employed Time % and hours, broken down using the aiStats object.
 
-    (AVAILABILITY): Employees with aiStats.totalPercent between 0–90% are available. Mention this when comparing candidates.
+    (AVAILABILITY): Employees with aiStats.totalPercent between 0–99% are available. Mention this when comparing candidates.
 
     (OVERLOAD): If aiStats.totalPercent > 100 or aiStats.overtimeHours > 0, add:
     "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
 
-    (NEAR LIMIT): If aiStats.totalPercent is between 91 and 100 inclusive, add:
+    (NEAR LIMIT): If aiStats.totalPercent is between 90 and 100 inclusive, add:
     "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
 
     (UNTRACKED TIME): If aiStats.untrackedHours > 0, add:
@@ -164,24 +191,41 @@ export const AI_SCHEMA_DESCRIPTIONS = {
 
     (WORK FORMAT): When comparing candidates or availability, explain differences: Part-time vs Full-time free hours.
 
+    ⚠️ CRITICAL ZERO-VALUE RULE: You MUST output all fields (PTO, Billable, Non-Billable, Untracked) EXACTLY as shown in the template below. NEVER omit a section just because its value is 0. If a value is 0, output "0".
+
     GENERAL TEMPLATE:
     ### **[Name]**
     - 🛠 **Skills:** [List of all users skills]
     - 💼 **Format:** [Work Format]
-    - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalHours]h [if billableHours > 0: | Billable: aiStats.billableHoursPercent% ([aiStats.billableHours]h)] [if nonBillableHours > 0: | Non-Billable: aiStats.nonBillableHoursPercent% ([aiStats.nonBillableHours]h)] [if untrackedHours > 0: | Untracked: aiStats.untrackedHoursPercent% ([aiStats.untrackedHours]h)])
+    - ⛵ **PTO:** [ptoHours]h
+    - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untrackedHours]h))
     - [If aiStats.overtimeHours > 0 add line: 🚨 **Overtime:** [aiStats.overtimeHours]h]
-    - 📁 **Active Projects:** [List] or None (Don't show this line if user asked about managers)
+    - 📁 **Active Projects:**
+      * [Project Name] (PM: [PM Name]) - [hoursSpent]h
+      * [Project Name] (PM: [PM Name]) - [hoursSpent]h
+      (If no projects: output "None" or skip if user asked about managers)
     - 💡 **HR Analysis:** [2-3 sentence explanation with warnings].
 
   `,
-  TECH_CATEGORY: 'Category of tech',
+  TECH_CATEGORY: `
+    The technology category. 
+    ⚠️ CRITICAL: You MUST use one of these exact values in UPPERCASE: 
+    - "BACKEND"
+    - "FRONTEND"
+    
+    DO NOT use any other values or lowercase strings.
+  `,
   SKILLS_LIST: `
+    CRITICAL ARGUMENT RULES:
+    - NEVER invent, hallucinate, or assume search arguments. 
+    - You MUST strictly extract and use the arguments exactly as provided in the user's query. Do not add parameters the user didn't explicitly ask for.
+
     List of required skills. 
     RULE 1: If the user asks for MULTIPLE skills, put ALL of them into a SINGLE array.
     RULE 2: Leave this array EMPTY if the user says "any".
-    RULE 3: Do NOT pass broad role categories (e.g., frontend, backend, or any from ${availableTechnologyType}) directly into the "skills" search parameter. If the user requests a category, you MUST first call the "getTechnologiesByCategory" tool to retrieve the exact list of specific technologies, and then use those returned technologies for your search.
-    RULE 4: ⚠️ CRITICAL: The database uses STRICT 'AND' logic. When finding a team for a project, DO NOT pass the entire project stack! Pass only 1 or 2 core skills (e.g. ["React"] OR ["Node.js"]) to avoid getting 0 results.
-    RULE 5: 🚫 EXACT MATCH ONLY. Search strictly for the skills explicitly mentioned by the user. Do NOT invent, guess, hallucinate, or add related skills that the user did not directly ask for.
+    RULE 3: Use  tool "getTechnologiesByCategory" ONLY if the user asks for a broad category (e.g., "frontend developers", "backend stack") without naming specific tools. If specific skills are mentioned (e.g., "React", "Node"), skip this and call "searchEmployees" directly.
+    RULE 4: If you used getTechnologiesByCategory tool, you MUST add returned skills to that parament.
+    RULE 5: 🚫 EXACT MATCH ONLY. Search strictly for the skills explicitly mentioned by the user or for the skills from getTechnologiesByCategory tool. Do NOT invent, guess, hallucinate, or add related skills that the user did not directly ask for.
   `,
   EMPLOYEE_LIMIT: `The maximum number of employees to return. This value depends primarily on the users explicit request (e.g., if they ask for 10 candidates, set to 10). CRITICAL: If the user asks for a general count or quantity (e.g., "How many?"), you MUST set this limit to 50 to ensure an accurate calculation for the processedUsers out of all users report. Default is 5.`,
   REAL_NAME: 'Real name of the employee. Use this if the user asks for a specific person.',
@@ -232,10 +276,18 @@ export const AI_SCHEMA_DESCRIPTIONS = {
 
   SYSTEM_ROLE_DESC:
     'CRITICAL: If the user is looking for developers or engineers, pass "EMPLOYEE". If the user explicitly asks for a Project Manager (PM, managers), you MUST pass "MANAGER".',
-  MIN_LOAD_PERCENT_DESC:
-    'Minimum employed time percentage. It should be 0 by default. Use 101 if the user asks for overloaded employees.',
-  MAX_LOAD_PERCENT_DESC:
-    'Maximum employed time percentage. Use 90 if the user asks for available employees.',
+
+  MIN_LOAD_PERCENT_DESC: `
+    Minimum employed time percentage. Default is 0. 
+    ⚠️ CRITICAL: If the user asks for "overloaded" or "overworking" employees, you MUST set this to 101. 
+    This value is a TOP PRIORITY and must be preserved even when searching by skills.`,
+
+  MAX_LOAD_PERCENT_DESC: `
+    Maximum workload percentage. 
+    ⚠️ CRITICAL AVAILABILITY RULE: 
+    - If user query implies "available", "free", "has capacity", or "not busy", you MUST set this to 99.
+    - Otherwise, use 1000. 
+    - 🔒 PERSISTENCE: This value is the MOST IMPORTANT filter. If you are calling this tool as a second step (e.g., after "getTechnologiesByCategory"), you MUST RE-APPLY this 99 value from the original user intent. NEVER reset it to 1000 if the user asked for someone available.`,
 };
 
 export const AI_MESSAGES = {

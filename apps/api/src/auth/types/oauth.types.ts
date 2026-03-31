@@ -47,7 +47,7 @@ export interface RequestWithUser extends Request {
 }
 
 export const JWT_CONFIG = {
-  ACCESS_EXPIRES: '15m',
+  ACCESS_EXPIRES: '15s',
   REFRESH_EXPIRES: '7d',
   REFRESH_MAX_AGE: 7 * 24 * 60 * 60 * 1000,
 } as const;

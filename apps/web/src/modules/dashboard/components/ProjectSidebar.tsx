@@ -63,8 +63,8 @@ export const ProjectSidebar = ({ project, currentStatus }: ProjectSidebarProps) 
             <span className="text-gray-500 flex items-center gap-2">
               <Globe className="w-4 h-4" /> Domain
             </span>
-            <span className="font-medium text-slate-900 text-transform:uppercase;">
-              {firstCharToUpperCase(project.domain.toLocaleLowerCase()) || '—'}
+            <span className="font-medium text-slate-900">
+              {project.domain ? firstCharToUpperCase(project.domain.toLocaleLowerCase()) : '—'}
             </span>
           </div>
         </div>
