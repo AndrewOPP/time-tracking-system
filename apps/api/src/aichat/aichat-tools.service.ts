@@ -18,6 +18,7 @@ import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
 import { RawProject, RawUser } from './types/aichat.types';
 import { ValidateResponseArgs } from './schemas/ai-validation.schema';
+import { normalizeString } from './utils/string';
 
 @Injectable()
 export class AichatToolsService {
@@ -148,13 +149,6 @@ export class AichatToolsService {
     try {
       const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
-
-      const normalizeString = (str: string) =>
-        str
-          .toLowerCase()
-          .replace(/[^\p{L}\p{N}\s]/gu, '')
-          .replace(/\s+/g, ' ')
-          .trim();
 
       const normalizedQuery = normalizeString(args.projectName);
 
