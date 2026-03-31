@@ -9,6 +9,8 @@ import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { useChatStore } from '../types/stores/useChatStore';
 import { ChatMessage } from '../components/ChatPageComponents/ChatMessage';
 import { tokenRefresh } from '@/modules/auth/api/auth.api';
+import { AI_CHAT_PAGE_CONFIG } from '../constants/constants';
+import { ROUTES } from '@/shared/constants/routes';
 
 const MemoChatMessage = memo(ChatMessage);
 
@@ -20,7 +22,7 @@ export function ManagerAIChatPage() {
 
   const chatTransport = useMemo(() => {
     return new DefaultChatTransport({
-      api: import.meta.env.VITE_PUBLIC_API_URL + '/chat',
+      api: import.meta.env.VITE_PUBLIC_API_URL + ROUTES.MANAGER.AI_CHAT_TRANSPORT,
       fetch: async (input, init) => {
         const token = useAuthStore.getState().accessToken;
 
@@ -55,7 +57,7 @@ export function ManagerAIChatPage() {
   const { messages, sendMessage, status, error, regenerate } = useChat({
     messages: savedMessages ?? [],
     transport: chatTransport,
-    experimental_throttle: 50,
+    experimental_throttle: AI_CHAT_PAGE_CONFIG.experimental_throttle,
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';

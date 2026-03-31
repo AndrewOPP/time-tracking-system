@@ -158,3 +158,7 @@ export const VALID_RANGE_OPTIONS_CONFIG = {
 };
 
 export const FILTER_ALL_VALUE = 'all';
+
+export const AI_CHAT_PAGE_CONFIG = {
+  experimental_throttle: 50,
+};

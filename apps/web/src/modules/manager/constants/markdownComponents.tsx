@@ -1,7 +1,6 @@
 import type { Components } from 'react-markdown';
 
 export const markdownComponents: Components = {
-  // --- Текст и списки ---
   p: ({ children }) => <p className="mb-4 last:mb-0 animate-fade-in-up">{children}</p>,
   strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
   ul: ({ children }) => (
@@ -18,7 +17,6 @@ export const markdownComponents: Components = {
     </li>
   ),
 
-  // --- ЗАГОЛОВКИ ---
   h1: ({ children }) => (
     <h1 className="text-2xl font-bold text-slate-900 mt-8 mb-4 animate-fade-in-up">{children}</h1>
   ),
@@ -34,15 +32,5 @@ export const markdownComponents: Components = {
     <h4 className="text-base font-medium text-slate-900 mt-5 mb-2 animate-fade-in-up">
       {children}
     </h4>
-  ),
-
-  // --- Медиа ---
-  img: ({ src, alt, title }) => (
-    <img
-      src={src}
-      alt={alt || 'Изображение'}
-      title={title}
-      className="max-w-full max-h-10 object-contain rounded-md my-4 bg-slate-50 animate-fade-in-up"
-    />
   ),
 };

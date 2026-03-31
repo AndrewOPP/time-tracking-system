@@ -4,6 +4,7 @@ import { calculateEmployedTimeData } from 'src/timeLogs/utils/employedTimeCalcul
 import { getWeeksForMonth } from 'src/timeLogs/utils/monthToWeeks';
 import { AI_MESSAGES } from './constants/aichat.constants';
 import { RawProject, RawUser } from './types/aichat.types';
+import { capitalize } from './utils/string';
 
 export function mapUsersToAiResponse(users: RawUser[], currentYear: number, currentMonth: number) {
   return users.map(user => {
@@ -86,7 +87,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       })),
       aiStats,
       ptoHours,
-      totalLoggedHours: totalUserHours,
+      totalLoggedHours: Number(totalUserHours.toFixed(1)),
     };
   });
 }
@@ -108,8 +109,8 @@ export function mapProjectsToAiResponse(projects: RawProject[]) {
 
     return {
       projectName: project.name,
-      status: project.status.toLowerCase().replace(/^\w/, c => c.toUpperCase()),
-      domain: project.domain.toLowerCase().replace(/^\w/, c => c.toUpperCase()),
+      status: capitalize(project.status),
+      domain: capitalize(project.domain),
       technologies: project.technologies,
       projectManager:
         project.projectManager?.realName ||

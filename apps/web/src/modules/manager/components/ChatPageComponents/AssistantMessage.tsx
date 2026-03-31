@@ -31,11 +31,9 @@ export const AssistantMessage = memo(
         </span>
 
         <div className="text-[15px] text-slate-800 leading-relaxed">
-          {/* 2. Максимальная производительность: ОДИН парсер на весь текст */}
           <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
         </div>
 
-        {/* 3. Кнопки действий появляются только когда ответ готов */}
         {isReady && (
           <div className="flex items-center gap-4 mt-3 pb-3 border-t border-transparent text-slate-400 animate-fade-in-up">
             <button
