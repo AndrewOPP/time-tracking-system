@@ -21,7 +21,7 @@ export interface ProjectDetails {
   id: string;
   description: string;
   name: string;
-  domain: string;
+  domain: string | null;
   logo: string | null;
   status: string;
   startDate: string;

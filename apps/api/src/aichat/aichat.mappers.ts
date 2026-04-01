@@ -4,6 +4,7 @@ import { calculateEmployedTimeData } from 'src/timeLogs/utils/employedTimeCalcul
 import { getWeeksForMonth } from 'src/timeLogs/utils/monthToWeeks';
 import { AI_MESSAGES } from './constants/aichat.constants';
 import { RawProject, RawUser } from './types/aichat.types';
+import { capitalize } from './utils/string';
 
 export function mapUsersToAiResponse(users: RawUser[], currentYear: number, currentMonth: number) {
   return users.map(user => {
@@ -17,7 +18,6 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       return {
         projectId: up.project.id,
         projectName: up.project.name,
-        domain: up.project.domain,
         pmName:
           up.project.projectManager?.realName ||
           up.project.projectManager?.username ||
@@ -74,16 +74,20 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
         user.technologies.length > 0
           ? user.technologies.map(t => t.technology.name)
           : [AI_MESSAGES.NO_SKILLS],
-      workFormat: user.workFormat,
+      workFormat: user.workFormat
+        ? user.workFormat
+            .toLowerCase()
+            .replace('_', '-')
+            .replace(/^\w/, c => c.toUpperCase())
+        : 'Unknown',
       activeProjects: projectsData.map(p => ({
-        domain: p.domain,
         name: p.projectName,
         pm: p.pmName,
-        hoursSpent: p.perProjectTotal,
+        hoursSpent: Number(p.perProjectTotal.toFixed(1)),
       })),
       aiStats,
       ptoHours,
-      totalLoggedHours: totalUserHours,
+      totalLoggedHours: Number(totalUserHours.toFixed(1)),
     };
   });
 }
@@ -97,7 +101,7 @@ export function mapProjectsToAiResponse(projects: RawProject[]) {
       return {
         name: up.user.realName || up.user.username,
         position: up.position,
-        perProjectTotalHours: perProjectTotal,
+        perProjectTotalHours: Number(perProjectTotal.toFixed(1)),
       };
     });
 
@@ -105,8 +109,8 @@ export function mapProjectsToAiResponse(projects: RawProject[]) {
 
     return {
       projectName: project.name,
-      status: project.status,
-      domain: project.domain,
+      status: capitalize(project.status),
+      domain: capitalize(project.domain),
       technologies: project.technologies,
       projectManager:
         project.projectManager?.realName ||
@@ -115,7 +119,7 @@ export function mapProjectsToAiResponse(projects: RawProject[]) {
       type: project.type,
       startDate: project.startDate,
       totalTeamMembers: teamMembers.length,
-      totalProjectHoursThisMonth: totalProjectHours,
+      totalProjectHoursThisMonth: Number(totalProjectHours.toFixed(1)),
       teamMembers,
     };
   });

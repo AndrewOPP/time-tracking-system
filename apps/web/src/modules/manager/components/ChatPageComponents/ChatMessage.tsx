@@ -10,23 +10,23 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = memo(({ message, isReady, isLoading }: ChatMessageProps) => {
-  const textContent = useMemo(
-    () =>
+  const textContent = useMemo(() => {
+    return (
       message.parts
         ?.filter(part => part.type === 'text')
         .map(part => part.text)
-        .join(''),
-    [message.parts]
-  );
+        .join('') || ''
+    );
+  }, [message.parts]);
 
   const isTyping = message.role === 'assistant' && !textContent && isLoading;
 
   return (
     <div className="flex flex-col w-full">
       {message.role === 'user' ? (
-        <UserMessage content={textContent || ''} />
+        <UserMessage content={textContent} />
       ) : (
-        <AssistantMessage content={textContent || ''} isReady={isReady} isTyping={isTyping} />
+        <AssistantMessage content={textContent} isReady={isReady} isTyping={isTyping} />
       )}
     </div>
   );
