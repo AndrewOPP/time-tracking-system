@@ -104,7 +104,7 @@ export const AI_TOOL_DESCRIPTIONS = {
     Search employees/PMs by skills, workload, format, or name. Extract arguments exactly.
     WORKLOAD RULES:
     - Default: minLoadPercent=0, maxLoadPercent=1000.
-    - "Available/Free": maxLoadPercent=99.
+    - "Available/Free": maxLoadPercent=90.
     - "Overloaded": minLoadPercent=101, maxLoadPercent=1000.
     - "Working/Active (>0%)": minLoadPercent=1.
   `,
@@ -153,21 +153,34 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     'No candidates found for requested workload. Suggest these alternatives as similar specialists.',
 
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
-    Extract arguments EXACTLY. Do not hallucinate numbers. Use EXACT 'aiStats'.
+    Extract arguments EXACTLY. Do not hallucinate numbers or any other arguments. Use EXACT 'aiStats' and other data returned from the tool.
     
     RULES:
     - State matching required skills.
-    - Availability: 0–99% is available.
-    - Overload (>100% or overtime>0): Add "⚠️ [Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
-    - Near Limit (90-100%): Add "⚠️ [Name] is at [aiStats.totalPercent]% — nearly at full capacity."
-    - Untracked (>0h): Add "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
     - Account for Part-time vs Full-time differences.
     - ZERO-VALUE: Output all fields exactly as below, even if 0.
+    - Availability: If totalPercent is below 90%, the employee is considered fully available.
+    - ⚖️ CAPACITY COMPARISON: When ranking availability between multiple people, explicitly state that Full-Time provides more absolute free hours than Part-Time at the same load percentage.
+    📊 COUNT QUERIES: If asking "How many...". Add to your response with: "[totalAvailable] out of [totalOverall] total". ⚠️ CRITICAL: You MUST extract and pass the required skill into the 'skills' array (e.g., ["Python"]).
+    
+    ⚠️ MANDATORY WARNINGS CHECKLIST (EVALUATE STEP-BY-STEP FOR EACH EMPLOYEE):
+    You MUST check ALL 3 conditions below independently. If a condition is true, you MUST output its corresponding text in the "⚠️ Warnings:" section. It is strictly required to show ALL warnings that apply.
+    
+    [STEP 1] Check Overload: Is totalPercent >= 100 OR overtimeHours > 0?
+             -> If YES, add: "[Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
+    [STEP 2] Check Near Limit: Is totalPercent >= 90 AND totalPercent <= 99?
+             -> If YES, add: "[Name] is at [aiStats.totalPercent]% — nearly at full capacity."
+    [STEP 3] Check Untracked: Is untrackedHours > 0?
+             -> If YES, add: "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
 
     TEMPLATE:
     ### **[Name]**
     - 🛠 **Skills:** [List of all users skills]
     - 💼 **Format:** [Work Format]
+    - ⚠️ **Warnings:** (Add this section ONLY if at least one STEP above is YES)
+      - [Result of STEP 1 if YES]
+      - [Result of STEP 2 if YES]
+      - [Result of STEP 3 if YES]
     - ⛵ **PTO:** [ptoHours]h
     - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untrackedHours]h))
     - [If overtimeHours > 0: 🚨 **Overtime:** [aiStats.overtimeHours]h]
@@ -183,6 +196,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     2. "Any" skills: empty array.
     3. Broad category ("frontend devs"): use getTechnologiesByCategory. Specific skills ("React"): skip tool, use searchEmployees directly.
     4. Exact match ONLY. Extract exactly as requested/returned by tools.
+    ⚠️ CRITICAL: If the user mentions a specific technology in their prompt (even in "How many [Skill] developers" queries), you MUST include it here.
   `,
   EMPLOYEE_LIMIT:
     'Max employees to return. Default 5. If user asks "How many?" or general count, set to 50.',
@@ -206,7 +220,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
   MIN_LOAD_PERCENT_DESC:
     'Min employed time %. Default 0. ⚠️ If user asks for "overloaded", set to 101. Preserve this value strictly.',
   MAX_LOAD_PERCENT_DESC:
-    'Max workload %. ⚠️ "Available/Free" = 99. Otherwise = 1000. 🔒 PERSISTENCE: Maintain this intent across chained tool calls.',
+    'Max workload %. ⚠️ "Available/Free" = 90. Otherwise = 1000. 🔒 PERSISTENCE: Maintain this intent across chained tool calls.',
 };
 
 export const AI_MESSAGES = {
