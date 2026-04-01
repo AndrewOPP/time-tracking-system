@@ -164,9 +164,23 @@ export const getPmPortfolioSchema = jsonSchema<GetPmPortfolioArgs>({
 // });
 
 export const evaluateCandidatesSchema = z.object({
-  requiredSkills: z.array(z.string()).describe('Skills required for the project'),
-  targetDomain: z.string().optional().describe('Project domain, e.g., "FoodTech"'),
-  limit: z.number().optional().default(5).describe('How many top candidates to return'),
+  requiredSkills: z
+    .array(z.string())
+    .describe(
+      'Exact skills explicitly named by the user. DO NOT guess, infer, or hallucinate related tech. Return [] if none specified.'
+    ),
+  targetDomain: z
+    .string()
+    .optional()
+    .describe('Project domain, e.g., "FoodTech". Return "" if none specified.'),
+  limit: z.number().optional().default(3).describe('How many top candidates to return'),
+  loadStatus: z
+    .enum(['overload', 'available', ''])
+    .optional()
+    .default('')
+    .describe(
+      'Filter by workload status: "overload" (load > 100%), "available" (load < 90%), or empty string for all candidates'
+    ),
 });
 
 export type EvaluateCandidatesArgs = z.infer<typeof evaluateCandidatesSchema>;

@@ -162,6 +162,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     
     RULES:
     - State matching required skills.
+    - Use skills from user request or from getTechnologiesByCategory.
     - Account for Part-time vs Full-time differences.
     - ZERO-VALUE: Output all fields exactly as below, even if 0.
     - Availability: If totalPercent is below 90%, the employee is considered fully available.
@@ -216,7 +217,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
   PROJECT_MANAGER_NAME: 'PM Name. OMIT entirely unless user explicitly asks for a PM.',
   PROJECT_DOMAIN_PROJECT: `Project domain. MUST be one of: ${availableDomains}. NEVER guess or default. OMIT if not specified.`,
   SKILL_MODE:
-    '"OR" (default, match ANY). "AND" (match ALL - use ONLY if user explicitly requires "must have" or "and").',
+    '"OR" (default, match ANY, use is always after getTechnologiesByCategory). "AND" (match ALL - use ONLY if user explicitly requires "must have" or "and").',
   PROJECT_TEAM_NAME_DESC: 'Project name to find team composition.',
   PM_PORTFOLIO_MANAGER_DESC: 'PM name to find all their managed projects.',
   EVALUATE_PROJECT_NAME_DESC: 'Project name for candidate assignment.',

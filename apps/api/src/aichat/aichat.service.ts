@@ -78,32 +78,20 @@ export class AichatService {
             },
           }),
 
-          // displayScoringRanking: tool({
-          //   description: `
-          //     CRITICAL: Call this tool IMMEDIATELY after you have evaluated and scored candidates to display the final ranking to the manager.
-          //     You MUST pass the perfectly calculated structured JSON data into this tool so the frontend can render the scoring cards.
-          //     NEVER hallucinate scores. Calculate them strictly based on the stats retrieved from searchEmployees.
-          //   `,
-          //   inputSchema: candidateScoringSchema,
-          //   execute: async args => {
-          //     return {
-          //       status: 'success',
-          //       message: 'Ranking data successfully sent to the UI.',
-          //       data: args,
-          //     };
-          //   },
-          // }),
-
           evaluateCandidates: tool({
             description: `
-              🚨 CRITICAL ROUTING RULE: This is the ONLY tool you should use when the user asks for superlatives like the "best", "top" (e.g., "top 3"), "most available", or explicitly asks to "score", "rank", or "evaluate" candidates.
-              
-              This tool automatically evaluates the entire database, calculates mathematical scores (skills, availability, domain, risk), and returns a fully validated JSON array.
-              
-              DO NOT call 'searchEmployees' before this. 
-              DO NOT call 'finalizeAndValidateResponse' after this. 
-              This is a ONE-STEP standalone tool. Pass the skills, limit, and domain, and output the exact returned JSON.
-            `,
+                CORE INTENT: Use this tool whenever the user's underlying goal is to discover, compare, or select the *most suitable* candidates for a project or role. 
+                You MUST output the raw JSON array EXACTLY as it was returned by the tool and you always must to wrapp it in a markdown \`\`\`json block. Do not modify the JSON structure.
+
+                This tool performs a comprehensive, intelligent evaluation across the entire database. It automatically weighs skills, availability, domain experience, and risk factors to return a mathematically scored and ranked JSON array. 
+
+
+                ROUTING: This is a ONE-STEP standalone tool for ALL candidate evaluation and discovery queries. 
+                - DO NOT call 'searchEmployees' before this. 
+                - DO NOT call 'finalizeAndValidateResponse' after this.
+
+                🚨 ALTERNATIVES: If the JSON returns 'status: "alternatives_found"', you MUST explicitly state in your Executive Summary that no exact matches were found for the requested skills, and you are suggesting the best alternatives based on availability instead.
+              `,
             inputSchema: evaluateCandidatesSchema,
             execute: async args => {
               return this.dbToolsService.handleEvaluateCandidates(args);

@@ -20,6 +20,14 @@ import { RawProject, RawUser } from './types/aichat.types';
 import { ValidateResponseArgs } from './schemas/ai-validation.schema';
 import { EvaluateCandidatesArgs } from './schemas/ai.schemas';
 import { normalizeString } from './utils/string';
+import {
+  calculateWeights,
+  evaluateAvailability,
+  evaluateDomain,
+  evaluateRisk,
+  evaluateSkills,
+  MappedAiUser,
+} from './utils/canditateEvaluator.util';
 
 @Injectable()
 export class AichatToolsService {
@@ -365,10 +373,7 @@ export class AichatToolsService {
       const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
       const users = await this.aichatRepo.findUsersWithDetails(
-        {
-          isActive: true,
-          systemRole: USER_SYSTEM_ROLE.EMPLOYEE,
-        },
+        { isActive: true, systemRole: USER_SYSTEM_ROLE.EMPLOYEE },
         startOfMonth,
         endOfMonth
       );
@@ -379,94 +384,62 @@ export class AichatToolsService {
         users as unknown as RawUser[],
         currentYear,
         currentMonth
-      );
+      ) as unknown as MappedAiUser[];
 
-      const weights = {
-        skills: 0.35,
-        availability: args.targetDomain ? 0.3 : 0.5,
-        domain: args.targetDomain ? 0.2 : 0,
-        risk: 0.15,
-      };
+      const weights = calculateWeights(args);
 
       const allScoredCandidates = mappedUsers.map((mappedUser, index) => {
-        const rawUser = users[index];
-        const stats = mappedUser.aiStats;
+        const rawUser = users[index] as unknown as RawUser;
 
-        let skillsScore = 100;
-        let skillsReasoning = 'No specific skills requested';
-        if (args.requiredSkills?.length > 0) {
-          const userSkillsLower = mappedUser.skills.map(s => s.toLowerCase());
-          const matched = args.requiredSkills.filter(req =>
-            userSkillsLower.includes(req.toLowerCase())
-          );
-          skillsScore = Math.round((matched.length / args.requiredSkills.length) * 100);
-          const missing = args.requiredSkills.filter(
-            req => !userSkillsLower.includes(req.toLowerCase())
-          );
-          skillsReasoning =
-            missing.length > 0 ? `Missing: ${missing.join(', ')}` : 'All required skills present';
-        }
-
-        let availabilityScore = Math.max(0, 100 - stats.employedTimePercent);
-        if (mappedUser.workFormat === 'PART_TIME') {
-          availabilityScore = Math.round(availabilityScore * 0.5);
-        }
-        const availabilityReasoning = `${availabilityScore}% available capacity (Format: ${mappedUser.workFormat})`;
-
-        let domainScore = 0;
-        let domainReasoning = 'No matching domain experience';
-        if (args.targetDomain) {
-          const matchingProjects = rawUser.projects.filter(
-            p => p.project.domain?.toLowerCase() === args.targetDomain?.toLowerCase()
-          );
-          if (matchingProjects.length > 0) {
-            domainScore = matchingProjects.length >= 2 ? 100 : 70;
-            domainReasoning = `Experience in ${args.targetDomain}: ${matchingProjects.length} project(s)`;
-          }
-        }
-
-        let riskScore = 100;
-        const risks: string[] = [];
-        if (stats.employedTimePercent > 100) {
-          riskScore -= 50;
-          risks.push('Overloaded');
-        }
-        if (stats.overtime > 0) {
-          riskScore -= 30;
-          risks.push('Has overtime');
-        }
-        if (stats.untracked > 15) {
-          riskScore -= 35;
-          risks.push('High untracked hours');
-        }
-
-        const riskReasoning = risks.length > 0 ? risks.join(', ') : 'Low risk';
+        const skills = evaluateSkills(mappedUser, args.requiredSkills);
+        const availability = evaluateAvailability(mappedUser, args.loadStatus);
+        const domain = evaluateDomain(rawUser, args.targetDomain);
+        const risk = evaluateRisk(mappedUser);
 
         const totalScore = Math.round(
-          skillsScore * weights.skills +
-            availabilityScore * weights.availability +
-            domainScore * weights.domain +
-            riskScore * weights.risk
+          (skills.score * weights.skills) / 100 +
+            (availability.score * weights.availability) / 100 +
+            (domain.score * weights.domain) / 100 +
+            (risk.score * weights.risk) / 100
         );
 
         return {
           name: mappedUser.name,
           totalScore,
+          workFormat: mappedUser.workFormat,
+          appliedWeights: weights,
           criteria: {
-            skillsMatch: { score: skillsScore, reasoning: skillsReasoning },
-            availability: { score: availabilityScore, reasoning: availabilityReasoning },
-            domainExperience: { score: domainScore, reasoning: domainReasoning },
-            riskLevel: { score: Math.max(0, riskScore), reasoning: riskReasoning },
+            skillsMatch: { score: skills.score, reasoning: skills.reasoning },
+            availability: { score: availability.displayScore, reasoning: availability.reasoning },
+            domainExperience: { score: domain.score, reasoning: domain.reasoning },
+            riskLevel: { score: risk.score, reasoning: risk.reasoning },
           },
         };
       });
 
-      const topCandidates = allScoredCandidates
+      let finalPool = allScoredCandidates;
+      let isAlternatives = false;
+
+      if (args.requiredSkills && args.requiredSkills.length > 0) {
+        const matches = allScoredCandidates.filter(c => c.criteria.skillsMatch.score > 0);
+
+        if (matches.length > 0) {
+          finalPool = matches;
+        } else {
+          isAlternatives = true;
+          finalPool = allScoredCandidates;
+        }
+      }
+
+      const topCandidates = finalPool
         .sort((a, b) => b.totalScore - a.totalScore)
-        .slice(0, args.limit || 5);
-      console.log('🔥 Scoring done:', JSON.stringify(topCandidates, null, 2));
+        .slice(0, args.limit || 3);
+
       return {
-        status: 'success',
+        status: isAlternatives ? 'alternatives_found' : 'success',
+        message: isAlternatives
+          ? 'No exact skill matches found. Suggesting top available alternatives.'
+          : 'Success',
         appliedWeights: weights,
         candidates: topCandidates,
       };
