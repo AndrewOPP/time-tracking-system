@@ -1,5 +1,6 @@
 import type { Components } from 'react-markdown';
 import { ScoringCards, type ScoringCandidate } from '../components/ChatPageComponents/ScoringCards';
+import { ScoringCardsSkeleton } from '../components/ChatPageComponents/ScoringCards/ScoringCardsSkeleton';
 
 export const markdownComponents: Components = {
   p: ({ children }) => <p className="mb-4 last:mb-0 animate-fade-in-up">{children}</p>,
@@ -51,17 +52,16 @@ export const markdownComponents: Components = {
       } catch {
         if (rawString.trimStart().startsWith('[')) {
           return (
-            <div className="py-2 px-3 bg-slate-50/80 text-slate-500 rounded-md text-[13px] font-medium my-3 border border-slate-100 w-max flex items-center">
-              Generating cards
-              <span className="ml-0.5 flex">
-                <span className="animate-pulse">.</span>
-                <span className="animate-pulse" style={{ animationDelay: '200ms' }}>
-                  .
-                </span>
-                <span className="animate-pulse" style={{ animationDelay: '400ms' }}>
-                  .
-                </span>
-              </span>
+            <div className="flex flex-col gap-3 my-4">
+              <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
+                {/* Мінімалістичний круговий лоадер (спінер) */}
+                <span className="block h-3.5 w-3.5 rounded-full border-[1.5px] border-slate-200 border-t-slate-500 animate-spin"></span>
+
+                {/* Текст завантаження */}
+                <span className="font-medium">Generating cards...</span>
+              </div>
+
+              <ScoringCardsSkeleton />
             </div>
           );
         }

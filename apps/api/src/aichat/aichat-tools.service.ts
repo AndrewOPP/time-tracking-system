@@ -388,6 +388,8 @@ export class AichatToolsService {
 
       const weights = calculateWeights(args);
 
+      const allAvailableSkills = Array.from(new Set(mappedUsers.flatMap(u => u.skills)));
+
       const allScoredCandidates = mappedUsers.map((mappedUser, index) => {
         const rawUser = users[index] as unknown as RawUser;
 
@@ -408,9 +410,19 @@ export class AichatToolsService {
           totalScore,
           workFormat: mappedUser.workFormat,
           appliedWeights: weights,
+          actualSkills: mappedUser.skills,
           criteria: {
-            skillsMatch: { score: skills.score, reasoning: skills.reasoning },
-            availability: { score: availability.displayScore, reasoning: availability.reasoning },
+            skillsMatch: {
+              score: skills.score,
+              reasoning: skills.reasoning,
+              matched: skills.matched,
+              missing: skills.missing,
+            },
+            availability: {
+              score: availability.displayScore,
+              reasoning: availability.reasoning,
+              userTimeLoad: mappedUser.aiStats?.employedTimePercent,
+            },
             domainExperience: { score: domain.score, reasoning: domain.reasoning },
             riskLevel: { score: risk.score, reasoning: risk.reasoning },
           },
@@ -418,17 +430,21 @@ export class AichatToolsService {
       });
 
       let finalPool = allScoredCandidates;
-      let isAlternatives = false;
 
       if (args.requiredSkills && args.requiredSkills.length > 0) {
         const matches = allScoredCandidates.filter(c => c.criteria.skillsMatch.score > 0);
 
-        if (matches.length > 0) {
-          finalPool = matches;
-        } else {
-          isAlternatives = true;
-          finalPool = allScoredCandidates;
+        if (matches.length === 0) {
+          return {
+            status: 'not_found',
+            message: 'No candidates matched the required skills.',
+            appliedWeights: weights,
+            availableSkillsContext: allAvailableSkills,
+            candidates: [],
+          };
         }
+
+        finalPool = matches;
       }
 
       const topCandidates = finalPool
@@ -436,10 +452,8 @@ export class AichatToolsService {
         .slice(0, args.limit || 3);
 
       return {
-        status: isAlternatives ? 'alternatives_found' : 'success',
-        message: isAlternatives
-          ? 'No exact skill matches found. Suggesting top available alternatives.'
-          : 'Success',
+        status: 'success',
+        message: 'Success',
         appliedWeights: weights,
         candidates: topCandidates,
       };

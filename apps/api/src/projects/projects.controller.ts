@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 interface JwtPayload {
   sub: string;

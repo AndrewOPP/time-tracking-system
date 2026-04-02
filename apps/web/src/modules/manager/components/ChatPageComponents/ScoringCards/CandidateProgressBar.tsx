@@ -1,12 +1,14 @@
 import { getBarColor, getScoreColor } from '@/modules/manager/utils/scoring';
 import { Progress } from '@components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/ui/tooltip';
+import type { ReactNode } from 'react';
 
 interface CandidateProgressBarProps {
   label: string;
   score: number;
-  reasoning: string;
+  reasoning: ReactNode;
   weight: number;
+  userTimeLoad: number | null;
 }
 
 export const CandidateProgressBar = ({
@@ -14,6 +16,7 @@ export const CandidateProgressBar = ({
   score,
   reasoning,
   weight,
+  userTimeLoad,
 }: CandidateProgressBarProps) => {
   const isActive = weight > 0;
   const weightPercentage = Math.round(weight);
@@ -39,7 +42,7 @@ export const CandidateProgressBar = ({
         <span
           className={`font-semibold text-sm ${!isActive ? 'text-slate-400' : getScoreColor(score)}`}
         >
-          {score}
+          {isNegative && label === 'Availability' ? userTimeLoad + '%' : score}
         </span>
       </div>
 

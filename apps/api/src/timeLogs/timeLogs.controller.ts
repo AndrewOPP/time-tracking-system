@@ -21,10 +21,10 @@ import {
   ProjectDateRangeQueryDto,
   UpdateTimeLogDto,
 } from './dto/timeLogs.controller.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RequestWithUser, Role } from 'src/auth/types/oauth.types';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { RequestWithUser, Role } from '../auth/types/oauth.types';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('/time-logs')
 @UseGuards(JwtAuthGuard, RolesGuard)

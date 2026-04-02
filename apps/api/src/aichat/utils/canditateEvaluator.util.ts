@@ -147,7 +147,7 @@ export function evaluateSkills(mappedUser: MappedAiUser, requiredSkills?: string
   const reasoning =
     missing.length > SCORES.MIN ? `Missing: ${missing.join(', ')}` : MESSAGES.SKILLS_ALL_PRESENT;
 
-  return { score, reasoning };
+  return { score, reasoning, matched, missing };
 }
 
 export function evaluateAvailability(mappedUser: MappedAiUser, loadStatus?: string) {

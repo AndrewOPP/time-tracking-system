@@ -1,4 +1,4 @@
-import { AI_WORK_FORMAT } from 'src/aichat/constants/aichat.constants';
+import { AI_WORK_FORMAT } from '../../aichat/constants/aichat.constants';
 import { PROJECT_TYPE } from '../constants/timeLogs.constants';
 import { CalculatedEmployedTimeData, CalculatorInput } from '../types/timeLogs.types';
 import { calculatePercentage } from './math.utils';

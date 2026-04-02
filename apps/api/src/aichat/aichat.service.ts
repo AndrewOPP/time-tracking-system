@@ -80,18 +80,16 @@ export class AichatService {
 
           evaluateCandidates: tool({
             description: `
-                CORE INTENT: Use this tool whenever the user's underlying goal is to discover, compare, or select the *most suitable* candidates for a project or role. 
-                You MUST output the raw JSON array EXACTLY as it was returned by the tool and you always must to wrapp it in a markdown \`\`\`json block. Do not modify the JSON structure.
+              WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, or find the BEST FIT/TOP candidates. 
 
-                This tool performs a comprehensive, intelligent evaluation across the entire database. It automatically weighs skills, availability, domain experience, and risk factors to return a mathematically scored and ranked JSON array. 
+              WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?"). For basic searches, use 'searchEmployees' instead.
 
+              🚨 OUTPUT RULE: Extract ONLY the 'candidates' array. Output it in a \`\`\`json block starting with '[' and ending with ']'.
 
-                ROUTING: This is a ONE-STEP standalone tool for ALL candidate evaluation and discovery queries. 
-                - DO NOT call 'searchEmployees' before this. 
-                - DO NOT call 'finalizeAndValidateResponse' after this.
+              🚨 EMPTY STATE: If candidates is [], explain that exact matches are missing. Look at 'availableSkillsContext' and suggest 1-2 logically similar technologies from that list. Ask: "Would you like to see candidates with these similar skills, or show the most available engineers?"
 
-                🚨 ALTERNATIVES: If the JSON returns 'status: "alternatives_found"', you MUST explicitly state in your Executive Summary that no exact matches were found for the requested skills, and you are suggesting the best alternatives based on availability instead.
-              `,
+              ROUTING: Standalone tool. DO NOT call any other tools before or after this one.
+            `,
             inputSchema: evaluateCandidatesSchema,
             execute: async args => {
               return this.dbToolsService.handleEvaluateCandidates(args);
@@ -105,3 +103,14 @@ export class AichatService {
     }
   }
 }
+// description: `
+//     CORE INTENT: Use ONLY when the user explicitly asks to "evaluate", "compare", "rank", "score", or find the "best fit" / "top candidates" for a project.
+
+//     🚫 STRICT ROUTING RULE: If the user simply asks to find or list people (e.g., "Find React devs", "Who knows Python?"), you MUST use 'searchEmployees' instead. Do NOT use evaluateCandidates as a general search tool.
+
+//     🚨 OUTPUT RULE (CRITICAL): Extract ONLY the candidates array from the tool's response. Output it in a \`\`\`json block starting strictly with '[' and ending with ']'. DO NOT include metadata ('status', 'message', 'appliedWeights') inside the JSON block.
+
+//     ROUTING: ONE-STEP standalone tool. DO NOT call 'searchEmployees' before or 'finalizeAndValidateResponse' after this tool.
+
+//     ALTERNATIVES: If the tool returns status "alternatives_found", explicitly state in your Executive Summary that no exact matches were found and you are suggesting the best alternatives.
+//   `

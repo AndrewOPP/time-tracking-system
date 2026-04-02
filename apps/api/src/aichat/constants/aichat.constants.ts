@@ -101,6 +101,8 @@ export const AI_TOOL_DESCRIPTIONS = {
   `,
 
   SEARCH_EMPLOYEES: `
+  🌟 DEFAULT SEARCH TOOL: Use this for ALL general queries like "Find developers", "Show me PMs", "Who knows X".
+    🚫 CRITICAL ROUTING BLOCKER: If the user's prompt contains words like "Top", "Best", "Most", "Rank", "candidates for" or "Compare" (e.g., "Top 3 most available React devs"), YOU ARE STRICTLY FORBIDDEN FROM USING THIS TOOL. You MUST use 'evaluateCandidates' instead!
     Search employees/PMs by skills, workload, format, or name. Extract arguments exactly.
     WORKLOAD RULES:
     - Default: minLoadPercent=0, maxLoadPercent=1000.
@@ -121,13 +123,6 @@ export const AI_TOOL_DESCRIPTIONS = {
   🚨 THE EXCEPTION: DO NOT use this tool if you just used the evaluateCandidates tool. The scoring tool already returns pre-validated, UI-ready JSON. If you are showing rankings/scores, completely skip this validation step and output the scoring JSON directly.
     ⚠️ CRITICAL: MUST CALL BEFORE SHOWING DATA. 
     Pass selected entities from 'searchEmployees', 'getProjectTeam', or 'getPmPortfolio' for validation. If error, correct data and recall.
-  `,
-
-  EVALUATE_CANDIDATES: `
-    CHAINING RULE for finding & evaluating:
-    1. Call searchEmployees.
-    2. Pass resulting names to evaluateCandidates IMMEDIATELY.
-    Respond to user ONLY after step 2.
   `,
 };
 
@@ -221,7 +216,6 @@ export const AI_SCHEMA_DESCRIPTIONS = {
   PROJECT_TEAM_NAME_DESC: 'Project name to find team composition.',
   PM_PORTFOLIO_MANAGER_DESC: 'PM name to find all their managed projects.',
   EVALUATE_PROJECT_NAME_DESC: 'Project name for candidate assignment.',
-  EVALUATE_CANDIDATES_DESC: 'Array of candidate names to evaluate (e.g., ["John", "Peter"]).',
   SYSTEM_ROLE_DESC: 'Pass "EMPLOYEE" for devs/engineers. Pass "MANAGER" for PMs.',
   MIN_LOAD_PERCENT_DESC:
     'Min employed time %. Default 0. ⚠️ If user asks for "overloaded", set to 101. Preserve this value strictly.',
