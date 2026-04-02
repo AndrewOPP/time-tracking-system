@@ -99,7 +99,7 @@ export class ProjectsService {
         status: project.status,
         description: project.description,
         startDate: project.startDate,
-        domain: project.technologies.map(t => t.name),
+        domain: project.domain,
         pm: project.projectManager
           ? {
               name: project.projectManager.realName || project.projectManager.username,

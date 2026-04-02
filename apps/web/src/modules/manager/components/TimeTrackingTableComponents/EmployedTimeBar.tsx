@@ -4,7 +4,6 @@ import type { CalculatedEmployedTimeData } from '../../types/managerAIChat.types
 import { BAR_CONFIG } from '../../constants/constants';
 import { formatHours } from '../../utils/formatHours';
 import { EmployeeTimeBarTooltipContent } from '../EmployeeTimeBarTooltipContent';
-import { calculatePercentage } from '../../utils/mathUtils';
 
 interface EmployedTimeBarProps {
   employedTimeData: CalculatedEmployedTimeData;
@@ -15,10 +14,7 @@ export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
   employedTimeData,
   totalUserHours,
 }) => {
-  const { hours, visualPercents, employedTimePercent, monthWorkingHours } = employedTimeData;
-
-  const getPercent = (hoursValue: number) =>
-    totalUserHours > 0 ? calculatePercentage(hoursValue, monthWorkingHours) : 0;
+  const { visualPercents, employedTimePercent, tooltip } = employedTimeData;
 
   const barSegments = [
     { key: 'billable', value: visualPercents.billable, color: BAR_CONFIG.colors.billable },
@@ -55,10 +51,8 @@ export const EmployedTimeBar: React.FC<EmployedTimeBarProps> = ({
         </TooltipTrigger>
 
         <EmployeeTimeBarTooltipContent
-          hours={hours}
+          tooltipData={tooltip}
           totalUserHours={totalUserHours}
-          employedTimePercent={employedTimePercent}
-          getPercent={getPercent}
           formatHours={formatHours}
         />
       </Tooltip>

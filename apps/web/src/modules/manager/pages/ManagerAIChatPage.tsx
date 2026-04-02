@@ -1,33 +1,63 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, memo, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { ChatSuggestions } from '../components/ChatPageComponents/ChatSuggestions';
-import { AssistantMessage } from '../components/ChatPageComponents/AssistantMessage';
-import { UserMessage } from '../components/ChatPageComponents/UserMessage';
 import { ErrorMessage } from '../components/ChatPageComponents/ErrorMessage';
 import { LoadingIndicator } from '../components/ChatPageComponents/LoadingIndicator';
 import { ChatInput } from '../components/ChatPageComponents/ChatInput';
-
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { useChatStore } from '../types/stores/useChatStore';
+import { ChatMessage } from '../components/ChatPageComponents/ChatMessage';
+import { tokenRefresh } from '@/modules/auth/api/auth.api';
+import { AI_CHAT_PAGE_CONFIG } from '../constants/constants';
+import { ROUTES } from '@/shared/constants/routes';
+
+const MemoChatMessage = memo(ChatMessage);
 
 export function ManagerAIChatPage() {
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const accessToken = useAuthStore(state => state.accessToken);
   const { savedMessages, setSavedMessages } = useChatStore();
   const [input, setInput] = useState('');
 
-  const isInitialRender = useRef(true);
-  const shouldAutoScrollRef = useRef(true);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const chatTransport = useMemo(() => {
+    return new DefaultChatTransport({
+      api: import.meta.env.VITE_PUBLIC_API_URL + ROUTES.MANAGER.AI_CHAT_TRANSPORT,
+      fetch: async (input, init) => {
+        const token = useAuthStore.getState().accessToken;
+
+        const makeRequest = (t: string) =>
+          fetch(input, {
+            ...init,
+            headers: {
+              ...init?.headers,
+              Authorization: `Bearer ${t}`,
+            },
+          });
+
+        let response = await makeRequest(token ?? '');
+
+        if (response.status === 401) {
+          const { data, error: refreshError } = await tokenRefresh();
+
+          if (!refreshError && data) {
+            useAuthStore.getState().setAuth(data.user, data.accessToken);
+
+            response = await makeRequest(data.accessToken);
+          } else {
+            useAuthStore.getState().clearAuth();
+          }
+        }
+
+        return response;
+      },
+    });
+  }, []);
 
   const { messages, sendMessage, status, error, regenerate } = useChat({
     messages: savedMessages ?? [],
-    transport: new DefaultChatTransport({
-      api: import.meta.env.VITE_PUBLIC_API_URL + '/chat',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }),
+    transport: chatTransport,
+    experimental_throttle: AI_CHAT_PAGE_CONFIG.experimental_throttle,
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -37,98 +67,72 @@ export function ManagerAIChatPage() {
     if (status === 'ready' && messages.length > 0) {
       setSavedMessages(messages);
     }
-  }, [status, messages, setSavedMessages]);
-
-  const isUserAtBottom = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return true;
-
-    const threshold = 80;
-    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
-  }, []);
-
-  const handleScroll = () => {
-    shouldAutoScrollRef.current = isUserAtBottom();
-  };
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    if (!shouldAutoScrollRef.current) return;
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: 'auto',
-    });
-
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-    }
-  }, [messages]);
+  }, [status, setSavedMessages, messages]);
 
   const handleSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (!input.trim()) return;
 
     sendMessage({ text: input });
     setInput('');
 
-    requestAnimationFrame(() => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
-
-      container.scrollTo({
-        top: container.scrollHeight,
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({
         behavior: 'smooth',
+        block: 'end',
       });
-    });
+    }, 100);
   };
 
+  const lastMessageIndex = messages.length - 1;
+
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white font-sans text-slate-900">
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto px-4 pt-8 pb-4 ${
-          isLoading ? 'pointer-events-none select-none' : ''
-        }`}
-      >
-        <div className="max-w-3xl mx-auto h-full flex flex-col">
+    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white font-sans text-slate-900 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 pt-8 pb-4 flex flex-col">
+        <div
+          className={`w-full max-w-3xl mx-auto flex flex-col ${
+            messages.length === 0 ? 'flex-1 justify-center' : ''
+          }`}
+        >
           {messages.length === 0 ? (
             <ChatSuggestions onSelect={text => sendMessage({ text })} />
           ) : (
-            <div className="flex flex-col gap-10">
-              {messages.map((message: UIMessage) => {
-                const textContent = message.parts
-                  ?.filter(part => part.type === 'text')
-                  .map(part => part.text)
-                  .join('');
+            <>
+              <div className="flex flex-col gap-8">
+                {messages.map((message: UIMessage, index: number) => {
+                  const isMessageReady = status === 'ready' || index !== messages.length - 1;
 
-                const isTyping = message.role === 'assistant' && !textContent && isLoading;
+                  const isLastAssistant =
+                    message.role !== 'user' &&
+                    index === messages.length - 1 &&
+                    messages.length >= 2;
 
-                return (
-                  <div key={message.id} className="flex flex-col w-full">
-                    {message.role === 'user' ? (
-                      <UserMessage content={textContent} />
-                    ) : (
-                      <AssistantMessage
-                        content={textContent}
-                        isReady={isReady}
-                        isTyping={isTyping}
+                  return (
+                    <div
+                      style={{ contentVisibility: 'auto' }}
+                      key={message.id}
+                      className={`${isLastAssistant ? 'min-h-[58vh]' : ''}`}
+                    >
+                      <MemoChatMessage
+                        message={message}
+                        isReady={isMessageReady}
+                        isLoading={isLoading}
                       />
-                    )}
+                    </div>
+                  );
+                })}
+
+                {error && <ErrorMessage onRetry={() => regenerate()} />}
+
+                {isLoading && messages.length > 0 && messages[lastMessageIndex].role === 'user' && (
+                  <div className="min-h-[58vh]">
+                    <LoadingIndicator />
                   </div>
-                );
-              })}
+                )}
+              </div>
 
-              {error && <ErrorMessage onRetry={() => regenerate()} />}
-
-              {isLoading &&
-                messages.length > 0 &&
-                messages[messages.length - 1].role === 'user' && <LoadingIndicator />}
-            </div>
+              <div ref={messagesEndRef} />
+            </>
           )}
         </div>
       </div>
