@@ -43,7 +43,8 @@ export class AichatToolsService {
       } else {
         where.systemRole = args.systemRole || USER_SYSTEM_ROLE.EMPLOYEE;
 
-        if (args.skills?.length && args.skillMode === AI_SKILL_FORMATS_OBJ.AND) {
+        const actualSkillMode = args.skillMode || AI_SKILL_FORMATS_OBJ.OR;
+        if (args.skills?.length && actualSkillMode === AI_SKILL_FORMATS_OBJ.AND) {
           where.AND = args.skills.map(skill => ({
             technologies: {
               some: { technology: { name: { equals: skill, mode: 'insensitive' } } },
@@ -51,7 +52,7 @@ export class AichatToolsService {
           }));
         }
 
-        if (args.skills?.length && args.skillMode === AI_SKILL_FORMATS_OBJ.OR) {
+        if (args.skills?.length && actualSkillMode === AI_SKILL_FORMATS_OBJ.OR) {
           where.OR = args.skills.map(skill => ({
             technologies: {
               some: { technology: { name: { equals: skill, mode: 'insensitive' } } },
@@ -90,6 +91,8 @@ export class AichatToolsService {
         firstDayOfMonth,
         lastDayOfMonth
       );
+
+      const totalSkillUsers = users.length;
 
       if (users.length === 0) {
         return this.getAlternatives();
@@ -134,7 +137,8 @@ export class AichatToolsService {
         status: TOOL_RETURN_STATUS.SUCCESS,
         data: finalUsers,
         meta: {
-          totalFound: processedUsers.length,
+          totalAvailable: processedUsers.length,
+          totalOverall: totalSkillUsers,
           returned: finalUsers.length,
         },
         _system_instruction: AI_SCHEMA_DESCRIPTIONS.EMPLOYEE_SEARCH_SYS_INSTRUCTION,
@@ -233,45 +237,52 @@ export class AichatToolsService {
 
     try {
       if (args.responseType === AI_VALIDATION_FORMAT.EMPLOYEES && args.candidates) {
-        for (const candidate of args.candidates) {
+        const candidateNames = args.candidates.map(c => c.name);
+
+        if (candidateNames.length > 0) {
           const users = await this.aichatRepo.findUsersWithDetails(
-            { OR: [{ realName: candidate.name }, { username: candidate.name }] },
+            {
+              OR: [{ realName: { in: candidateNames } }, { username: { in: candidateNames } }],
+            },
             firstDayOfMonth,
             lastDayOfMonth
           );
-
-          if (users.length === 0) {
-            errors.push(
-              `Validation Error: Candidate "${candidate.name}" does not exist in the database. Remove them from your response.`
-            );
-            continue;
-          }
 
           const mappedUsers = mapUsersToAiResponse(
             users as unknown as RawUser[],
             currentYear,
             currentMonth
           );
-          const realUser = mappedUsers[0];
 
-          if (
-            candidate.employedTimePercent !== undefined &&
-            candidate.employedTimePercent !== realUser.aiStats.employedTimePercent
-          ) {
-            errors.push(
-              `Validation Error: Candidate "${candidate.name}" has an ACTUAL employed time of ${realUser.aiStats.employedTimePercent}%, NOT ${candidate.employedTimePercent}%. Update your data.`
-            );
-          }
+          for (const candidate of args.candidates) {
+            const realUser = mappedUsers.find(u => u.name === candidate.name);
 
-          if (candidate.skills && candidate.skills.length > 0) {
-            const realSkillsLower = realUser.skills.map(s => s.toLowerCase());
-            for (const claimedSkill of candidate.skills) {
-              if (claimedSkill === AI_MESSAGES.NO_SKILLS) continue;
+            if (!realUser) {
+              errors.push(
+                `Validation Error: Candidate "${candidate.name}" does not exist in the database. Remove them from your response.`
+              );
+              continue;
+            }
 
-              if (!realSkillsLower.includes(claimedSkill.toLowerCase())) {
-                errors.push(
-                  `Validation Error: Candidate "${candidate.name}" does NOT have the skill "${claimedSkill}". Their actual skills are: ${realUser.skills.join(', ')}.`
-                );
+            if (
+              candidate.employedTimePercent !== undefined &&
+              candidate.employedTimePercent !== realUser.aiStats.employedTimePercent
+            ) {
+              errors.push(
+                `Validation Error: Candidate "${candidate.name}" has an ACTUAL employed time of ${realUser.aiStats.employedTimePercent}%, NOT ${candidate.employedTimePercent}%. Update your data.`
+              );
+            }
+
+            if (candidate.skills && candidate.skills.length > 0) {
+              const realSkillsLower = realUser.skills.map(s => s.toLowerCase());
+              for (const claimedSkill of candidate.skills) {
+                if (claimedSkill === AI_MESSAGES.NO_SKILLS) continue;
+
+                if (!realSkillsLower.includes(claimedSkill.toLowerCase())) {
+                  errors.push(
+                    `Validation Error: Candidate "${candidate.name}" does NOT have the skill "${claimedSkill}". Their actual skills are: ${realUser.skills.join(', ')}.`
+                  );
+                }
               }
             }
           }
@@ -279,8 +290,9 @@ export class AichatToolsService {
       }
 
       if (args.responseType === AI_VALIDATION_FORMAT.ALTERNATIVES && args.candidates) {
+        const users = await this.aichatRepo.findAvailableUsersAlternatives();
+
         for (const candidate of args.candidates) {
-          const users = await this.aichatRepo.findAvailableUsersAlternatives();
           const exists = users.some(
             u => u.realName === candidate.name || u.username === candidate.name
           );
@@ -305,15 +317,6 @@ export class AichatToolsService {
         }
       }
 
-      if (errors.length > 0) {
-        return {
-          status: TOOL_RETURN_STATUS.VALIDATION_FAILED,
-          message:
-            'CRITICAL: You hallucinated or distorted data. Fix the errors below and call this tool again.',
-          errors: errors,
-        };
-      }
-
       if (args.responseType === AI_VALIDATION_FORMAT.PM_PORTFOLIO && args.pmPortfolioDetails) {
         const projects = await this.aichatRepo.findProjectsWithDetails(
           {
@@ -330,6 +333,15 @@ export class AichatToolsService {
             `Validation Error: Project Manager "${args.pmPortfolioDetails.managerName}" does not exist or has no active projects.`
           );
         }
+      }
+
+      if (errors.length > 0) {
+        return {
+          status: TOOL_RETURN_STATUS.VALIDATION_FAILED,
+          message:
+            'CRITICAL: You hallucinated or distorted data. Fix the errors below and call this tool again.',
+          errors: errors,
+        };
       }
 
       return {
