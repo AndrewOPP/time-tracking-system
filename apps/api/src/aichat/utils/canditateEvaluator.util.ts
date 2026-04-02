@@ -1,81 +1,18 @@
-import { EvaluateCandidatesArgs } from '../schemas/ai.schemas';
+import {
+  MappedAiUser,
+  MATH_CONSTANTS,
+  MESSAGES,
+  MULTIPLIERS,
+  PENALTIES,
+  RawUserProject,
+  SCORES,
+  STATUSES,
+  THRESHOLDS,
+  WEIGHTS,
+} from '../constants/aichat.constants';
+import { EvaluateCandidatesArgs } from '../schemas/ai-validation.schema';
 import { RawUser } from '../types/aichat.types';
-
-const SCORES = {
-  MAX: 100,
-  MIN: 0,
-  DOMAIN_PARTIAL: 70,
-};
-
-const WEIGHTS = {
-  SKILLS_ACTIVE: 0.35,
-  AVAILABILITY_HIGH: 0.5,
-  AVAILABILITY_LOW: 0.3,
-  DOMAIN_ACTIVE: 0.2,
-  RISK: 0.15,
-};
-
-const THRESHOLDS = {
-  DOMAIN_PROJECTS_HIGH: 2,
-  OVERLOAD_PERCENT: 100,
-  UNTRACKED_HOURS: 35,
-};
-
-const MULTIPLIERS = {
-  PART_TIME: 0.5,
-};
-
-const MATH_CONSTANTS = {
-  PERCENT: 100,
-  DECIMAL_PLACES: 1,
-};
-
-const PENALTIES = {
-  OVERLOAD: 30,
-  OVERTIME: 20,
-  UNTRACKED: 25,
-  PTO: 20,
-};
-
-const STATUSES = {
-  AVAILABLE: 'available',
-  OVERLOAD: 'overload',
-  PART_TIME: 'PART_TIME',
-};
-
-const MESSAGES = {
-  DOMAIN_NO_MATCH: 'No matching domain experience',
-  SKILLS_NO_REQUEST: 'No specific skills requested',
-  SKILLS_INSUFFICIENT: 'Insufficient data (skills unknown)',
-  SKILLS_ALL_PRESENT: 'All required skills present',
-  AVAILABILITY_INSUFFICIENT: 'Insufficient data for capacity evaluation',
-  RISK_INSUFFICIENT: 'Insufficient data to evaluate risk factors',
-  RISK_LOW: 'Low risk',
-  RISK_HIGH_UNTRACKED: 'High untracked hours',
-};
-
-export interface MappedAiUserStats {
-  employedTimePercent: number;
-  monthWorkingHours: number;
-  totalUserHours: number;
-  overtime: number;
-  untracked: number;
-}
-
-export interface MappedAiUser {
-  name: string;
-  workFormat: string;
-  ptoHours: number;
-  skills: string[];
-  aiStats?: MappedAiUserStats;
-}
-
-export interface RawUserProject {
-  project: {
-    name?: string;
-    domain?: string;
-  };
-}
+import { capitalize } from './string';
 
 export function calculateWeights(args: EvaluateCandidatesArgs) {
   const rawWeights = {
@@ -106,7 +43,16 @@ export function evaluateDomain(
   rawUser: RawUser & { projects?: RawUserProject[] },
   targetDomain?: string
 ) {
-  if (!targetDomain) return { score: SCORES.MIN, reasoning: MESSAGES.DOMAIN_NO_MATCH };
+  const allProjects = rawUser.projects.map(project => {
+    const readbleDomain = capitalize(project.project.domain);
+    return {
+      projectName: project.project.name,
+      domain: readbleDomain,
+    };
+  });
+
+  if (!targetDomain)
+    return { score: SCORES.MIN, reasoning: MESSAGES.DOMAIN_NO_MATCH, allProjects: allProjects };
 
   const matchingProjects = (rawUser.projects || []).filter(
     p => p.project?.domain?.toLowerCase() === targetDomain.toLowerCase()
@@ -123,11 +69,12 @@ export function evaluateDomain(
       .join(', ');
     return {
       score,
-      reasoning: `Worked on ${matchingProjects.length} ${targetDomain} project(s): ${projectNames}`,
+      reasoning: `Worked on ${matchingProjects.length} ${capitalize(targetDomain)} project(s): ${projectNames}`,
+      allProjects: allProjects,
     };
   }
 
-  return { score: SCORES.MIN, reasoning: MESSAGES.DOMAIN_NO_MATCH };
+  return { score: SCORES.MIN, reasoning: MESSAGES.DOMAIN_NO_MATCH, allProjects: allProjects };
 }
 
 export function evaluateSkills(mappedUser: MappedAiUser, requiredSkills?: string[]) {

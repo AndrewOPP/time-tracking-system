@@ -1,5 +1,5 @@
 import type { Components } from 'react-markdown';
-import { ScoringCards, type ScoringCandidate } from '../components/ChatPageComponents/ScoringCards';
+import { ScoringCards } from '../components/ChatPageComponents/ScoringCards';
 import { ScoringCardsSkeleton } from '../components/ChatPageComponents/ScoringCards/ScoringCardsSkeleton';
 
 export const markdownComponents: Components = {
@@ -44,29 +44,32 @@ export const markdownComponents: Components = {
 
     if (!inline && isJson) {
       try {
-        const data = JSON.parse(rawString.replace(/\n$/, '')) as ScoringCandidate[];
+        const parsed = JSON.parse(rawString.replace(/\n$/, ''));
+
+        const data = Array.isArray(parsed) ? parsed : parsed.candidates;
 
         if (Array.isArray(data) && data.length > 0 && 'totalScore' in data[0]) {
           return <ScoringCards candidates={data} />;
         }
       } catch {
-        if (rawString.trimStart().startsWith('[')) {
+        const trimmed = rawString.trimStart();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
           return (
             <div className="flex flex-col gap-3 my-4">
               <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
-                {/* Мінімалістичний круговий лоадер (спінер) */}
                 <span className="block h-3.5 w-3.5 rounded-full border-[1.5px] border-slate-200 border-t-slate-500 animate-spin"></span>
-
-                {/* Текст завантаження */}
                 <span className="font-medium">Generating cards...</span>
               </div>
-
               <ScoringCardsSkeleton />
             </div>
           );
         }
 
-        return <code className="block bg-slate-100 p-2 text-xs overflow-x-auto">{rawString}</code>;
+        return (
+          <div className="block bg-slate-100 p-2 text-xs overflow-x-auto">
+            Sorry, some error occurred
+          </div>
+        );
       }
     }
 

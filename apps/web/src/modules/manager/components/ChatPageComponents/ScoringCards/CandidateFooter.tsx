@@ -1,7 +1,7 @@
 import { Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/ui/tooltip';
-import type { ScoringCandidate } from '../ScoringCards';
 import { getRisk } from '@/modules/manager/utils/scoring';
+import type { ScoringCandidate } from '@/modules/manager/types/managerAIChat.types';
 
 export const CandidateFooter = ({ candidate }: { candidate: ScoringCandidate }) => {
   const risk = getRisk(candidate.criteria.riskLevel.score);
@@ -32,6 +32,34 @@ export const CandidateFooter = ({ candidate }: { candidate: ScoringCandidate }) 
           </div>
         )}
       </div>
+
+      {candidate.projects && (
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="text-xs font-medium text-slate-600 hover:text-slate-900 underline decoration-dashed underline-offset-4 transition-colors">
+              Projects ({candidate.projects.length})
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[300px] text-xs">
+            <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
+              {candidate.projects.length > 0 ? (
+                <>
+                  {candidate.projects.map((project, idx) => (
+                    <div key={idx} className="flex flex-col gap-0.5">
+                      <span className="font-medium text-slate-200">{project.projectName}</span>
+                      {project.domain && (
+                        <span className="text-slate-400 text-[10px]">Domain: {project.domain}</span>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-slate-200 text-xs">No projects available.</p>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 };

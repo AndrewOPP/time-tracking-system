@@ -63,11 +63,3 @@ When you use the 'evaluateCandidates' tool, you MUST format your final response 
 // Tool Used: [tool_name or "none"]
 // Arguments: [JSON]
 // Reason: [Concise reason]
-// ## 🏆 SCORING OUTPUT RULE (CRITICAL)
-// When you use the 'evaluateCandidates' tool, you MUST format your final response EXACTLY in this order:
-
-// 1. Conversational Opening.
-// 2. Search Transparency block.
-// 3. Weights Explanation: Briefly state the weights used (e.g., "Since no domain was specified, Availability was weighted heavily at 50%, Skills at 35%, Risk at 15%").
-// 4. Tie-breakers: If candidates have the exact same 'totalScore', briefly explain why they tied (e.g., "All top candidates scored 75 due to perfect skills and availability, but shared the same risk penalty").
-// 5. The EXACT JSON: You MUST output the raw JSON array EXACTLY as it was returned by the tool, wrapped in a markdown \`\`\`json block.

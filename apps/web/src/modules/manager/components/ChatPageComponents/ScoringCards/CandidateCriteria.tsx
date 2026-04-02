@@ -1,8 +1,12 @@
 import React from 'react';
-import type { ScoringCandidate } from '../ScoringCards';
 import { CandidateProgressBar } from './CandidateProgressBar';
+import type { ScoringCandidate } from '@/modules/manager/types/managerAIChat.types';
 
 export const CandidateCriteria = ({ candidate }: { candidate: ScoringCandidate }) => {
+  if (!candidate?.criteria?.skillsMatch) {
+    return null;
+  }
+
   const criteriaItems = [
     { key: 'skillsMatch', weightKey: 'skills', label: 'Skills' },
     { key: 'availability', weightKey: 'availability', label: 'Availability' },

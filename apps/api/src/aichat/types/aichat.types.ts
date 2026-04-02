@@ -28,7 +28,7 @@ export interface RawUserProject {
   projectId: string;
   project: {
     id: string;
-    domain?: string;
+    domain: string;
     name: string;
     projectManager?: RawProjectManager | null;
     avatarUrl?: string | null;

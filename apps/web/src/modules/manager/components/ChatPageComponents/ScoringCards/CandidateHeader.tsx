@@ -1,6 +1,6 @@
 import { Trophy } from 'lucide-react';
-import type { ScoringCandidate } from '../ScoringCards';
 import { getScoreColor } from '@/modules/manager/utils/scoring';
+import type { ScoringCandidate } from '@/modules/manager/types/managerAIChat.types';
 
 interface CandidateHeaderProps {
   candidate: ScoringCandidate;

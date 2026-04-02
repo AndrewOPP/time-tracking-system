@@ -10,6 +10,7 @@ import {
   AI_WORK_FORMAT,
   GetPmPortfolioArgs,
   GetProjectTeamArgs,
+  MappedAiUser,
   SearchEmployeesArgs,
   TOOL_RETURN_STATUS,
   USER_SYSTEM_ROLE,
@@ -17,8 +18,7 @@ import {
 import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
 import { RawProject, RawUser } from './types/aichat.types';
-import { ValidateResponseArgs } from './schemas/ai-validation.schema';
-import { EvaluateCandidatesArgs } from './schemas/ai.schemas';
+import { EvaluateCandidatesArgs, ValidateResponseArgs } from './schemas/ai-validation.schema';
 import { normalizeString } from './utils/string';
 import {
   calculateWeights,
@@ -26,7 +26,6 @@ import {
   evaluateDomain,
   evaluateRisk,
   evaluateSkills,
-  MappedAiUser,
 } from './utils/canditateEvaluator.util';
 
 @Injectable()
@@ -378,7 +377,7 @@ export class AichatToolsService {
         endOfMonth
       );
 
-      if (users.length === 0) return { status: 'success', candidates: [] };
+      if (users.length === 0) return { status: TOOL_RETURN_STATUS.SUCCESS, candidates: [] };
 
       const mappedUsers = mapUsersToAiResponse(
         users as unknown as RawUser[],
@@ -410,6 +409,7 @@ export class AichatToolsService {
           totalScore,
           workFormat: mappedUser.workFormat,
           appliedWeights: weights,
+          projects: domain.allProjects ?? [],
           actualSkills: mappedUser.skills,
           criteria: {
             skillsMatch: {
@@ -436,7 +436,7 @@ export class AichatToolsService {
 
         if (matches.length === 0) {
           return {
-            status: 'not_found',
+            status: TOOL_RETURN_STATUS.NOT_FOUND,
             message: 'No candidates matched the required skills.',
             appliedWeights: weights,
             availableSkillsContext: allAvailableSkills,
@@ -452,7 +452,7 @@ export class AichatToolsService {
         .slice(0, args.limit || 3);
 
       return {
-        status: 'success',
+        status: TOOL_RETURN_STATUS.SUCCESS,
         message: 'Success',
         appliedWeights: weights,
         candidates: topCandidates,

@@ -115,6 +115,20 @@ export const AI_TOOL_DESCRIPTIONS = {
 
   GET_PM_PORTFOLIO: 'Use ONLY to find projects managed by a specific PM.',
 
+  EVALUATE_CANDIDATES: `
+    🚨 CRITICAL SYSTEM RULE: NEVER MODIFY, FILTER, OR ALTER THE ARRAY RETURNED BY THIS TOOL IN ANY WAY. YOU MUST RETURN IT EXACTLY AS RECEIVED. ANY MODIFICATION WILL COMPLETELY BREAK THE SYSTEM. 🚨
+
+    WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, or find the BEST FIT/TOP candidates. 
+
+    WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?"). For basic searches, use 'searchEmployees' instead.
+
+    🚨 OUTPUT RULE: Extract ONLY the 'candidates' array. Output it in a \`\`\`json block starting with '[' and ending with ']'.
+
+    🚨 EMPTY STATE: If candidates is [], explain that exact matches are missing. Look at 'availableSkillsContext' and suggest 1-2 logically similar technologies from that list. Ask: "Would you like to see candidates with these similar skills, or show the most available engineers?"
+
+    ROUTING: Standalone tool. DO NOT call any other tools before or after this one.
+  `,
+
   FINALIZE_AND_VALIDATE_RESPONSE: `
   ⚠️ CRITICAL: YOU MUST CALL THIS TOOL BEFORE SHOWING ANY DATA TO THE USER, WITH ONE EXCEPTION. 
   
@@ -157,7 +171,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     
     RULES:
     - State matching required skills.
-    - Use skills from user request or from getTechnologiesByCategory.
+    - Use skills from user request or you getTechnologiesByCategory.
     - Account for Part-time vs Full-time differences.
     - ZERO-VALUE: Output all fields exactly as below, even if 0.
     - Availability: If totalPercent is below 90%, the employee is considered fully available.
@@ -167,12 +181,12 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     ⚠️ MANDATORY WARNINGS CHECKLIST (EVALUATE STEP-BY-STEP FOR EACH EMPLOYEE):
     You MUST check ALL 3 conditions below independently. If a condition is true, you MUST output its corresponding text in the "⚠️ Warnings:" section. It is strictly required to show ALL warnings that apply.
     
-    [STEP 1] Check Overload: Is totalPercent >= 100 OR overtimeHours > 0?
-             -> If YES, add: "[Name] is overloaded — [aiStats.totalPercent]% with [aiStats.overtimeHours]h overtime. Consider rebalancing workload."
+    [STEP 1] Check Overload: Is totalPercent >= 100 OR overtime > 0?
+             -> If YES, add: "[Name] is overloaded — [aiStats.employedTimePercent]% with [aiStats.overtime]h overtime. Consider rebalancing workload."
     [STEP 2] Check Near Limit: Is totalPercent >= 90 AND totalPercent <= 99?
-             -> If YES, add: "[Name] is at [aiStats.totalPercent]% — nearly at full capacity."
-    [STEP 3] Check Untracked: Is untrackedHours > 0?
-             -> If YES, add: "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untrackedHours]h). Actual workload may be higher."
+             -> If YES, add: "[Name] is at [aiStats.employedTimePercent]% — nearly at full capacity."
+    [STEP 3] Check Untracked: Is untracked > 0?
+             -> If YES, add: "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untracked]h). Actual workload may be higher."
 
     TEMPLATE:
     ### **[Name]**
@@ -183,8 +197,8 @@ export const AI_SCHEMA_DESCRIPTIONS = {
       - [Result of STEP 2 if YES]
       - [Result of STEP 3 if YES]
     - ⛵ **PTO:** [ptoHours]h
-    - 📊 **Employed Time:** [aiStats.totalPercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untrackedHours]h))
-    - [If overtimeHours > 0: 🚨 **Overtime:** [aiStats.overtimeHours]h]
+    - 📊 **Employed Time:** [aiStats.employedTimePercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untracked]h))
+    - [If overtime > 0: 🚨 **Overtime:** [aiStats.overtime]h]
     - 📁 **Active Projects:**
       * [Project Name] (PM: [PM Name]) - [hoursSpent]h
       (If none: "None")
@@ -196,7 +210,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     1. Multiple skills: put in ONE array.
     2. "Any" skills: empty array.
     3. Broad category ("frontend devs"): use getTechnologiesByCategory. Specific skills ("React"): skip tool, use searchEmployees directly.
-    4. Exact match ONLY. Extract exactly as requested/returned by tools.
+    4. Exact match ONLY. Extract exactly as requested/returned by getTechnologiesByCategory tool.
     ⚠️ CRITICAL: If the user mentions a specific technology in their prompt (even in "How many [Skill] developers" queries), you MUST include it here.
   `,
   EMPLOYEE_LIMIT:
@@ -289,4 +303,80 @@ export interface GetProjectTeamArgs {
 
 export interface GetPmPortfolioArgs {
   managerName: string;
+}
+
+export const SCORES = {
+  MAX: 100,
+  MIN: 0,
+  DOMAIN_PARTIAL: 70,
+};
+
+export const WEIGHTS = {
+  SKILLS_ACTIVE: 0.35,
+  AVAILABILITY_HIGH: 0.5,
+  AVAILABILITY_LOW: 0.3,
+  DOMAIN_ACTIVE: 0.2,
+  RISK: 0.15,
+};
+
+export const THRESHOLDS = {
+  DOMAIN_PROJECTS_HIGH: 2,
+  OVERLOAD_PERCENT: 100,
+  UNTRACKED_HOURS: 35,
+};
+
+export const MULTIPLIERS = {
+  PART_TIME: 0.5,
+};
+
+export const MATH_CONSTANTS = {
+  PERCENT: 100,
+  DECIMAL_PLACES: 1,
+};
+
+export const PENALTIES = {
+  OVERLOAD: 30,
+  OVERTIME: 20,
+  UNTRACKED: 25,
+  PTO: 20,
+};
+
+export const STATUSES = {
+  AVAILABLE: 'available',
+  OVERLOAD: 'overload',
+  PART_TIME: 'PART_TIME',
+};
+
+export const MESSAGES = {
+  DOMAIN_NO_MATCH: 'No matching domain experience',
+  SKILLS_NO_REQUEST: 'No specific skills requested',
+  SKILLS_INSUFFICIENT: 'Insufficient data (skills unknown)',
+  SKILLS_ALL_PRESENT: 'All required skills present',
+  AVAILABILITY_INSUFFICIENT: 'Insufficient data for capacity evaluation',
+  RISK_INSUFFICIENT: 'Insufficient data to evaluate risk factors',
+  RISK_LOW: 'Low risk',
+  RISK_HIGH_UNTRACKED: 'High untracked hours',
+};
+
+export interface MappedAiUserStats {
+  employedTimePercent: number;
+  monthWorkingHours: number;
+  totalUserHours: number;
+  overtime: number;
+  untracked: number;
+}
+
+export interface MappedAiUser {
+  name: string;
+  workFormat: string;
+  ptoHours: number;
+  skills: string[];
+  aiStats?: MappedAiUserStats;
+}
+
+export interface RawUserProject {
+  project: {
+    name?: string;
+    domain?: string;
+  };
 }
