@@ -11,6 +11,7 @@ export interface ProjectData {
   projectId: string;
   type: ProjectTypeValue;
   projectName: string;
+  domain?: string;
   projectAvatarUrl: string;
   pmName: string;
   pmAvatarUrl: string | null;
@@ -54,6 +55,7 @@ export interface CalculatedEmployedTimeData {
     billable: number;
     nonBillable: number;
     untracked: number;
+    overtime: number;
   };
   tooltip: {
     hours: {

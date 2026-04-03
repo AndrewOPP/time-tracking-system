@@ -5,7 +5,6 @@ import {
   AI_SCHEMA_DESCRIPTIONS,
   AI_SKILL_FORMATS,
   AI_WORK_FORMATS,
-  EvaluateCandidatesArgs,
   GetPmPortfolioArgs,
   GetProjectTeamArgs,
   GetTechByCategoryArgs,
@@ -115,20 +114,4 @@ export const getPmPortfolioSchema = jsonSchema<GetPmPortfolioArgs>({
     },
   },
   required: ['managerName'],
-});
-
-export const evaluateCandidatesSchema = jsonSchema<EvaluateCandidatesArgs>({
-  type: 'object',
-  properties: {
-    projectName: {
-      type: 'string',
-      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
-    },
-    candidateNames: {
-      type: 'array',
-      items: { type: 'string' },
-      description: AI_SCHEMA_DESCRIPTIONS.EVALUATE_PROJECT_NAME_DESC,
-    },
-  },
-  required: ['projectName', 'candidateNames'],
 });

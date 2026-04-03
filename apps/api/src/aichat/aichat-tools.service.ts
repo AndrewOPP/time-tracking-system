@@ -10,15 +10,24 @@ import {
   AI_WORK_FORMAT,
   GetPmPortfolioArgs,
   GetProjectTeamArgs,
+  MappedAiUser,
   SearchEmployeesArgs,
   TOOL_RETURN_STATUS,
   USER_SYSTEM_ROLE,
 } from './constants/aichat.constants';
 import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
-import { RawProject, RawUser } from './types/aichat.types';
-import { ValidateResponseArgs } from './schemas/ai-validation.schema';
+import { RawProject, RawUser, ScoringCandidate } from './types/aichat.types';
+import { EvaluateCandidatesArgs, ValidateResponseArgs } from './schemas/ai-validation.schema';
 import { normalizeString } from './utils/string';
+import {
+  calculateWeights,
+  evaluateAvailability,
+  evaluateDomain,
+  evaluateRisk,
+  evaluateSkills,
+  generateTieBreakerInsights,
+} from './utils/canditateEvaluator.util';
 
 @Injectable()
 export class AichatToolsService {
@@ -62,10 +71,12 @@ export class AichatToolsService {
 
         if (args.excludeNames && args.excludeNames.length > 0) {
           where.NOT = {
-            OR: [{ realName: { in: args.excludeNames } }, { username: { in: args.excludeNames } }],
+            OR: args.excludeNames.flatMap(name => [
+              { realName: { equals: name, mode: 'insensitive' } },
+              { username: { equals: name, mode: 'insensitive' } },
+            ]),
           };
         }
-
         if (args.workFormat && args.workFormat !== AI_WORK_FORMAT.ANY) {
           where.workFormat = args.workFormat;
         }
@@ -242,7 +253,10 @@ export class AichatToolsService {
         if (candidateNames.length > 0) {
           const users = await this.aichatRepo.findUsersWithDetails(
             {
-              OR: [{ realName: { in: candidateNames } }, { username: { in: candidateNames } }],
+              OR: candidateNames.flatMap(name => [
+                { realName: { equals: name, mode: 'insensitive' } },
+                { username: { equals: name, mode: 'insensitive' } },
+              ]),
             },
             firstDayOfMonth,
             lastDayOfMonth
@@ -355,98 +369,135 @@ export class AichatToolsService {
     }
   }
 
-  // DOTO: left in for the future
-  // async handleEvaluateCandidates(args: EvaluateCandidatesArgs) {
-  //   try {
-  //     const currentDate = new Date();
-  //     const currentYear = currentDate.getFullYear();
-  //     const currentMonth = currentDate.getMonth();
-  //     const startOfMonth = new Date(currentYear, currentMonth, 1);
-  //     const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+  async handleEvaluateCandidates(args: EvaluateCandidatesArgs) {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
 
-  //     const projects = await this.aichatRepo.findProjectsWithDetails(
-  //       { name: { contains: args.projectName, mode: 'insensitive' } },
-  //       startOfMonth,
-  //       endOfMonth
-  //     );
-  //     if (projects.length === 0) return { error: AI_MESSAGES.NO_PROJECTS_FOUND };
-  //     const targetProject = projects[0];
+      const startOfMonth = new Date(currentYear, currentMonth, 1);
+      const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
-  //     const users = await this.aichatRepo.findUsersWithDetails(
-  //       {
-  //         OR: args.candidateNames.map(name => ({
-  //           realName: { contains: name, mode: 'insensitive' },
-  //         })),
-  //       },
-  //       startOfMonth,
-  //       endOfMonth
-  //     );
+      const users = await this.aichatRepo.findUsersWithDetails(
+        { isActive: true, systemRole: USER_SYSTEM_ROLE.EMPLOYEE },
+        startOfMonth,
+        endOfMonth
+      );
 
-  //     const mappedUsers = mapUsersToAiResponse(
-  //       users as unknown as RawUser[],
-  //       currentYear,
-  //       currentMonth
-  //     );
-  //     // eslint-disable-next-line
-  //     const approved: any[] = [];
-  //     // eslint-disable-next-line
-  //     const rejected: any[] = [];
+      if (users.length === 0) {
+        return {
+          status: TOOL_RETURN_STATUS.SUCCESS,
+          candidates: [],
+        };
+      }
 
-  //     mappedUsers.forEach(user => {
-  //       let score = 1.0;
-  //       const rejectReasons: string[] = [];
+      const mappedUsers = mapUsersToAiResponse(
+        users as unknown as RawUser[],
+        currentYear,
+        currentMonth
+      ) as unknown as MappedAiUser[];
 
-  //       if (user.aiStats.employedTimePercent >= 100) {
-  //         score -= 0.6;
-  //         rejectReasons.push(
-  //           `Overloaded: current workload is ${user.aiStats.employedTimePercent}%.`
-  //         );
-  //       } else if (user.aiStats.employedTimePercent > 80) {
-  //         score -= 0.3;
-  //         rejectReasons.push(
-  //           `High workload (${user.aiStats.employedTimePercent}%), risk of delays.`
-  //         );
-  //       }
+      const weights = calculateWeights(args);
 
-  //       if (user.aiStats.untracked > 10) {
-  //         score -= 0.2;
-  //         rejectReasons.push(`Has ${user.aiStats.untracked}% untracked time.`);
-  //       }
+      const allAvailableSkills = Array.from(new Set(mappedUsers.flatMap(u => u.skills)));
 
-  //       const evaluationResult = {
-  //         name: user.name,
-  //         score: Number(score.toFixed(1)),
-  //         stats: user.aiStats,
-  //         reasons: rejectReasons.length > 0 ? rejectReasons : ['Perfect fit time-wise'],
-  //       };
+      const rawUserMap = new Map(users.map(user => [user.id, user]));
 
-  //       if (score >= 0.5) {
-  //         approved.push(evaluationResult);
-  //       } else {
-  //         rejected.push(evaluationResult);
-  //       }
-  //     });
+      const allScoredCandidates = mappedUsers
+        .map(mappedUser => {
+          const rawUser = rawUserMap.get(mappedUser.id) as RawUser | undefined;
 
-  //     return {
-  //       status: 'success',
-  //       projectDetails: { name: targetProject.name, domain: targetProject.domain },
-  //       evaluation: { approved, rejected },
-  //       _system_instruction: `
-  //         Format candidate evaluation results for project targetProject.name.
+          if (!rawUser) {
+            console.warn(`Raw user not found for mapped user ${mappedUser.id}`);
+            return null;
+          }
 
-  //         RULES:
-  //         1. Show "✅ Approved Candidates" first. Explain their score >= 0.5.
-  //         3. Use reasons and score for explanation.
+          const skills = evaluateSkills(mappedUser, args.requiredSkills);
+          const availability = evaluateAvailability(mappedUser, args.loadStatus);
+          const domain = evaluateDomain(rawUser, args.targetDomain);
+          const risk = evaluateRisk(mappedUser);
 
-  //         Template:
-  //         ### **[Name]** (Score: [X.X])
-  //         - 📊 **Workload:** [X]%
-  //         - 💡 **Verdict:** [Explanation based on reasons]
-  //       `,
-  //     };
-  //   } catch (error) {
-  //     console.log(error);
-  //     return { error: 'Error evaluating candidates.' };
-  //   }
-  // }
+          const totalScore = Math.round(
+            (skills.score * weights.skills) / 100 +
+              (availability.score * weights.availability) / 100 +
+              (domain.score * weights.domain) / 100 +
+              (risk.score * weights.risk) / 100
+          );
+
+          return {
+            name: mappedUser.name,
+            totalScore,
+            workFormat: mappedUser.workFormat,
+            appliedWeights: weights,
+            projects: domain.allProjects ?? [],
+            actualSkills: mappedUser.skills,
+            criteria: {
+              skillsMatch: {
+                score: skills.score,
+                reasoning: skills.reasoning,
+                matched: skills.matched,
+                missing: skills.missing,
+              },
+              availability: {
+                score: availability.displayScore,
+                reasoning: availability.reasoning,
+                overtimePercent: availability.overtimePercent,
+                userTimeLoad: mappedUser.aiStats?.employedTimePercent,
+              },
+              domainExperience: {
+                score: domain.score,
+                reasoning: domain.reasoning,
+              },
+              riskLevel: {
+                score: risk.score,
+                reasoning: risk.reasoning,
+              },
+            },
+          };
+        })
+        .filter(Boolean) as ScoringCandidate[];
+
+      let finalPool = allScoredCandidates;
+
+      if (args.requiredSkills?.length) {
+        const matches = allScoredCandidates.filter(c => c!.criteria.skillsMatch.score > 0);
+
+        const nearestAlternatives = allScoredCandidates
+          .sort((a, b) => b!.totalScore - a!.totalScore)
+          .slice(0, args.limit || 3);
+
+        if (matches.length === 0) {
+          return {
+            status: TOOL_RETURN_STATUS.NOT_FOUND,
+            message:
+              'Exact match not found. Returning nearest alternatives inside the candidates array.',
+            appliedWeights: weights,
+            availableSkillsContext: allAvailableSkills,
+            candidates: nearestAlternatives,
+          };
+        }
+
+        finalPool = matches;
+      }
+
+      const topCandidates = finalPool
+        .sort((a, b) => b!.totalScore - a!.totalScore)
+        .slice(0, args.limit || 3);
+
+      const tieBreakerInsights = generateTieBreakerInsights(topCandidates);
+
+      return {
+        status: TOOL_RETURN_STATUS.SUCCESS,
+        message: 'Success',
+        appliedWeights: weights,
+        candidates: topCandidates,
+        tieBreakerInsights: tieBreakerInsights.length > 0 ? tieBreakerInsights : undefined,
+      };
+    } catch (error) {
+      console.error('Evaluate Error:', error);
+      return {
+        error: 'Failed to score candidates',
+      };
+    }
+  }
 }
