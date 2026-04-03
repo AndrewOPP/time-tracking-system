@@ -464,7 +464,8 @@ export class AichatToolsService {
         if (matches.length === 0) {
           return {
             status: TOOL_RETURN_STATUS.NOT_FOUND,
-            message: 'No candidates matched the required skills.',
+            message:
+              'Exact match not found. Returning nearest alternatives inside the candidates array.',
             appliedWeights: weights,
             availableSkillsContext: allAvailableSkills,
             candidates: nearestAlternatives,

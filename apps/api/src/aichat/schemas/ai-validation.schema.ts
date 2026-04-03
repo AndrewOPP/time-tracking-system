@@ -85,8 +85,8 @@ export const evaluateCandidatesSchema = z.object({
     .optional()
     .describe(
       "Provide custom weights (0 to 100) to adapt scoring based on the user's intent:\n" +
-        "- 'skills': Give highest weight if specific tech is requested.\n" +
-        "- 'availability': Give high weight if urgency/free time is mentioned.\n" +
+        "- 'skills': Give highest weight if specific tech is requested. 🚨 CRITICAL: If no specific technologies/skills are mentioned in the prompt, you MUST set 'skills' to 0.\n" +
+        "- 'availability': Give high weight if urgency/free time is mentioned. If not mentioned, set a baseline of 20-30.\n" +
         "- 'domain': Boost ONLY if a specific domain is explicitly requested. 🚨 CRITICAL: If no specific domain is mentioned in the prompt, you MUST set 'domain' to 0.\n" +
         "- 'risk': ALWAYS set to 15, never change it.\n" +
         'The tool will normalize these to equal 100%.'
