@@ -51,9 +51,7 @@ export const CandidateCriteria = ({ candidate }: { candidate: ScoringCandidate }
             score={data.score}
             reasoning={tooltipContent}
             weight={weight}
-            userTimeLoad={
-              item.key === 'availability' ? candidate.criteria.availability.userTimeLoad : null
-            }
+            overtimePercent={candidate.criteria.availability.overtimePercent}
           />
         );
       })}
