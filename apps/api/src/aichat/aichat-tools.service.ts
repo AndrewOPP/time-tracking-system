@@ -70,10 +70,12 @@ export class AichatToolsService {
 
         if (args.excludeNames && args.excludeNames.length > 0) {
           where.NOT = {
-            OR: [{ realName: { in: args.excludeNames } }, { username: { in: args.excludeNames } }],
+            OR: args.excludeNames.flatMap(name => [
+              { realName: { equals: name, mode: 'insensitive' } },
+              { username: { equals: name, mode: 'insensitive' } },
+            ]),
           };
         }
-
         if (args.workFormat && args.workFormat !== AI_WORK_FORMAT.ANY) {
           where.workFormat = args.workFormat;
         }
@@ -250,7 +252,10 @@ export class AichatToolsService {
         if (candidateNames.length > 0) {
           const users = await this.aichatRepo.findUsersWithDetails(
             {
-              OR: [{ realName: { in: candidateNames } }, { username: { in: candidateNames } }],
+              OR: candidateNames.flatMap(name => [
+                { realName: { equals: name, mode: 'insensitive' } },
+                { username: { equals: name, mode: 'insensitive' } },
+              ]),
             },
             firstDayOfMonth,
             lastDayOfMonth

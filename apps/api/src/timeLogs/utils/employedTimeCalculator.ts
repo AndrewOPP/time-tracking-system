@@ -55,6 +55,7 @@ export const calculateEmployedTimeData = ({
     2
   );
   const aiChatUntrackedHoursPercent = calculatePercentage(untrackedHours, monthWorkingHours, 2);
+  const aiChatOvertimeHoursPercent = calculatePercentage(overtimeHours, monthWorkingHours, 2);
 
   const employedTimePercent = calculatePercentage(
     billableHours + nonBillableHours,
@@ -78,6 +79,7 @@ export const calculateEmployedTimeData = ({
       billable: aiChatBillableHoursPercent,
       nonBillable: aiChatNonBillableHoursPercent,
       untracked: aiChatUntrackedHoursPercent,
+      overtime: aiChatOvertimeHoursPercent,
     },
     tooltip: {
       hours: {

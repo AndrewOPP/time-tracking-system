@@ -198,7 +198,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
       - [Result of STEP 3 if YES]
     - ⛵ **PTO:** [ptoHours]h
     - 📊 **Employed Time:** [aiStats.employedTimePercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untracked]h))
-    - [If overtime > 0: 🚨 **Overtime:** [aiStats.overtime]h]
+    - [If overtime > 0: 🚨 **Overtime:** [aiStats.overtime]h, [aiStats.overtimeHoursPercent]%] 
     - 📁 **Active Projects:**
       * [Project Name] (PM: [PM Name]) - [hoursSpent]h
       (If none: "None")

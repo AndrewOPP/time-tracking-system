@@ -55,6 +55,7 @@ export interface CalculatedEmployedTimeData {
     billable: number;
     nonBillable: number;
     untracked: number;
+    overtime: number;
   };
   tooltip: {
     hours: {

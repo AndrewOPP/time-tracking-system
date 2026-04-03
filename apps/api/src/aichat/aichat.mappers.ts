@@ -64,6 +64,7 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       billableHoursPercent: stats.aiChatVisualPercents.billable,
       untrackedHoursPercent: stats.aiChatVisualPercents.untracked,
       nonBillableHoursPercent: stats.aiChatVisualPercents.nonBillable,
+      overtimeHoursPercent: stats.aiChatVisualPercents.overtime,
       employedTimePercent: stats.employedTimePercent,
       monthWorkingHours: stats.monthWorkingHours,
     };
