@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { getColumns } from '../components/TimeTrackingTableComponents/GetColumns';
@@ -7,23 +7,17 @@ import type { ManagerDashboardRow, WeekInfo } from '../types/managerAIChat.types
 interface UseTimeTrackingTableProps {
   data: ManagerDashboardRow[];
   weeksInfo: WeekInfo[];
-  fetchNextPage: () => void;
-  hasNextPage: boolean;
-  isFetchingNextPage: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const VIRTUALIZER_CONFIG = {
-  estimateSize: 50,
-  overscan: 3,
-};
+  estimateSize: 72,
+  overscan: 10,
+} as const;
 
 export const useTimeTrackingTable = ({
   data,
   weeksInfo,
-  fetchNextPage,
-  hasNextPage,
-  isFetchingNextPage,
   containerRef,
 }: UseTimeTrackingTableProps) => {
   const columns = useMemo(() => getColumns(weeksInfo), [weeksInfo]);
@@ -32,6 +26,7 @@ export const useTimeTrackingTable = ({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: row => row.employeeName,
   });
 
   const { rows } = table.getRowModel();
@@ -43,29 +38,10 @@ export const useTimeTrackingTable = ({
     overscan: VIRTUALIZER_CONFIG.overscan,
   });
 
-  const fetchingLock = useRef(false);
-
-  useEffect(() => {
-    fetchingLock.current = isFetchingNextPage;
-  }, [isFetchingNextPage]);
-
-  const virtualRows = rowVirtualizer.getVirtualItems();
-
-  useEffect(() => {
-    const lastItem = virtualRows[virtualRows.length - 1];
-
-    if (!lastItem || !hasNextPage || fetchingLock.current) return;
-
-    if (lastItem.index >= rows.length - 1) {
-      fetchingLock.current = true;
-      fetchNextPage();
-    }
-  }, [virtualRows, rows.length, hasNextPage, fetchNextPage, rowVirtualizer.scrollOffset]);
-
   return {
     table,
     rowVirtualizer,
-    virtualRows,
+    virtualRows: rowVirtualizer.getVirtualItems(),
     rows,
     columns,
   };

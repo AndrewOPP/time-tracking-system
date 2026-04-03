@@ -11,10 +11,10 @@ interface ChatInputProps {
 
 export function ChatInput({ input, setInput, onSubmit, isDisabled }: ChatInputProps) {
   return (
-    <div className="px-4 pb-6 pt-2 shrink-0 bg-white">
+    <div className="px-0 pb-6 pt-2 shrink-0 bg-white">
       <form
         onSubmit={onSubmit}
-        className="max-w-3xl mx-auto flex items-center bg-white border border-slate-200 rounded-2xl shadow-sm focus-within:border-[#7cb9cc] focus-within:ring-1 focus-within:ring-[#7cb9cc] transition-all duration-200 pl-2 pr-2 py-1.5"
+        className="max-w-[788px] mx-auto flex items-center bg-white border border-slate-200 rounded-2xl shadow-sm focus-within:border-[#7cb9cc] focus-within:ring-1 focus-within:ring-[#7cb9cc] transition-all duration-200 pl-2 pr-2 py-1.5"
       >
         <Input
           value={input}

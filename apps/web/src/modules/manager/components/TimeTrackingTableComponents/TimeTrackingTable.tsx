@@ -11,19 +11,10 @@ interface TimeTrackingTableProps {
   rows: Row<ManagerDashboardRow>[];
   columns: ColumnDef<ManagerDashboardRow>[];
   containerRef: React.RefObject<HTMLDivElement | null>;
-  isFetchingNextPage: boolean;
 }
 
 export const TimeTrackingTable = memo(
-  ({
-    table,
-    rowVirtualizer,
-    virtualRows,
-    rows,
-    columns,
-    containerRef,
-    isFetchingNextPage,
-  }: TimeTrackingTableProps) => {
+  ({ table, rowVirtualizer, virtualRows, rows, columns, containerRef }: TimeTrackingTableProps) => {
     const totalSize = rowVirtualizer.getTotalSize();
     const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
     const paddingBottom =
@@ -61,10 +52,11 @@ export const TimeTrackingTable = memo(
 
             {virtualRows.map(virtualRow => {
               const row = rows[virtualRow.index];
+              const projectsCount = row.original.projects?.length ?? 0;
 
               return (
                 <VirtualTableRow
-                  key={row.id}
+                  key={`${row.id}-projects-${projectsCount}`}
                   row={row}
                   index={virtualRow.index}
                   measureRef={rowVirtualizer.measureElement}
@@ -75,17 +67,6 @@ export const TimeTrackingTable = memo(
             {paddingBottom > 0 && (
               <tr>
                 <td style={{ height: `${paddingBottom}px` }} colSpan={columns.length} />
-              </tr>
-            )}
-
-            {isFetchingNextPage && (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="py-6 bg-white text-center text-[#6F6F6F] text-sm animate-pulse"
-                >
-                  Loading more employees...
-                </td>
               </tr>
             )}
           </tbody>

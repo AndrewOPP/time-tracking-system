@@ -41,13 +41,7 @@ export class TimeLogsService {
     return this.queries.findMissingDays(userId, from, to);
   }
 
-  async getManagerDashboard(
-    from: string,
-    to: string,
-    search?: string,
-    page?: number,
-    limit?: number
-  ) {
-    return this.queries.getManagerDashboard(from, to, search, page, limit);
+  async getManagerDashboard(from: string, to: string, search?: string) {
+    return this.queries.getManagerDashboard(from, to, search);
   }
 }

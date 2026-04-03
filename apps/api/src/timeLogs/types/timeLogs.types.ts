@@ -1,3 +1,6 @@
+import { ProjectTypeValue } from '../constants/timeLogs.constants';
+import { WeekBoundary } from '../utils/monthToWeeks';
+
 export interface user {
   sub: string;
   email: string;
@@ -6,6 +9,7 @@ export interface user {
 
 export interface ProjectData {
   projectId: string;
+  type: ProjectTypeValue;
   projectName: string;
   projectAvatarUrl: string;
   pmName: string;
@@ -30,4 +34,52 @@ export interface ManagerDashboardRow {
   format: string;
   employedTimePercent: number;
   projects: ProjectData[];
+}
+
+export interface CalculatedEmployedTimeData {
+  hours: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+  visualPercents: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+    overtime: number;
+  };
+
+  aiChatVisualPercents: {
+    billable: number;
+    nonBillable: number;
+    untracked: number;
+  };
+  tooltip: {
+    hours: {
+      billable: number;
+      nonBillable: number;
+      overtime: number;
+      untracked: number;
+    };
+    percents: {
+      billable: number;
+      nonBillable: number;
+      overtime: number;
+      total: number;
+      untracked: number;
+    };
+  };
+  employedTimePercent: number;
+  monthWorkingHours: number;
+  totalUserHours: number;
+}
+
+export type WorkFormat = 'FULL_TIME' | 'PART_TIME';
+
+export interface CalculatorInput {
+  totalUserHours: number;
+  weeksInfo: WeekBoundary[];
+  projects: ProjectData[];
+  workFormat?: WorkFormat;
 }

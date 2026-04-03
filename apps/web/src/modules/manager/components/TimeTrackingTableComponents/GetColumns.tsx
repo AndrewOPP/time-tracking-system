@@ -63,13 +63,10 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
       accessorKey: 'employedTimePercent',
       header: HeaderEmployedTime,
       cell: ({ row }) => {
-        const { totalUserHours, projects } = row.original;
+        const { totalUserHours, eployedPercent } = row.original;
+
         return (
-          <CellEmployedTime
-            weeksInfo={weeksInfo}
-            totalUserHours={totalUserHours}
-            projects={projects}
-          />
+          <CellEmployedTime employedTimeData={eployedPercent} totalUserHours={totalUserHours} />
         );
       },
     },

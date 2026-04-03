@@ -22,7 +22,7 @@ export interface ProjectDetails {
   id: string;
   description: string;
   name: string;
-  domain: string[];
+  domain: string | null;
   logo: string | null;
   status: string;
   startDate: string;
@@ -39,7 +39,7 @@ export interface DialogData {
 
 export interface ProjectTrackDialogState {
   isOpen: boolean;
-  dialogData: DialogData | null; // Лучше явно указать null, когда данных нет
+  dialogData: DialogData | null;
   openDialog: (data?: DialogData) => void;
   closeDialog: () => void;
 }
