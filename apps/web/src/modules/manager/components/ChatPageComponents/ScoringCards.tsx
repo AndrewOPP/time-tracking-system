@@ -1,13 +1,16 @@
 import { TooltipProvider } from '@components/ui/tooltip';
 import { CandidateCard } from './ScoringCards/CandidateCard';
 import type { ScoringCandidate } from '../../types/managerAIChat.types';
+import { ScoringEmptyState } from './ScoringCards/ScoringEmptyState';
 
 interface ScoringCardsProps {
   candidates: ScoringCandidate[];
 }
 
 export const ScoringCards = ({ candidates }: ScoringCardsProps) => {
-  if (!candidates || candidates.length === 0) return null;
+  if (!candidates || candidates.length === 0) {
+    return <ScoringEmptyState />;
+  }
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl mx-auto my-6">

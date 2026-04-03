@@ -29,7 +29,7 @@ export const CandidateHeader = ({ candidate, index }: CandidateHeaderProps) => {
       </div>
 
       <div className={`text-3xl font-extrabold ${getScoreColor(candidate.totalScore)}`}>
-        {candidate.totalScore}
+        {candidate.totalScore ?? 0}
         <span className="text-sm text-slate-400">/100</span>
       </div>
     </div>

@@ -45,14 +45,18 @@ export const markdownComponents: Components = {
     if (!inline && isJson) {
       try {
         const parsed = JSON.parse(rawString.replace(/\n$/, ''));
-
         const data = Array.isArray(parsed) ? parsed : parsed.candidates;
 
-        if (Array.isArray(data) && data.length > 0 && 'totalScore' in data[0]) {
-          return <ScoringCards candidates={data} />;
+        if (Array.isArray(data)) {
+          if (data.length === 0 || (data.length > 0 && 'totalScore' in data[0])) {
+            return <ScoringCards candidates={data} />;
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error('AI JSON Parsing Error:', error);
+
         const trimmed = rawString.trimStart();
+
         if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
           return (
             <div className="flex flex-col gap-3 my-4">
@@ -64,18 +68,12 @@ export const markdownComponents: Components = {
             </div>
           );
         }
-
-        return (
-          <div className="block bg-slate-100 p-2 text-xs overflow-x-auto">
-            Sorry, some error occurred
-          </div>
-        );
       }
     }
 
     return (
       <code
-        className={`${className} bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[13px] font-mono`}
+        className={`${className} bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[13px] font-mono whitespace-pre-wrap`}
         {...props}
       >
         {children}
