@@ -6,10 +6,12 @@ import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AichatToolsService } from './aichat-tools.service';
 import { AichatRepository } from './aichat.repository';
+import { ChatHistoryController } from './aichatHistory.controller';
+import { ChatHistoryService } from './aichatHistory.service';
 
 @Module({
   imports: [PrismaModule, AuthModule, ConfigModule],
-  providers: [AichatService, AichatToolsService, AichatRepository],
-  controllers: [AichatController],
+  providers: [AichatService, AichatToolsService, AichatRepository, ChatHistoryService],
+  controllers: [AichatController, ChatHistoryController],
 })
 export class AichatModule {}

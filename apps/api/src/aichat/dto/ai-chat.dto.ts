@@ -1,10 +1,14 @@
-import { IsArray } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 import { UIMessage } from 'ai';
 import { TechnologyType } from '@time-tracking-app/database/index';
 
 export class AiChatRequestDto {
   @IsArray()
   messages: UIMessage[];
+
+  @IsString()
+  @IsOptional()
+  chatId: string;
 }
 
 export interface GetTechByCategoryArgs {

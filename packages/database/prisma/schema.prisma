@@ -57,8 +57,8 @@ enum ProjectDomain {
 }
 
 model Technology {
-  id              String         @id @default(uuid())
-  name            String         @unique
+  id              String           @id @default(uuid())
+  name            String           @unique
   type            TechnologyType
   image           String? 
   users           UserTechnology[]
@@ -100,6 +100,8 @@ model User {
 
   timeLogs        TimeLog[]
   ptoLogs         PtoLog[]
+
+  chatSessions    ChatSession[]
 
   @@map("user")
 }
@@ -208,4 +210,30 @@ model PtoLog {
   @@unique([userId, date])
 
   @@map("pto_log")
+}
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  title     String        @default("Новый чат")
+  userId    String        @map("user_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+  
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@map("chat_session")
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String      @map("session_id")
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String      // Сюда будет записываться 'user', 'assistant' или 'system'
+  content   String      @db.Text
+  
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("chat_message")
 }

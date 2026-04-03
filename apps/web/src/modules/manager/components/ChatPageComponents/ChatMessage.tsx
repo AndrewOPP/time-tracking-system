@@ -1,7 +1,7 @@
-import { UserMessage } from './UserMessage';
-import { AssistantMessage } from './AssistantMessage';
 import { memo, useMemo } from 'react';
 import type { UIMessage } from 'ai';
+import { UserMessage } from './UserMessage';
+import { AssistantMessage } from './AssistantMessage';
 
 interface ChatMessageProps {
   message: UIMessage;
