@@ -8,7 +8,7 @@ interface CandidateProgressBarProps {
   score: number;
   reasoning: ReactNode;
   weight: number;
-  userTimeLoad: number | null;
+  overtimePercent?: number;
 }
 
 export const CandidateProgressBar = ({
@@ -16,13 +16,22 @@ export const CandidateProgressBar = ({
   score,
   reasoning,
   weight,
-  userTimeLoad,
+  overtimePercent,
 }: CandidateProgressBarProps) => {
   const isActive = weight > 0;
   const weightPercentage = Math.round(weight);
-  const isNegative = score < 0;
-  const progressValue = isNegative ? 100 : Math.max(0, score);
-  const barColor = !isActive ? 'bg-slate-300' : getBarColor(score);
+
+  const hasOvertime = label === 'Availability' && !!overtimePercent && overtimePercent > 0;
+
+  const progressValue = hasOvertime ? Math.min(overtimePercent, 100) : Math.max(0, score);
+
+  const barColor = !isActive ? 'bg-slate-300' : hasOvertime ? 'bg-red-500' : getBarColor(score);
+
+  const scoreTextColor = !isActive
+    ? 'text-slate-400'
+    : hasOvertime
+      ? 'text-red-500'
+      : getScoreColor(score);
 
   const ProgressBarContent = (
     <div
@@ -39,11 +48,7 @@ export const CandidateProgressBar = ({
             <span className="italic text-[10px] text-slate-400">(Ignored)</span>
           )}
         </span>
-        <span
-          className={`font-semibold text-sm ${!isActive ? 'text-slate-400' : getScoreColor(score)}`}
-        >
-          {isNegative && label === 'Availability' ? userTimeLoad + '%' : score}
-        </span>
+        <span className={`font-semibold text-sm ${scoreTextColor}`}>{score}</span>
       </div>
 
       <Progress value={progressValue} indicatorClassName={barColor} className="h-2 bg-slate-100" />

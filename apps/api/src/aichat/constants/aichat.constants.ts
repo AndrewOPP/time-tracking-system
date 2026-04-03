@@ -118,11 +118,11 @@ export const AI_TOOL_DESCRIPTIONS = {
   EVALUATE_CANDIDATES: `
     🚨 CRITICAL SYSTEM RULE: NEVER MODIFY, FILTER, OR ALTER THE ARRAY RETURNED BY THIS TOOL IN ANY WAY. YOU MUST RETURN IT EXACTLY AS RECEIVED. ANY MODIFICATION WILL COMPLETELY BREAK THE SYSTEM. 🚨
 
-    WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, or find the BEST FIT/TOP candidates. 
+    WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, find the BEST FIT/TOP candidates, or when the user asks for a RATING/SCORE (e.g. "Top 5", "Best candidates"). 
 
-    WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?"). For basic searches, use 'searchEmployees' instead.
+    WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?", "Show me backend devs"). For basic searches, use 'searchEmployees' instead.
 
-    🚨 OUTPUT RULE: Extract ONLY the 'candidates' array. Output it in a \`\`\`json block starting with '[' and ending with ']'.
+    🚨 UI CARDS OUTPUT RULE (CRITICAL): To display candidate cards on the frontend, you MUST output the 'candidates' array from this tool's response inside a raw \`\`\`json block. DO NOT output the candidates as plain text bulleted lists. 
 
     🚨 EMPTY STATE: If candidates is [], explain that exact matches are missing. Look at 'availableSkillsContext' and suggest 1-2 logically similar technologies from that list. Ask: "Would you like to see candidates with these similar skills, or show the most available engineers?"
 
@@ -335,7 +335,7 @@ export const MATH_CONSTANTS = {
 };
 
 export const PENALTIES = {
-  OVERLOAD: 30,
+  OVERLOAD: 55,
   OVERTIME: 20,
   UNTRACKED: 25,
   PTO: 20,
@@ -361,12 +361,14 @@ export const MESSAGES = {
 export interface MappedAiUserStats {
   employedTimePercent: number;
   monthWorkingHours: number;
+  overtimePercent: number;
   totalUserHours: number;
   overtime: number;
   untracked: number;
 }
 
 export interface MappedAiUser {
+  id: string;
   name: string;
   workFormat: string;
   ptoHours: number;

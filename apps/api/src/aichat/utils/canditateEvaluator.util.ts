@@ -11,10 +11,34 @@ import {
   WEIGHTS,
 } from '../constants/aichat.constants';
 import { EvaluateCandidatesArgs } from '../schemas/ai-validation.schema';
-import { RawUser } from '../types/aichat.types';
+import { RawUser, ScoringCandidate } from '../types/aichat.types';
 import { capitalize } from './string';
 
 export function calculateWeights(args: EvaluateCandidatesArgs) {
+  if (args.customWeights) {
+    const rawSkills = args.customWeights.skills ?? SCORES.MIN;
+    const rawAvailability = args.customWeights.availability ?? SCORES.MIN;
+    const rawDomain = args.customWeights.domain ?? SCORES.MIN;
+    const rawRisk = args.customWeights.risk ?? SCORES.MIN;
+
+    const totalCustomWeight = rawSkills + rawAvailability + rawDomain + rawRisk;
+
+    if (totalCustomWeight > 0) {
+      const customWeights = {
+        skills: Math.round((rawSkills / totalCustomWeight) * MATH_CONSTANTS.PERCENT),
+        availability: Math.round((rawAvailability / totalCustomWeight) * MATH_CONSTANTS.PERCENT),
+        domain: Math.round((rawDomain / totalCustomWeight) * MATH_CONSTANTS.PERCENT),
+        risk: SCORES.MIN,
+      };
+
+      customWeights.risk =
+        MATH_CONSTANTS.PERCENT -
+        (customWeights.skills + customWeights.availability + customWeights.domain);
+
+      return customWeights;
+    }
+  }
+
   const rawWeights = {
     skills: args.requiredSkills?.length ? WEIGHTS.SKILLS_ACTIVE : SCORES.MIN,
     availability:
@@ -34,6 +58,7 @@ export function calculateWeights(args: EvaluateCandidatesArgs) {
     domain: Math.round((rawWeights.domain / totalWeight) * MATH_CONSTANTS.PERCENT),
     risk: SCORES.MIN,
   };
+
   weights.risk = MATH_CONSTANTS.PERCENT - (weights.skills + weights.availability + weights.domain);
 
   return weights;
@@ -114,7 +139,8 @@ export function evaluateAvailability(mappedUser: MappedAiUser, loadStatus?: stri
 
   if (loadStatus === STATUSES.OVERLOAD) {
     baseScore = stats.employedTimePercent > THRESHOLDS.OVERLOAD_PERCENT ? SCORES.MAX : SCORES.MIN;
-    displayScore = MATH_CONSTANTS.PERCENT - stats.employedTimePercent;
+
+    displayScore = SCORES.MIN;
   } else if (mappedUser.workFormat === STATUSES.PART_TIME) {
     baseScore = Math.round(baseScore * MULTIPLIERS.PART_TIME);
     displayScore = baseScore;
@@ -125,12 +151,14 @@ export function evaluateAvailability(mappedUser: MappedAiUser, loadStatus?: stri
     MATH_CONSTANTS.DECIMAL_PLACES
   );
 
-  let reasoning = `${Math.max(SCORES.MIN, displayScore)}% capacity available (${Math.max(SCORES.MIN, Number(freeEmployeeHours))}h)`;
+  let reasoning = `${displayScore}% capacity available (${Math.max(SCORES.MIN, Number(freeEmployeeHours))}h)`;
+
   if (loadStatus === STATUSES.OVERLOAD) {
-    reasoning = `Overloaded by ${Math.abs(displayScore)}% (${Math.abs(Number(freeEmployeeHours))}h overtime needed)`;
+    const overloadPercent = Math.max(0, stats.employedTimePercent - MATH_CONSTANTS.PERCENT);
+    reasoning = `Overloaded by ${overloadPercent}%`;
   }
 
-  return { score: baseScore, displayScore, reasoning };
+  return { score: baseScore, displayScore, reasoning, overtimePercent: stats.overtimePercent };
 }
 
 export function evaluateRisk(mappedUser: MappedAiUser) {
@@ -163,4 +191,35 @@ export function evaluateRisk(mappedUser: MappedAiUser) {
 
   const reasoning = risks.length > SCORES.MIN ? risks.join(', ') : MESSAGES.RISK_LOW;
   return { score: Math.max(SCORES.MIN, score), reasoning };
+}
+
+export function generateTieBreakerInsights(topCandidates: ScoringCandidate[]): string[] {
+  const insights: string[] = [];
+
+  const scoreGroups = new Map<number, ScoringCandidate[]>();
+
+  for (const candidate of topCandidates) {
+    if (!scoreGroups.has(candidate.totalScore)) {
+      scoreGroups.set(candidate.totalScore, []);
+    }
+    scoreGroups.get(candidate.totalScore)!.push(candidate);
+  }
+
+  for (const [score, group] of scoreGroups.entries()) {
+    if (group.length > 1) {
+      const names = group.map(c => c.name).join(', ');
+      let insight = `Tie detected for score ${score} among: ${names}. Trade-offs: `;
+
+      const tradeOffs = group.map(c => {
+        return `${c.name} (Skills: ${c.criteria.skillsMatch.score}, Availability: ${c.criteria.availability.score}, Domain: ${c.criteria.domainExperience.score}, Risk: ${c.criteria.riskLevel.score})`;
+      });
+
+      insight += tradeOffs.join(' vs ');
+      insight += `. Recommendation for AI: Highlight these specific differences to the user so they can choose based on their priority (e.g., better availability vs higher skill match).`;
+
+      insights.push(insight);
+    }
+  }
+
+  return insights;
 }

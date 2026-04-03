@@ -108,25 +108,39 @@ export interface PanelConfig {
 export interface ScoringCandidate {
   name: string;
   totalScore: number;
-  skills?: string[];
   workFormat: string;
-  projects: { projectName: string; domain: string }[];
-  employedTime?: { total: number; format: string };
+  employedTime: { total: number; format: string };
+  actualSkills: string[];
   appliedWeights: {
     skills: number;
     availability: number;
     domain: number;
     risk: number;
   };
+  projects: {
+    projectName?: string;
+    domain: string;
+  }[];
   criteria: {
     skillsMatch: {
       score: number;
       reasoning: string;
-      matched?: string[];
-      missing?: string[];
+      matched: string[];
+      missing: string[];
     };
-    availability: { score: number; reasoning: string; userTimeLoad: number };
-    domainExperience: { score: number; reasoning: string };
-    riskLevel: { score: number; reasoning: string };
+    availability: {
+      score: number;
+      reasoning: string;
+      userTimeLoad: number;
+      overtimePercent: number;
+    };
+    domainExperience: {
+      score: number;
+      reasoning: string;
+    };
+    riskLevel: {
+      score: number;
+      reasoning: string;
+    };
   };
 }

@@ -17,7 +17,7 @@ import {
 } from './constants/aichat.constants';
 import { AichatRepository } from './aichat.repository';
 import { mapProjectsToAiResponse, mapUsersToAiResponse } from './aichat.mappers';
-import { RawProject, RawUser } from './types/aichat.types';
+import { RawProject, RawUser, ScoringCandidate } from './types/aichat.types';
 import { EvaluateCandidatesArgs, ValidateResponseArgs } from './schemas/ai-validation.schema';
 import { normalizeString } from './utils/string';
 import {
@@ -26,6 +26,7 @@ import {
   evaluateDomain,
   evaluateRisk,
   evaluateSkills,
+  generateTieBreakerInsights,
 } from './utils/canditateEvaluator.util';
 
 @Injectable()
@@ -368,6 +369,7 @@ export class AichatToolsService {
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonth = currentDate.getMonth();
+
       const startOfMonth = new Date(currentYear, currentMonth, 1);
       const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
@@ -377,7 +379,12 @@ export class AichatToolsService {
         endOfMonth
       );
 
-      if (users.length === 0) return { status: TOOL_RETURN_STATUS.SUCCESS, candidates: [] };
+      if (users.length === 0) {
+        return {
+          status: TOOL_RETURN_STATUS.SUCCESS,
+          candidates: [],
+        };
+      }
 
       const mappedUsers = mapUsersToAiResponse(
         users as unknown as RawUser[],
@@ -389,50 +396,70 @@ export class AichatToolsService {
 
       const allAvailableSkills = Array.from(new Set(mappedUsers.flatMap(u => u.skills)));
 
-      const allScoredCandidates = mappedUsers.map((mappedUser, index) => {
-        const rawUser = users[index] as unknown as RawUser;
+      const rawUserMap = new Map(users.map(user => [user.id, user]));
 
-        const skills = evaluateSkills(mappedUser, args.requiredSkills);
-        const availability = evaluateAvailability(mappedUser, args.loadStatus);
-        const domain = evaluateDomain(rawUser, args.targetDomain);
-        const risk = evaluateRisk(mappedUser);
+      const allScoredCandidates = mappedUsers
+        .map(mappedUser => {
+          const rawUser = rawUserMap.get(mappedUser.id) as RawUser | undefined;
 
-        const totalScore = Math.round(
-          (skills.score * weights.skills) / 100 +
-            (availability.score * weights.availability) / 100 +
-            (domain.score * weights.domain) / 100 +
-            (risk.score * weights.risk) / 100
-        );
+          if (!rawUser) {
+            console.warn(`Raw user not found for mapped user ${mappedUser.id}`);
+            return null;
+          }
 
-        return {
-          name: mappedUser.name,
-          totalScore,
-          workFormat: mappedUser.workFormat,
-          appliedWeights: weights,
-          projects: domain.allProjects ?? [],
-          actualSkills: mappedUser.skills,
-          criteria: {
-            skillsMatch: {
-              score: skills.score,
-              reasoning: skills.reasoning,
-              matched: skills.matched,
-              missing: skills.missing,
+          const skills = evaluateSkills(mappedUser, args.requiredSkills);
+          const availability = evaluateAvailability(mappedUser, args.loadStatus);
+          const domain = evaluateDomain(rawUser, args.targetDomain);
+          const risk = evaluateRisk(mappedUser);
+
+          const totalScore = Math.round(
+            (skills.score * weights.skills) / 100 +
+              (availability.score * weights.availability) / 100 +
+              (domain.score * weights.domain) / 100 +
+              (risk.score * weights.risk) / 100
+          );
+
+          return {
+            name: mappedUser.name,
+            totalScore,
+            workFormat: mappedUser.workFormat,
+            appliedWeights: weights,
+            projects: domain.allProjects ?? [],
+            actualSkills: mappedUser.skills,
+            criteria: {
+              skillsMatch: {
+                score: skills.score,
+                reasoning: skills.reasoning,
+                matched: skills.matched,
+                missing: skills.missing,
+              },
+              availability: {
+                score: availability.displayScore,
+                reasoning: availability.reasoning,
+                overtimePercent: availability.overtimePercent,
+                userTimeLoad: mappedUser.aiStats?.employedTimePercent,
+              },
+              domainExperience: {
+                score: domain.score,
+                reasoning: domain.reasoning,
+              },
+              riskLevel: {
+                score: risk.score,
+                reasoning: risk.reasoning,
+              },
             },
-            availability: {
-              score: availability.displayScore,
-              reasoning: availability.reasoning,
-              userTimeLoad: mappedUser.aiStats?.employedTimePercent,
-            },
-            domainExperience: { score: domain.score, reasoning: domain.reasoning },
-            riskLevel: { score: risk.score, reasoning: risk.reasoning },
-          },
-        };
-      });
+          };
+        })
+        .filter(Boolean) as ScoringCandidate[];
 
       let finalPool = allScoredCandidates;
 
-      if (args.requiredSkills && args.requiredSkills.length > 0) {
-        const matches = allScoredCandidates.filter(c => c.criteria.skillsMatch.score > 0);
+      if (args.requiredSkills?.length) {
+        const matches = allScoredCandidates.filter(c => c!.criteria.skillsMatch.score > 0);
+
+        const nearestAlternatives = allScoredCandidates
+          .sort((a, b) => b!.totalScore - a!.totalScore)
+          .slice(0, args.limit || 3);
 
         if (matches.length === 0) {
           return {
@@ -440,7 +467,7 @@ export class AichatToolsService {
             message: 'No candidates matched the required skills.',
             appliedWeights: weights,
             availableSkillsContext: allAvailableSkills,
-            candidates: [],
+            candidates: nearestAlternatives,
           };
         }
 
@@ -448,18 +475,23 @@ export class AichatToolsService {
       }
 
       const topCandidates = finalPool
-        .sort((a, b) => b.totalScore - a.totalScore)
+        .sort((a, b) => b!.totalScore - a!.totalScore)
         .slice(0, args.limit || 3);
+
+      const tieBreakerInsights = generateTieBreakerInsights(topCandidates);
 
       return {
         status: TOOL_RETURN_STATUS.SUCCESS,
         message: 'Success',
         appliedWeights: weights,
         candidates: topCandidates,
+        tieBreakerInsights: tieBreakerInsights.length > 0 ? tieBreakerInsights : undefined,
       };
     } catch (error) {
       console.error('Evaluate Error:', error);
-      return { error: 'Failed to score candidates' };
+      return {
+        error: 'Failed to score candidates',
+      };
     }
   }
 }
