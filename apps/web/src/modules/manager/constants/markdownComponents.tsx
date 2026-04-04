@@ -52,9 +52,7 @@ export const markdownComponents: Components = {
             return <ScoringCards candidates={data} />;
           }
         }
-      } catch (error) {
-        console.error('AI JSON Parsing Error:', error);
-
+      } catch {
         const trimmed = rawString.trimStart();
 
         if (trimmed.startsWith('[') || trimmed.startsWith('{')) {

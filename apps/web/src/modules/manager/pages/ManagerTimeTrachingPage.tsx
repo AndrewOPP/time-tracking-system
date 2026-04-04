@@ -107,7 +107,7 @@ export function ManagerTimeTrachingPage() {
         description="Here you can view employee hours and quickly filter data by necessary criteria."
       />
 
-      <div className="flex flex-row  justify-between gap-2 items-center mb-5">
+      <div className="flex flex-row  justify-between gap-2 items-center mb-4">
         <div className="flex flex-row  gap-2 items-center w-full max-w-[550px]">
           <FiltersPopover
             weeksInfo={weeksInfo}
@@ -131,7 +131,7 @@ export function ManagerTimeTrachingPage() {
           />
         </div>
 
-        <div className="mt-4 mb-4 ">
+        <div>
           <MonthNavigation
             onPrevMonth={handlePrevMonth}
             onNextMonth={handleNextMonth}
