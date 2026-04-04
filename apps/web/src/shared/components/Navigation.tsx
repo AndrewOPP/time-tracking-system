@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -107,8 +107,6 @@ export const Navigation = () => {
     );
   };
 
-  // ИЗМЕНЕНИЕ 1: Теперь это просто функция, которая возвращает кусок верстки,
-  // а не отдельный React-компонент.
   const renderNavContent = () => (
     <div className="flex flex-col h-full bg-[#FAFAFA]">
       <div className="h-[56px] flex items-center justify-center px-4 shrink-0 border-b border-[#E5E5E5]">
@@ -173,7 +171,6 @@ export const Navigation = () => {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64 border-r border-[#E5E5E5]">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            {/* ИЗМЕНЕНИЕ 2: Вызываем как обычную функцию */}
             {renderNavContent()}
           </SheetContent>
         </Sheet>
@@ -189,7 +186,6 @@ export const Navigation = () => {
       </div>
 
       <aside className="hidden md:flex h-screen w-64 bg-[#FAFAFA] border-r border-[#E5E5E5] flex-col shrink-0 z-40">
-        {/* ИЗМЕНЕНИЕ 3: И здесь тоже вызываем как функцию */}
         {renderNavContent()}
       </aside>
     </>

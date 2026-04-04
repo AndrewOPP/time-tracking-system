@@ -1,3 +1,4 @@
+// ChatArea.tsx
 import React, { useState, useRef, memo, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
@@ -10,16 +11,18 @@ import { AI_CHAT_PAGE_CONFIG } from '../../constants/constants';
 import { tokenRefresh } from '@/modules/auth/api/auth.api';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { ROUTES } from '@/shared/constants/routes';
-import { useInvalidateChatList } from '../../hooks/useChatHistory';
+import { useInvalidateChatList, useChatMessages } from '../../hooks/useChatHistory'; // <-- Добавили useChatMessages
 
 const MemoChatMessage = memo(ChatMessage);
 
-interface ChatAreaProps {
+// 1. Твой оригинальный ChatArea теперь называется ChatAreaInner
+function ChatAreaInner({
+  chatId,
+  initialMessages,
+}: {
   chatId: string;
   initialMessages: UIMessage[];
-}
-
-export function ChatArea({ chatId, initialMessages }: ChatAreaProps) {
+}) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -157,4 +160,15 @@ export function ChatArea({ chatId, initialMessages }: ChatAreaProps) {
       />
     </div>
   );
+}
+
+export function ChatArea({ chatId }: { chatId: string }) {
+  const { data: initialMessages, isLoading } = useChatMessages(chatId);
+
+  // Скрываем чат ТОЛЬКО если это самая первая загрузка и сообщений еще вообще нет
+  if (isLoading && !initialMessages) {
+    return null;
+  }
+
+  return <ChatAreaInner chatId={chatId} initialMessages={initialMessages || []} />;
 }
