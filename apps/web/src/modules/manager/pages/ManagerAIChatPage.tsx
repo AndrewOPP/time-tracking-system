@@ -17,6 +17,8 @@ interface chat {
   updatedAt: string;
 }
 
+const STORAGE_KEY = 'manager_active_chat_id';
+
 export function ManagerAIChatPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeChatId = searchParams.get('chatId');
@@ -27,6 +29,22 @@ export function ManagerAIChatPage() {
   const { data: chats, isLoading: isChatsLoading } = useChatList();
   const createChatMutation = useCreateChat();
   const deleteChatMutation = useDeleteChat();
+
+  useEffect(() => {
+    if (activeChatId) return;
+
+    const savedChatId = sessionStorage.getItem(STORAGE_KEY);
+
+    if (savedChatId) {
+      setSearchParams({ chatId: savedChatId }, { replace: true });
+    }
+  }, [activeChatId, setSearchParams]);
+
+  useEffect(() => {
+    if (activeChatId) {
+      sessionStorage.setItem(STORAGE_KEY, activeChatId);
+    }
+  }, [activeChatId]);
 
   useEffect(() => {
     if (activeChatId) {
@@ -46,6 +64,14 @@ export function ManagerAIChatPage() {
     const isCurrentChatValid = activeChatId && chats.some((c: chat) => c.id === activeChatId);
 
     if (!isCurrentChatValid) {
+      const savedChatId = sessionStorage.getItem(STORAGE_KEY);
+      const isSavedValid = savedChatId && chats.some((c: chat) => c.id === savedChatId);
+
+      if (isSavedValid) {
+        setSearchParams({ chatId: savedChatId! }, { replace: true });
+        return;
+      }
+
       if (chats.length > 0) {
         setSearchParams({ chatId: chats[0].id }, { replace: true });
       } else {
@@ -85,6 +111,7 @@ export function ManagerAIChatPage() {
       } else {
         searchParams.delete('chatId');
         setSearchParams(searchParams, { replace: true });
+        sessionStorage.removeItem(STORAGE_KEY);
       }
     }
 
@@ -99,21 +126,7 @@ export function ManagerAIChatPage() {
           disabled={createChatMutation.isPending || isChatsLoading}
           className="w-full py-1.5 pr-0 bg-white border cursor-pointer border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 rounded-md transition-all flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-50"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          New chat
+          + New chat
         </button>
       </div>
 
@@ -125,7 +138,7 @@ export function ManagerAIChatPage() {
               setSearchParams({ chatId: chat.id }, { replace: true });
               setIsMobileOpen(false);
             }}
-            className={`group flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 border ${
+            className={`group flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer transition-all duration-200 border ${
               activeChatId === chat.id
                 ? 'bg-white border-slate-200 text-slate-800 font-medium'
                 : 'border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:text-slate-800'
@@ -136,23 +149,9 @@ export function ManagerAIChatPage() {
               <button
                 onClick={e => handleDeleteChat(e, chat.id)}
                 disabled={deleteChatMutation.isPending}
-                className="cursor-pointer opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-opacity p-1 -mr-1.5 shrink-0 disabled:opacity-50 rounded-md hover:bg-slate-100"
+                className="cursor-pointer opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-opacity p-1 -mr-1.5 shrink-0 disabled:opacity-50 rounded-md "
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 6h18"></path>
-                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                </svg>
+                ✕
               </button>
             )}
           </div>
@@ -166,7 +165,7 @@ export function ManagerAIChatPage() {
       <div className="flex min-[1000px]:hidden items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0 bg-white z-10">
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
-            <button className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors">
+            <button className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-md">
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
@@ -179,11 +178,11 @@ export function ManagerAIChatPage() {
         <span className="font-semibold text-slate-800 text-sm">Chats</span>
       </div>
 
-      <div className="hidden min-[1000px]:flex w-[240px] shrink-0 border-r border-slate-200 bg-transparent flex-col">
+      <div className="hidden min-[1000px]:flex w-[240px] shrink-0 border-r border-slate-200 flex-col">
         {renderSidebarContent(false)}
       </div>
 
-      <div className="flex-1 relative flex flex-col items-center justify-center bg-transparent h-full">
+      <div className="flex-1 relative flex flex-col items-center justify-center h-full">
         {openedChats.map(id => (
           <div
             key={id}

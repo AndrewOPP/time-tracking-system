@@ -3,7 +3,7 @@ import { Navigation } from '@components/Navigation';
 
 export function MainLayout() {
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-white">
+    <div className="flex flex-col md:flex-row h-screen bg-white  custom-scrollbar">
       <Navigation />
 
       <div className="flex-1 flex flex-col min-w-0">

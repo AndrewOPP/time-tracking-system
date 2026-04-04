@@ -56,7 +56,7 @@ export const TimeTrackingTable = memo(
 
               return (
                 <VirtualTableRow
-                  key={`${row.id}-projects-${projectsCount}`}
+                  key={`${row.id}-projects-${projectsCount}-cols-${columns.length}`}
                   row={row}
                   index={virtualRow.index}
                   measureRef={rowVirtualizer.measureElement}
