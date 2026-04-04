@@ -1,4 +1,4 @@
-import { AI_WORK_FORMAT } from 'src/aichat/constants/aichat.constants';
+import { AI_WORK_FORMAT } from '../../aichat/constants/aichat.constants';
 import { PROJECT_TYPE } from '../constants/timeLogs.constants';
 import { CalculatedEmployedTimeData, CalculatorInput } from '../types/timeLogs.types';
 import { calculatePercentage } from './math.utils';
@@ -55,6 +55,7 @@ export const calculateEmployedTimeData = ({
     2
   );
   const aiChatUntrackedHoursPercent = calculatePercentage(untrackedHours, monthWorkingHours, 2);
+  const aiChatOvertimeHoursPercent = calculatePercentage(overtimeHours, monthWorkingHours, 2);
 
   const employedTimePercent = calculatePercentage(
     billableHours + nonBillableHours,
@@ -78,6 +79,7 @@ export const calculateEmployedTimeData = ({
       billable: aiChatBillableHoursPercent,
       nonBillable: aiChatNonBillableHoursPercent,
       untracked: aiChatUntrackedHoursPercent,
+      overtime: aiChatOvertimeHoursPercent,
     },
     tooltip: {
       hours: {

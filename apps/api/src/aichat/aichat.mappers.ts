@@ -1,7 +1,7 @@
-import { ProjectData } from 'src/timeLogs/types/timeLogs.types';
-import { PROJECT_TYPE, TIMELOGS_QUERIES_CONFIG } from 'src/timeLogs/constants/timeLogs.constants';
-import { calculateEmployedTimeData } from 'src/timeLogs/utils/employedTimeCalculator';
-import { getWeeksForMonth } from 'src/timeLogs/utils/monthToWeeks';
+import { PROJECT_TYPE, TIMELOGS_QUERIES_CONFIG } from '../timeLogs/constants/timeLogs.constants';
+import { ProjectData } from '../timeLogs/types/timeLogs.types';
+import { calculateEmployedTimeData } from '../timeLogs/utils/employedTimeCalculator';
+import { getWeeksForMonth } from '../timeLogs/utils/monthToWeeks';
 import { AI_MESSAGES } from './constants/aichat.constants';
 import { RawProject, RawUser } from './types/aichat.types';
 import { capitalize } from './utils/string';
@@ -60,11 +60,14 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       billableHours: stats.hours.billable,
       overtime: stats.hours.overtime,
       untracked: stats.hours.untracked,
+      overtimePercent: stats.visualPercents.overtime,
       nonBillable: stats.hours.nonBillable,
       billableHoursPercent: stats.aiChatVisualPercents.billable,
       untrackedHoursPercent: stats.aiChatVisualPercents.untracked,
       nonBillableHoursPercent: stats.aiChatVisualPercents.nonBillable,
+      overtimeHoursPercent: stats.aiChatVisualPercents.overtime,
       employedTimePercent: stats.employedTimePercent,
+      monthWorkingHours: stats.monthWorkingHours,
     };
 
     return {

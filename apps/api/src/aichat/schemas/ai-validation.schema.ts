@@ -57,4 +57,42 @@ export const validateResponseSchema = z.object({
     .describe(`Fill this object ONLY if responseType is ${AI_VALIDATION_FORMAT.PM_PORTFOLIO}.`),
 });
 
+export const evaluateCandidatesSchema = z.object({
+  requiredSkills: z
+    .array(z.string())
+    .describe(
+      'Exact skills explicitly named by the user. DO NOT guess, infer, or hallucinate related tech. Return [] if none specified.'
+    ),
+  targetDomain: z
+    .string()
+    .optional()
+    .describe('Project domain, e.g., "FoodTech". Return "" if none specified.'),
+  limit: z.number().optional().default(3).describe('How many top candidates to return'),
+  loadStatus: z
+    .enum(['overload', 'available', ''])
+    .optional()
+    .default('')
+    .describe(
+      'Filter by workload status: "overload" (load > 100%), "available" (load < 90%), or empty string for all candidates'
+    ),
+  customWeights: z
+    .object({
+      skills: z.number().optional(),
+      availability: z.number().optional(),
+      domain: z.number().optional(),
+      risk: z.number().optional(),
+    })
+    .optional()
+    .describe(
+      "Provide custom weights (0 to 100) to adapt scoring based on the user's intent:\n" +
+        "- 'skills': Give highest weight if specific tech is requested. 🚨 CRITICAL: If no specific technologies/skills are mentioned in the prompt, you MUST set 'skills' to 0.\n" +
+        "- 'availability': Give high weight if workload, capacity, urgency, free time, OR 'overloaded' status is mentioned. 🚨 CRITICAL: NEVER set 'availability' to 0 if the user asks for 'overloaded' candidates; give it a high weight so the system can rank them by their overload level. If workload is not mentioned at all, set a baseline of 20-30.\n" +
+        "- 'domain': Boost ONLY if a specific domain is explicitly requested. 🚨 CRITICAL: If no specific domain is mentioned in the prompt, you MUST set 'domain' to 0.\n" +
+        "- 'risk': ALWAYS set to 15, never change it.\n" +
+        'The tool will normalize these to equal 100%.'
+    ),
+});
+
+export type EvaluateCandidatesArgs = z.infer<typeof evaluateCandidatesSchema>;
+
 export type ValidateResponseArgs = z.infer<typeof validateResponseSchema>;

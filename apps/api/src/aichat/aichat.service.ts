@@ -15,8 +15,8 @@ import {
   getProjectTeamSchema,
   getPmPortfolioSchema,
 } from './schemas/ai.schemas';
-import { validateResponseSchema } from './schemas/ai-validation.schema';
 import { ChatHistoryService } from './aichatHistory.service';
+import { evaluateCandidatesSchema, validateResponseSchema } from './schemas/ai-validation.schema';
 
 @Injectable()
 export class AichatService {
@@ -123,14 +123,13 @@ export class AichatService {
             },
           }),
 
-          //TODO: Left it for the future
-          // evaluateCandidates: tool({
-          //   description: AI_TOOL_DESCRIPTIONS.EVALUATE_CANDIDATES,
-          //   inputSchema: evaluateCandidatesSchema,
-          //   execute: async args => {
-          //     return this.dbToolsService.handleEvaluateCandidates(args);
-          //   },
-          // }),
+          evaluateCandidates: tool({
+            description: AI_TOOL_DESCRIPTIONS.EVALUATE_CANDIDATES,
+            inputSchema: evaluateCandidatesSchema,
+            execute: async args => {
+              return this.dbToolsService.handleEvaluateCandidates(args);
+            },
+          }),
         },
       });
 

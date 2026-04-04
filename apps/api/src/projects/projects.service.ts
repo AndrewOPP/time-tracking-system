@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@time-tracking-app/database/index';
 import { ProjectError } from './types/projects.types';
-import { Role } from 'src/auth/types/oauth.types';
+import { Role } from '../auth/types/oauth.types';
 
 @Injectable()
 export class ProjectsService {

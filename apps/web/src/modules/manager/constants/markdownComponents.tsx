@@ -1,4 +1,6 @@
 import type { Components } from 'react-markdown';
+import { ScoringCards } from '../components/ChatPageComponents/ScoringCards';
+import { ScoringCardsSkeleton } from '../components/ChatPageComponents/ScoringCards/ScoringCardsSkeleton';
 
 export const markdownComponents: Components = {
   p: ({ children }) => <p className="mb-4 last:mb-0 animate-fade-in-up">{children}</p>,
@@ -33,4 +35,49 @@ export const markdownComponents: Components = {
       {children}
     </h4>
   ),
+
+  // eslint-disable-next-line
+  code: ({ node, inline, className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const isJson = match && match[1] === 'json';
+    const rawString = String(children);
+
+    if (!inline && isJson) {
+      try {
+        const parsed = JSON.parse(rawString.replace(/\n$/, ''));
+        const data = Array.isArray(parsed) ? parsed : parsed.candidates;
+
+        if (Array.isArray(data)) {
+          if (data.length === 0 || (data.length > 0 && 'totalScore' in data[0])) {
+            return <ScoringCards candidates={data} />;
+          }
+        }
+      } catch (error) {
+        console.error('AI JSON Parsing Error:', error);
+
+        const trimmed = rawString.trimStart();
+
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+          return (
+            <div className="flex flex-col gap-3 my-4">
+              <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
+                <span className="block h-3.5 w-3.5 rounded-full border-[1.5px] border-slate-200 border-t-slate-500 animate-spin"></span>
+                <span className="font-medium">Generating cards...</span>
+              </div>
+              <ScoringCardsSkeleton />
+            </div>
+          );
+        }
+      }
+    }
+
+    return (
+      <code
+        className={`${className} bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[13px] font-mono whitespace-pre-wrap`}
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
 };
