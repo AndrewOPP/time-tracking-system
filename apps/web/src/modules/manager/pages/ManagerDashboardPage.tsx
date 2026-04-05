@@ -256,14 +256,14 @@ function KpiCard({
 }: KpiCardProps) {
   return (
     <Card
-      className={cn('border-slate-200 transition-all flex flex-col justify-center py-5', className)}
+      className={cn('border-slate-200 transition-all flex flex-col justify-center py-0', className)}
     >
       <CardContent className="p-5 flex justify-between items-center gap-4 h-full">
         <div className="space-y-1">
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             {title}
           </p>
-          <div className="text-3xl font-bold tracking-tight text-slate-900">{value}</div>
+          <div className="text-2xl font-bold tracking-tight text-slate-900">{value}</div>
           <p className="text-[11px] text-slate-500 mt-1 font-medium">{description}</p>
         </div>
 

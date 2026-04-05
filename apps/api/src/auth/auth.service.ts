@@ -291,7 +291,7 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.systemRole,
-          userName: user.username,
+          username: user.username,
           isActive: user.isActive,
         },
       };

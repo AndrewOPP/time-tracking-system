@@ -117,6 +117,10 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
 @keyframes text-flow {
   0%,
   100% {
@@ -248,9 +252,5 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #9ca3af;
-  }
-
-  @utility no-scrollbar {
-    @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
   }
 }
