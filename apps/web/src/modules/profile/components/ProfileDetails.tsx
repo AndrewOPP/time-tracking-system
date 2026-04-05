@@ -20,7 +20,7 @@ export const ProfileDetails: React.FC<{ user: EmployeeProfileResponse; theme: Us
         <h3 className="text-gray-900 font-semibold text-sm">Recent Activity</h3>
       </div>
 
-      <div className="h-[400px] overflow-y-auto relative  custom-scrollbar">
+      <div className="h-[244px] overflow-y-auto relative  custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 bg-white z-10 shadow-[0_1px_0_0_#e5e7eb]">
             <tr className="text-[11px] uppercase text-gray-400 font-bold">

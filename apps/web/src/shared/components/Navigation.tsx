@@ -78,7 +78,7 @@ export const Navigation = () => {
     },
     {
       label: 'My profile',
-      path: ROUTES.USER.PROFILE,
+      path: ROUTES.USER.PROFILE + `/${user.username}`,
       icon: PersonStandingIcon,
     },
   ];
@@ -106,7 +106,6 @@ export const Navigation = () => {
       </Link>
     );
   };
-
   const renderNavContent = () => (
     <div className="flex flex-col h-full bg-[#FAFAFA]">
       <div className="h-[56px] flex items-center justify-center px-4 shrink-0 border-b border-[#E5E5E5]">

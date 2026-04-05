@@ -1,6 +1,8 @@
 import React from 'react';
+import { format } from 'date-fns'; // Добавили импорт
 import type { EmployeeProfileResponse } from '../types/employee.types';
 import type { UserTheme } from '../utils/getUserTheme';
+import { capitalize } from '@/shared/utils/firstCharToUpperCase';
 
 const PARTICLES = [...Array(15)].map((_, i) => ({
   id: i,
@@ -19,7 +21,7 @@ interface ProfileHeroProps {
 
 export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 w-full flex flex-col overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 min-h-85 w-full flex flex-col overflow-hidden">
       <div className={`relative w-full h-24 overflow-hidden ${theme.banner}`}>
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40"></div>
         <div className="absolute inset-0 z-0 overflow-hidden">
@@ -43,7 +45,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
         </div>
       </div>
 
-      <div className="px-6 pb-6 flex flex-col items-center relative">
+      <div className="px-6 pb-4 flex flex-col items-center relative">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-4 border-white flex-shrink-0 relative -mt-10 z-10">
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
@@ -55,7 +57,9 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
         </div>
 
         <h1 className="text-lg font-bold text-gray-900 mt-2 text-center">{user.fullName}</h1>
-        <p className="text-sm text-gray-500 font-medium text-center">{user.systemRole}</p>
+        <p className="text-sm text-gray-500 font-medium text-center">
+          {capitalize(user.systemRole)}
+        </p>
 
         <div className="flex flex-col gap-3 w-full pt-5 mt-5 border-t border-gray-100">
           <div className="flex justify-between items-center text-sm">
@@ -66,10 +70,19 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
               {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
             </span>
           </div>
+
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Work Format</span>
             <span className="text-gray-900 font-medium pr-1">
               {user.workFormat === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
+            </span>
+          </div>
+
+          {/* Заменили дубликат на дату регистрации */}
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-500">Joined</span>
+            <span className="text-gray-900 font-medium pr-1">
+              {format(new Date(user.createdAt), 'MMM dd, yyyy')}
             </span>
           </div>
         </div>

@@ -14,7 +14,6 @@ interface ProjectCardProps {
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   const currentStatus = statusConfig[project.status] || statusConfig.NOT_STARTED;
   const navigate = useNavigate();
-  console.log(project, 'project');
 
   return (
     <Card

@@ -94,7 +94,7 @@ export interface EvaluateCandidatesArgs {
 
 export const AI_TOOL_DESCRIPTIONS = {
   GET_TECH_BY_CATEGORY: `
-    Call ONLY if user EXPLICITLY mentions "backend" or "frontend". 
+    YOU MUST CALL IT ONLY if user EXPLICITLY mentions backend or frontend. 
     🚫 DO NOT call for "Fullstack", "Mobile", "QA", "Designer" or general "developers". DO NOT guess the category.
     CHAINING RULE:
     1. Call this tool.

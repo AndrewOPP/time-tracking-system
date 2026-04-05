@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@time-tracking-app/database/index';
+import { subDays } from 'date-fns'; // <-- Добавили импорт для работы с датами
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserByUsername(requestedUsername: string) {
+    const endDate = new Date();
+    const startDate = subDays(endDate, 14);
+
     const user = await this.prisma.user.findUnique({
       where: { username: requestedUsername },
       include: {
@@ -30,7 +34,8 @@ export class UserService {
           orderBy: { status: 'asc' },
         },
         timeLogs: {
-          take: 20,
+          // Убрали take: 20 и добавили фильтр за 14 дней
+          where: { date: { gte: startDate, lte: endDate } },
           orderBy: { date: 'desc' },
           include: {
             project: {
@@ -39,7 +44,8 @@ export class UserService {
           },
         },
         ptoLogs: {
-          take: 10,
+          // Убрали take: 10 и добавили фильтр за 14 дней
+          where: { date: { gte: startDate, lte: endDate } },
           orderBy: { date: 'desc' },
         },
       },
