@@ -12,7 +12,7 @@ export class AichatController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async root(@Req() req: RequestWithUser, @Res() res: Response, @Body() body: AiChatRequestDto) {
-    const userId = req.user.sub; // Достаем ID пользователя
+    const userId = req.user.sub;
 
     const { result, chatId } = await this.aichatService.generateResponseStream(
       body.messages,
@@ -20,8 +20,6 @@ export class AichatController {
       body.chatId
     );
 
-    // ВАЖНО: Нужно передать chatId на фронтенд в хедерах (чтобы фронт обновил URL)
-    // так как мы не можем вернуть JSON, ведь мы стримим ответ.
     if (chatId) {
       res.setHeader('x-chat-id', chatId);
       res.setHeader('Access-Control-Expose-Headers', 'x-chat-id');

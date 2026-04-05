@@ -5,7 +5,6 @@ import { PrismaService } from '@time-tracking-app/database/index';
 export class ChatHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Получить список всех чатов пользователя
   async getUserChats(userId: string) {
     return this.prisma.chatSession.findMany({
       where: { userId },
@@ -18,10 +17,7 @@ export class ChatHistoryService {
     });
   }
 
-  // Получить историю сообщений конкретного чата
   async getChatMessages(sessionId: string, userId: string) {
-    // В findUnique по умолчанию можно использовать только @unique поля.
-    // Для фильтрации по двум полям используем findFirst
     const session = await this.prisma.chatSession.findFirst({
       where: { id: sessionId, userId },
     });
@@ -41,7 +37,6 @@ export class ChatHistoryService {
     });
   }
 
-  // Создать новый чат
   async createChatSession(userId: string, title: string = 'New Chat') {
     if (!userId) {
       throw new Error('UserId is required to create a chat session');
@@ -50,7 +45,6 @@ export class ChatHistoryService {
     return this.prisma.chatSession.create({
       data: {
         title,
-        // Используем объектное связывание connect
         user: {
           connect: { id: userId },
         },
@@ -58,7 +52,6 @@ export class ChatHistoryService {
     });
   }
 
-  // Удалить чат
   async deleteChatSession(sessionId: string, userId: string) {
     const session = await this.prisma.chatSession.findFirst({
       where: { id: sessionId, userId },
