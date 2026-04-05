@@ -90,18 +90,30 @@ export class AichatToolsService {
         }
       }
 
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth();
+      // const currentDate = new Date();
+      // const currentYear = currentDate.getFullYear();
+      // const currentMonth = currentDate.getMonth();
 
-      const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-      const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+      let queryStartDate: Date;
+      let queryEndDate: Date;
 
-      const users = await this.aichatRepo.findUsersWithDetails(
-        where,
-        firstDayOfMonth,
-        lastDayOfMonth
-      );
+      if (args.startDate && args.endDate) {
+        queryStartDate = new Date(args.startDate);
+        queryEndDate = new Date(args.endDate);
+      } else {
+        queryEndDate = new Date();
+        queryStartDate = new Date(queryEndDate);
+        queryStartDate.setDate(queryStartDate.getDate() - 14);
+        queryStartDate.setHours(0, 0, 0, 0);
+      }
+
+      // const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+      // const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+      const currentYear = queryEndDate.getFullYear();
+      const currentMonth = queryEndDate.getMonth();
+
+      const users = await this.aichatRepo.findUsersWithDetails(where, queryStartDate, queryEndDate);
 
       const totalSkillUsers = users.length;
 
@@ -112,7 +124,9 @@ export class AichatToolsService {
       let processedUsers = mapUsersToAiResponse(
         users as unknown as RawUser[],
         currentYear,
-        currentMonth
+        currentMonth,
+        queryStartDate,
+        queryEndDate
       );
 
       if (!args.realName) {
@@ -240,12 +254,23 @@ export class AichatToolsService {
 
   async handleFinalizeAndValidateResponse(args: ValidateResponseArgs) {
     const errors: string[] = [];
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    let queryStartDate: Date;
+    let queryEndDate: Date;
 
+    if (args.startDate && args.endDate) {
+      queryStartDate = new Date(args.startDate);
+      queryEndDate = new Date(args.endDate);
+    } else {
+      queryEndDate = new Date();
+      queryStartDate = new Date(queryEndDate);
+      queryStartDate.setDate(queryStartDate.getDate() - 14);
+      queryStartDate.setHours(0, 0, 0, 0);
+    }
+    console.log(queryStartDate, 'queryStartDate');
+    console.log(queryEndDate, 'queryEndDate');
+
+    const currentYear = queryEndDate.getFullYear();
+    const currentMonth = queryEndDate.getMonth();
     try {
       if (args.responseType === AI_VALIDATION_FORMAT.EMPLOYEES && args.candidates) {
         const candidateNames = args.candidates.map(c => c.name);
@@ -258,14 +283,16 @@ export class AichatToolsService {
                 { username: { equals: name, mode: 'insensitive' } },
               ]),
             },
-            firstDayOfMonth,
-            lastDayOfMonth
+            queryStartDate,
+            queryEndDate
           );
 
           const mappedUsers = mapUsersToAiResponse(
             users as unknown as RawUser[],
             currentYear,
-            currentMonth
+            currentMonth,
+            queryStartDate,
+            queryEndDate
           );
 
           for (const candidate of args.candidates) {
@@ -321,8 +348,8 @@ export class AichatToolsService {
       if (args.responseType === AI_VALIDATION_FORMAT.PROJECT_TEAM && args.projectTeamDetails) {
         const projects = await this.aichatRepo.findProjectsWithDetails(
           { name: { equals: args.projectTeamDetails.projectName, mode: 'insensitive' } },
-          firstDayOfMonth,
-          lastDayOfMonth
+          queryStartDate,
+          queryEndDate
         );
         if (projects.length === 0) {
           errors.push(
@@ -338,8 +365,8 @@ export class AichatToolsService {
               realName: { contains: args.pmPortfolioDetails.managerName, mode: 'insensitive' },
             },
           },
-          firstDayOfMonth,
-          lastDayOfMonth
+          queryStartDate,
+          queryEndDate
         );
 
         if (projects.length === 0) {
@@ -371,18 +398,47 @@ export class AichatToolsService {
 
   async handleEvaluateCandidates(args: EvaluateCandidatesArgs) {
     try {
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth();
+      let startDate: Date;
+      let endDate: Date;
+      // const currentDate = new Date();
+      // const currentYear = currentDate.getFullYear();
+      // const currentMonth = currentDate.getMonth();
 
-      const startOfMonth = new Date(currentYear, currentMonth, 1);
-      const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+      // const startOfMonth = new Date(currentYear, currentMonth, 1);
+      // const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+      if (args.startDate && args.endDate) {
+        startDate = new Date(args.startDate);
+        endDate = new Date(args.endDate);
+      } else {
+        // 2. Дефолтное поведение: последние 14 дней
+        endDate = new Date();
+        startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 14);
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      // const endDate = new Date();
+
+      // const startDate = new Date(endDate);
+      // startDate.setDate(startDate.getDate() - 14);
+
+      // startDate.setHours(0, 0, 0, 0);
+
+      const currentYear = endDate.getFullYear();
+      const currentMonth = endDate.getMonth();
 
       const users = await this.aichatRepo.findUsersWithDetails(
         { isActive: true, systemRole: USER_SYSTEM_ROLE.EMPLOYEE },
-        startOfMonth,
-        endOfMonth
+        startDate,
+        endDate
       );
+
+      // const users = await this.aichatRepo.findUsersWithDetails(
+      //   { isActive: true, systemRole: USER_SYSTEM_ROLE.EMPLOYEE },
+      //   startOfMonth,
+      //   endOfMonth
+      // );
 
       if (users.length === 0) {
         return {
@@ -394,7 +450,9 @@ export class AichatToolsService {
       const mappedUsers = mapUsersToAiResponse(
         users as unknown as RawUser[],
         currentYear,
-        currentMonth
+        currentMonth,
+        startDate,
+        endDate
       ) as unknown as MappedAiUser[];
 
       const weights = calculateWeights(args);

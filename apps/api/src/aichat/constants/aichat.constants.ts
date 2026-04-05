@@ -51,6 +51,8 @@ export interface SearchEmployeesArgs {
   skillMode?: AiSkillFormat;
   minLoadPercent?: number;
   maxLoadPercent?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface SearchProjectsArgs {
@@ -103,6 +105,23 @@ export const AI_TOOL_DESCRIPTIONS = {
   SEARCH_EMPLOYEES: `
   🌟 DEFAULT SEARCH TOOL: Use this for ALL general queries like "Find developers", "Show me PMs", "Who knows X".
     🚫 CRITICAL ROUTING BLOCKER: If the user's prompt contains words like "Top", "Best", "Most", "Rank", "candidates for" or "Compare" (e.g., "Top 3 most available React devs"), YOU ARE STRICTLY FORBIDDEN FROM USING THIS TOOL. You MUST use 'evaluateCandidates' instead!
+
+    🕒 TIMEFRAME DEFAULT RULE (CRITICAL):
+    - If the user DOES NOT specify a timeframe, you MUST use the last 14 days relative to the CURRENT SYSTEM DATE.
+    - Calculate:
+      - endDate = CURRENT SYSTEM DATE
+      - startDate = CURRENT SYSTEM DATE minus 14 days
+
+    🚨 STRICT PROHIBITION:
+    - NEVER invent custom ranges like "last month" or "recent period".
+    - ONLY use:
+      1) User-provided timeframe OR
+      2) Default last 14 days
+
+    🧾 OUTPUT REQUIREMENT:
+    - You MUST explicitly state the calculated timeframe BEFORE listing employees
+      (e.g., "Evaluation period: March 22 to April 5").
+
     Search employees/PMs by skills, workload, format, or name. Extract arguments exactly.
     WORKLOAD RULES:
     - Default: minLoadPercent=0, maxLoadPercent=1000.
@@ -121,6 +140,10 @@ export const AI_TOOL_DESCRIPTIONS = {
     WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, find the BEST FIT/TOP candidates, or when the user asks for a RATING/SCORE (e.g. "Top 5", "Best candidates"). 
 
     WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?", "Show me backend devs"). For basic searches, use 'searchEmployees' instead.
+
+    🕒 TIMEFRAME RULE (CRITICAL): 
+    - If the user explicitly asks for a timeframe (e.g., "in March") OR a relative timeframe ("last 5 days"), you MUST calculate the exact dates using your current system date and pass them into 'startDate' and 'endDate' in ISO 8601 format. 
+    - Never pass empty strings for dates. Either pass valid ISO strings or omit the keys entirely if no timeframe was requested.
 
     🚨 UI CARDS OUTPUT RULE (CRITICAL): To display candidate cards on the frontend, you MUST output the 'candidates' array from this tool's response inside a raw \`\`\`json block. DO NOT output the candidates as plain text bulleted lists. 
 
@@ -167,9 +190,11 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     'No candidates found for requested workload. Suggest these alternatives as similar specialists.',
 
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
+    (CRITICAL) NEVER return row JSON to user.
     Extract arguments EXACTLY. Do not hallucinate numbers or any other arguments. Use EXACT 'aiStats' and other data returned from the tool.
-    
+
     RULES:
+    - 🕒 TIMEFRAME: You MUST explicitly state the exact calendar dates used for this search (e.g., "Evaluation period: 2026-03-22 to 2026-04-05") BEFORE listing the employees.
     - State matching required skills.
     - Use skills from user request or you getTechnologiesByCategory.
     - Account for Part-time vs Full-time differences.
@@ -186,7 +211,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     [STEP 2] Check Near Limit: Is totalPercent >= 90 AND totalPercent <= 99?
              -> If YES, add: "[Name] is at [aiStats.employedTimePercent]% — nearly at full capacity."
     [STEP 3] Check Untracked: Is untracked > 0?
-             -> If YES, add: "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untracked]h). Actual workload may be higher."
+             -> If YES, add: "Note: [aiStats.untrackedHoursPercent]% of time is untracked ([aiStats.untracked]h). Actual workload may be higher."
 
     TEMPLATE:
     ### **[Name]**
@@ -204,6 +229,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
       (If none: "None")
     - 💡 **HR Analysis:** [2-3 sentence HR evaluation/warnings].
   `,
+
   TECH_CATEGORY: 'MUST be exactly "BACKEND" or "FRONTEND". No other values.',
   SKILLS_LIST: `
     RULES:

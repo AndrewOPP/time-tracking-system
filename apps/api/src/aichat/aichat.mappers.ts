@@ -1,3 +1,4 @@
+import { eachDayOfInterval, isWeekend } from 'date-fns';
 import { PROJECT_TYPE, TIMELOGS_QUERIES_CONFIG } from '../timeLogs/constants/timeLogs.constants';
 import { ProjectData } from '../timeLogs/types/timeLogs.types';
 import { calculateEmployedTimeData } from '../timeLogs/utils/employedTimeCalculator';
@@ -6,7 +7,13 @@ import { AI_MESSAGES } from './constants/aichat.constants';
 import { RawProject, RawUser } from './types/aichat.types';
 import { capitalize } from './utils/string';
 
-export function mapUsersToAiResponse(users: RawUser[], currentYear: number, currentMonth: number) {
+export function mapUsersToAiResponse(
+  users: RawUser[],
+  currentYear: number,
+  currentMonth: number,
+  customStartDate?: Date,
+  customEndDate?: Date
+) {
   return users.map(user => {
     const totalUserHours = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
     const ptoHours = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
@@ -42,11 +49,30 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
 
     const hoursPerDay = 8;
 
-    let weeksInfo = getWeeksForMonth(currentYear, currentMonth + 1, hoursPerDay);
+    let weeksInfo;
 
-    weeksInfo = weeksInfo.filter(
-      week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
-    );
+    if (customStartDate && customEndDate) {
+      const daysInterval = eachDayOfInterval({ start: customStartDate, end: customEndDate });
+      const workingDays = daysInterval.filter(day => !isWeekend(day)).length;
+
+      weeksInfo = [
+        {
+          weekNumber: 1,
+          startDate: customStartDate,
+          endDate: customEndDate,
+          workingHours: workingDays * hoursPerDay,
+        },
+      ];
+    } else {
+      weeksInfo = getWeeksForMonth(currentYear, currentMonth + 1, hoursPerDay);
+      weeksInfo = weeksInfo.filter(
+        week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
+      );
+    }
+
+    // weeksInfo = weeksInfo.filter(
+    //   week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
+    // );
 
     const stats = calculateEmployedTimeData({
       totalUserHours: totalUserHours + ptoHours,
@@ -55,18 +81,26 @@ export function mapUsersToAiResponse(users: RawUser[], currentYear: number, curr
       workFormat: user.workFormat,
     });
 
+    const safeBaseline = stats.monthWorkingHours || 1;
+
+    const finalEmployedPercent = Math.round(stats.employedTimePercent);
+
     const aiStats = {
       totalUserHours: stats.totalUserHours,
       billableHours: stats.hours.billable,
       overtime: stats.hours.overtime,
       untracked: stats.hours.untracked,
-      overtimePercent: stats.visualPercents.overtime,
       nonBillable: stats.hours.nonBillable,
-      billableHoursPercent: stats.aiChatVisualPercents.billable,
-      untrackedHoursPercent: stats.aiChatVisualPercents.untracked,
-      nonBillableHoursPercent: stats.aiChatVisualPercents.nonBillable,
-      overtimeHoursPercent: stats.aiChatVisualPercents.overtime,
-      employedTimePercent: stats.employedTimePercent,
+
+      employedTimePercent: finalEmployedPercent,
+
+      overtimePercent: Math.max(0, finalEmployedPercent - 100),
+      overtimeHoursPercent: Math.max(0, finalEmployedPercent - 100),
+
+      billableHoursPercent: Math.round((stats.hours.billable / safeBaseline) * 100),
+      untrackedHoursPercent: Math.round((stats.hours.untracked / safeBaseline) * 100),
+      nonBillableHoursPercent: Math.round((stats.hours.nonBillable / safeBaseline) * 100),
+
       monthWorkingHours: stats.monthWorkingHours,
     };
 

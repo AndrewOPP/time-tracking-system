@@ -37,7 +37,6 @@ export const searchEmployeesSchema = jsonSchema<SearchEmployeesArgs>({
       type: 'string',
       description: AI_SCHEMA_DESCRIPTIONS.REAL_NAME,
     },
-
     minLoadPercent: {
       type: 'number',
       description: AI_SCHEMA_DESCRIPTIONS.MIN_LOAD_PERCENT_DESC,
@@ -66,11 +65,22 @@ export const searchEmployeesSchema = jsonSchema<SearchEmployeesArgs>({
       enum: AI_PROJECT_DOMAINS,
       description: AI_SCHEMA_DESCRIPTIONS.PROJECT_DOMAIN_EMPLOYEE,
     },
-
     systemRole: {
       type: 'string',
       enum: ['EMPLOYEE', 'MANAGER'],
       description: AI_SCHEMA_DESCRIPTIONS.SYSTEM_ROLE_DESC,
+    },
+
+    // === НОВІ ПОЛЯ ДЛЯ ДАТ ===
+    startDate: {
+      type: 'string',
+      description:
+        'Start date in ISO 8601 format. 🚨 CRITICAL: If the user mentions a relative timeframe (e.g., "last 3 months"), YOU MUST CALCULATE the exact date based on the CURRENT SYSTEM DATE. Leave undefined ONLY if no timeframe is specified.',
+    },
+    endDate: {
+      type: 'string',
+      description:
+        'End date in ISO 8601 format. 🚨 CRITICAL: If the user mentions a relative timeframe, calculate and pass the exact date based on the CURRENT SYSTEM DATE. Leave undefined ONLY if no timeframe is specified.',
     },
   },
 });

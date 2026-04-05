@@ -247,6 +247,7 @@ async function addUsersToProjects(projects: Project[], users: User[]) {
 async function createTimeLogs() {
   const userProjects = await prisma.userProject.findMany();
 
+  // Собираем маппинг: у какого юзера какие есть проекты
   const userProjectsMap = new Map<string, string[]>();
   for (const up of userProjects) {
     if (!userProjectsMap.has(up.userId)) {
@@ -261,36 +262,70 @@ async function createTimeLogs() {
   const selectedUsers = faker.helpers.arrayElements(userIds, halfUsersCount);
 
   const timeLogsData = [];
+
+  // === НОВАЯ ЛОГИКА ДАТ ===
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  // 1. Прошлый месяц (от 1-го числа до последнего дня месяца)
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+  // 2. Текущий месяц (от 1-го числа до СЕГОДНЯШНЕЙ даты/времени)
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const currentMonthEnd = now;
+
+  const periods = [
+    { start: prevMonthStart, end: prevMonthEnd },
+    { start: currentMonthStart, end: currentMonthEnd },
+  ];
 
   for (const userId of selectedUsers) {
     const userProjectIds = userProjectsMap.get(userId)!;
-    const numLogs = faker.number.int({ min: 6, max: 15 });
 
     const usedDates = new Set<string>();
 
-    for (let i = 0; i < numLogs; i++) {
-      const projectId = faker.helpers.arrayElement(userProjectIds);
+    for (const period of periods) {
+      const isCurrentMonth = period.end === now;
+      // Считаем сколько дней доступно в периоде (важно для начала текущего месяца)
+      const daysInPeriod = Math.max(
+        1,
+        Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24))
+      );
 
-      let logDate = faker.date.between({ from: startOfMonth, to: endOfMonth });
-      let dateString = logDate.toISOString().split('T')[0];
+      // Максимально возможное кол-во логов = кол-во дней * кол-во проектов у юзера
+      const maxLogs = isCurrentMonth ? Math.max(1, Math.floor(daysInPeriod * 0.8)) : 12;
 
-      while (usedDates.has(`${projectId}-${dateString}`)) {
-        logDate = faker.date.between({ from: startOfMonth, to: endOfMonth });
-        dateString = logDate.toISOString().split('T')[0];
-      }
-
-      usedDates.add(`${projectId}-${dateString}`);
-
-      timeLogsData.push({
-        userId,
-        projectId,
-        date: logDate,
-        hours: faker.number.float({ min: 12, max: 24, fractionDigits: 1 }),
-        description: faker.lorem.sentence(),
+      const numLogs = faker.number.int({
+        min: isCurrentMonth ? 1 : 6,
+        max: Math.min(maxLogs, daysInPeriod * userProjectIds.length),
       });
+
+      for (let i = 0; i < numLogs; i++) {
+        const projectId = faker.helpers.arrayElement(userProjectIds);
+
+        let logDate = faker.date.between({ from: period.start, to: period.end });
+        let dateString = logDate.toISOString().split('T')[0];
+
+        // Защита от бесконечного цикла (пробуем найти уникальную дату 10 раз)
+        let attempts = 0;
+        while (usedDates.has(`${projectId}-${dateString}`) && attempts < 10) {
+          logDate = faker.date.between({ from: period.start, to: period.end });
+          dateString = logDate.toISOString().split('T')[0];
+          attempts++;
+        }
+
+        if (attempts >= 10) continue; // Если свободная дата так и не нашлась, пропускаем
+
+        usedDates.add(`${projectId}-${dateString}`);
+
+        timeLogsData.push({
+          userId,
+          projectId,
+          date: logDate,
+          hours: faker.number.float({ min: 6, max: 13, fractionDigits: 1 }),
+          description: faker.lorem.sentence(),
+        });
+      }
     }
   }
 
