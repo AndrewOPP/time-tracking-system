@@ -6,7 +6,6 @@ import {
   Timer,
   LogOut,
   UserCircle,
-  PersonStanding,
   Bot,
   Calendar1,
   PersonStandingIcon,
@@ -61,12 +60,6 @@ export const Navigation = () => {
       path: ROUTES.MANAGER.MANAGER_AI_CHAT,
       icon: Bot,
       systemRole: UserSystemRole.MANAGER,
-    },
-    {
-      label: 'Employee Profile',
-      path: ROUTES.EMPLOYEE.EMPLOYEE_PROFILE,
-      icon: PersonStanding,
-      systemRole: UserSystemRole.EMPLOYEE,
     },
     {
       label: 'My Time Logs',

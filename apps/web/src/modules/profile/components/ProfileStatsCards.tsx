@@ -31,7 +31,7 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user, them
               <div
                 key={tech.id}
                 className="flex items-center justify-center bg-gray-50 rounded-lg p-2 border border-gray-200"
-                title={`${tech.name} (${tech.rating}/5)`}
+                title={`${tech.name} (${tech.rating}/10)`}
               >
                 {tech.image ? (
                   <img src={tech.image} alt={tech.name} className="w-6 h-6 object-contain" />
