@@ -138,22 +138,27 @@ export function ManagerAIChatPage() {
               setSearchParams({ chatId: chat.id }, { replace: true });
               setIsMobileOpen(false);
             }}
-            className={`group flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer transition-all duration-200 border ${
-              activeChatId === chat.id
-                ? 'bg-white border-slate-200 text-slate-800 font-medium'
-                : 'border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:text-slate-800'
-            }`}
+            className={`group flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer transition-all duration-200 border 
+    min-h-[38px] 
+    ${
+      activeChatId === chat.id
+        ? 'bg-white border-slate-200 text-slate-800 font-medium'
+        : 'border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:text-slate-800'
+    }`}
           >
             <span className="truncate text-sm pr-2">{chat.title || 'Новый чат'}</span>
-            {chats.length > 1 && (
-              <button
-                onClick={e => handleDeleteChat(e, chat.id)}
-                disabled={deleteChatMutation.isPending}
-                className="cursor-pointer opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-opacity p-1 -mr-1.5 shrink-0 disabled:opacity-50 rounded-md "
-              >
-                ✕
-              </button>
-            )}
+
+            <div className="flex items-center justify-center w-5 h-5 shrink-0">
+              {chats.length > 1 && (
+                <button
+                  onClick={e => handleDeleteChat(e, chat.id)}
+                  disabled={deleteChatMutation.isPending}
+                  className="cursor-pointer opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-opacity p-1 -mr-1.5 shrink-0 disabled:opacity-50 rounded-md"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

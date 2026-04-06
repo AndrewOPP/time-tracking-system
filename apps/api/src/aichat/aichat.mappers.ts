@@ -104,9 +104,31 @@ export function mapUsersToAiResponse(
       monthWorkingHours: stats.monthWorkingHours,
     };
 
+    console.log(aiStats.untrackedHoursPercent);
+    console.log(user.realName, ' user.realName');
+    console.log(aiStats.untracked > 0, '    aiStats.untracked');
+    console.log(aiStats.untrackedHoursPercent > 0, '    aiStats.untracked');
+
+    const warnings: string[] = [];
+
+    if (finalEmployedPercent >= 100 || stats.hours.overtime > 0) {
+      warnings.push(
+        `Overloaded — ${finalEmployedPercent}% with ${stats.hours.overtime}h overtime. Consider rebalancing workload.`
+      );
+    } else if (finalEmployedPercent >= 90) {
+      warnings.push(`At ${finalEmployedPercent}% — nearly at full capacity.`);
+    }
+
+    if (aiStats.untracked > 0) {
+      warnings.push(
+        `Note: ${aiStats.untrackedHoursPercent}% of time is untracked (${aiStats.untracked}h). Actual workload may be higher.`
+      );
+    }
+
     return {
       id: user.id,
       name: user.realName || user.username || user.email,
+      warnings,
       skills:
         user.technologies.length > 0
           ? user.technologies.map(t => t.technology.name)

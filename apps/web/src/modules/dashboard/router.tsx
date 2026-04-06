@@ -26,12 +26,12 @@ export const GeneralRoutes = () => {
         }
       />
 
-      <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+      <Route path={ROUTES.MY_PROJECTS} element={<DashboardPage />} />
       <Route path={ROUTES.USER.USER_PROFILE} element={<UserProfilePage />} />
       <Route path={ROUTES.DASHBOARD_PROJECTS} element={<ProjectDetailsPage />} />
       <Route path={'/home'} element={<HomePage />} />
 
-      <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.MY_PROJECTS} replace />} />
     </Routes>
   );
 };

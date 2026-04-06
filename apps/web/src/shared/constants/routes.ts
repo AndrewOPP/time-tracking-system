@@ -5,6 +5,7 @@ export const ROUTES = {
   OAUTH_CALLBACK: '/oauth/callback',
 
   DASHBOARD: '/dashboard',
+  MY_PROJECTS: '/my-projects',
   HR_DASHBOARD: '/hr/dashboard',
   ACCOUNTANT_DASHBOARD: '/accountant/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',

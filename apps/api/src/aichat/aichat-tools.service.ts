@@ -266,8 +266,6 @@ export class AichatToolsService {
       queryStartDate.setDate(queryStartDate.getDate() - 14);
       queryStartDate.setHours(0, 0, 0, 0);
     }
-    console.log(queryStartDate, 'queryStartDate');
-    console.log(queryEndDate, 'queryEndDate');
 
     const currentYear = queryEndDate.getFullYear();
     const currentMonth = queryEndDate.getMonth();

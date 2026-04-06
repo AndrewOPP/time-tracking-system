@@ -43,8 +43,8 @@ export function ManagerDashboardPage() {
   return (
     <div className="space-y-8 pb-1 min-h-screen  animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
       <PageHeader
-        title="Manager Overview"
-        description={`Capacity and resource distribution for last 2 weeks.`}
+        title="Manager Dashboard"
+        description={`Capacity and resource distribution for the last 2 weeks.`}
       />
 
       {isLoading || !data ? (

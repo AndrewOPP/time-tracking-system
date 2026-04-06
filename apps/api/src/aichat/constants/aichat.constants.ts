@@ -198,29 +198,17 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     - State matching required skills.
     - Use skills from user request or you getTechnologiesByCategory.
     - Account for Part-time vs Full-time differences.
-    - ZERO-VALUE: Output all fields exactly as below, even if 0.
+    - ZERO-VALUE: Output all main stats fields exactly as below, even if 0. (CRITICAL: Do NOT apply this rule to the ⚠️ Warnings section).
     - Availability: If totalPercent is below 90%, the employee is considered fully available.
     - ⚖️ CAPACITY COMPARISON: When ranking availability between multiple people, explicitly state that Full-Time provides more absolute free hours than Part-Time at the same load percentage.
     📊 COUNT QUERIES: If asking "How many...". Add to your response with: "[totalAvailable] out of [totalOverall] total". ⚠️ CRITICAL: You MUST extract and pass the required skill into the 'skills' array (e.g., ["Python"]).
-    
-    ⚠️ MANDATORY WARNINGS CHECKLIST (EVALUATE STEP-BY-STEP FOR EACH EMPLOYEE):
-    You MUST check ALL 3 conditions below independently. If a condition is true, you MUST output its corresponding text in the "⚠️ Warnings:" section. It is strictly required to show ALL warnings that apply.
-    
-    [STEP 1] Check Overload: Is totalPercent >= 100 OR overtime > 0?
-             -> If YES, add: "[Name] is overloaded — [aiStats.employedTimePercent]% with [aiStats.overtime]h overtime. Consider rebalancing workload."
-    [STEP 2] Check Near Limit: Is totalPercent >= 90 AND totalPercent <= 99?
-             -> If YES, add: "[Name] is at [aiStats.employedTimePercent]% — nearly at full capacity."
-    [STEP 3] Check Untracked: Is untracked > 0?
-             -> If YES, add: "Note: [aiStats.untrackedHoursPercent]% of time is untracked ([aiStats.untracked]h). Actual workload may be higher."
+        
 
     TEMPLATE:
     ### **[Name]**
     - 🛠 **Skills:** [List of all users skills]
     - 💼 **Format:** [Work Format]
-    - ⚠️ **Warnings:** (Add this section ONLY if at least one STEP above is YES)
-      - [Result of STEP 1 if YES]
-      - [Result of STEP 2 if YES]
-      - [Result of STEP 3 if YES]
+    - ⚠️ **Warnings:** [Include this section ONLY if the 'warnings' array contains items. Render each string from the array as a separate bullet point. If the array is empty, strictly omit this entire line.]
     - ⛵ **PTO:** [ptoHours]h
     - 📊 **Employed Time:** [aiStats.employedTimePercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untracked]h))
     - [If overtime > 0: 🚨 **Overtime:** [aiStats.overtime]h, [aiStats.overtimeHoursPercent]%] 

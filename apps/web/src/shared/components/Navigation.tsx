@@ -43,7 +43,7 @@ export const Navigation = () => {
   if (!user) return null;
 
   const navItems = [
-    { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+    { label: 'My projects', path: ROUTES.MY_PROJECTS, icon: LayoutDashboard },
     {
       label: 'Manager Dashboard',
       path: ROUTES.MANAGER.MANAGER_DASHBOARD,
