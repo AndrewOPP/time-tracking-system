@@ -90,10 +90,6 @@ export class AichatToolsService {
         }
       }
 
-      // const currentDate = new Date();
-      // const currentYear = currentDate.getFullYear();
-      // const currentMonth = currentDate.getMonth();
-
       let queryStartDate: Date;
       let queryEndDate: Date;
 
@@ -106,9 +102,6 @@ export class AichatToolsService {
         queryStartDate.setDate(queryStartDate.getDate() - 14);
         queryStartDate.setHours(0, 0, 0, 0);
       }
-
-      // const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-      // const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
       const currentYear = queryEndDate.getFullYear();
       const currentMonth = queryEndDate.getMonth();
@@ -398,30 +391,16 @@ export class AichatToolsService {
     try {
       let startDate: Date;
       let endDate: Date;
-      // const currentDate = new Date();
-      // const currentYear = currentDate.getFullYear();
-      // const currentMonth = currentDate.getMonth();
-
-      // const startOfMonth = new Date(currentYear, currentMonth, 1);
-      // const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
       if (args.startDate && args.endDate) {
         startDate = new Date(args.startDate);
         endDate = new Date(args.endDate);
       } else {
-        // 2. Дефолтное поведение: последние 14 дней
         endDate = new Date();
         startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 14);
         startDate.setHours(0, 0, 0, 0);
       }
-
-      // const endDate = new Date();
-
-      // const startDate = new Date(endDate);
-      // startDate.setDate(startDate.getDate() - 14);
-
-      // startDate.setHours(0, 0, 0, 0);
 
       const currentYear = endDate.getFullYear();
       const currentMonth = endDate.getMonth();
@@ -431,12 +410,6 @@ export class AichatToolsService {
         startDate,
         endDate
       );
-
-      // const users = await this.aichatRepo.findUsersWithDetails(
-      //   { isActive: true, systemRole: USER_SYSTEM_ROLE.EMPLOYEE },
-      //   startOfMonth,
-      //   endOfMonth
-      // );
 
       if (users.length === 0) {
         return {

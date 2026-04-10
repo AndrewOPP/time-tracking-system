@@ -6,7 +6,7 @@ import { ProfileDetails } from '../components/ProfileDetails';
 import { ProfileStatsCards } from '../components/ProfileStatsCards';
 import { SkillsRadarChart } from '../components/SkillsRadarChart';
 import { getThemeForUser } from '../utils/getUserTheme';
-import { UserProfileSkeleton } from '../components/UserProfileSkeleton'; // не забудь проверить путь
+import { UserProfileSkeleton } from '../components/UserProfileSkeleton';
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();

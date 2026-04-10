@@ -70,10 +70,6 @@ export function mapUsersToAiResponse(
       );
     }
 
-    // weeksInfo = weeksInfo.filter(
-    //   week => week.weekNumber <= TIMELOGS_QUERIES_CONFIG.weekNumberRange || week.workingHours > 0
-    // );
-
     const stats = calculateEmployedTimeData({
       totalUserHours: totalUserHours + ptoHours,
       weeksInfo: weeksInfo,
@@ -103,11 +99,6 @@ export function mapUsersToAiResponse(
 
       monthWorkingHours: stats.monthWorkingHours,
     };
-
-    console.log(aiStats.untrackedHoursPercent);
-    console.log(user.realName, ' user.realName');
-    console.log(aiStats.untracked > 0, '    aiStats.untracked');
-    console.log(aiStats.untrackedHoursPercent > 0, '    aiStats.untracked');
 
     const warnings: string[] = [];
 

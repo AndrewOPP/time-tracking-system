@@ -8,13 +8,12 @@ export class ManagerDashboardService {
 
   async getOverviewData() {
     const endDate = new Date();
-    const startDate = subDays(endDate, 14); // Берем ровно 14 дней назад от текущей секунды
+    const startDate = subDays(endDate, 14);
 
-    // Считаем норму часов за эти 2 недели (исключая выходные)
     const hoursPerDay = 8;
     const daysInterval = eachDayOfInterval({ start: startDate, end: endDate });
     const workingDays = daysInterval.filter(day => !isWeekend(day)).length;
-    const periodWorkingHours = workingDays * hoursPerDay || 1; // Защита от деления на ноль
+    const periodWorkingHours = workingDays * hoursPerDay || 1;
 
     const users = await this.prisma.user.findMany({
       where: {
@@ -28,12 +27,10 @@ export class ManagerDashboardService {
         workFormat: true,
         avatarUrl: true,
         timeLogs: {
-          // Ищем логи за последние 14 дней
           where: { date: { gte: startDate, lte: endDate } },
           select: { hours: true, projectId: true },
         },
         ptoLogs: {
-          // Ищем отпуска за последние 14 дней
           where: { date: { gte: startDate, lte: endDate } },
           select: { hours: true },
         },

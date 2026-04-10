@@ -1,12 +1,11 @@
 export interface UserTheme {
   banner: string;
   progress: string;
-  // Семантические цвета для компонентов
   colorName: string;
-  text: string; // Для активных табов и заголовков
-  border: string; // Для подчеркивания табов
-  bg: string; // Для легких фонов (логотипы, статусы)
-  fill: string; // HEX-код специально для SVG (Радара)
+  text: string;
+  border: string;
+  bg: string;
+  fill: string;
 }
 
 export const VIBE_THEMES: UserTheme[] = [

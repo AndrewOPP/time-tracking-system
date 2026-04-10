@@ -4,10 +4,9 @@ import { Skeleton } from '@components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
 import { Badge } from '@components/ui/badge';
 import { cn } from '@lib/utils';
-import { Link } from 'react-router-dom'; // Добавлен импорт Link
+import { Link } from 'react-router-dom';
 import { useManagerDashboardOverview } from '../hooks/useManagerDashboard';
 
-// Імпортуємо іконки
 import {
   Clock,
   UserCheck,
@@ -120,9 +119,7 @@ export function ManagerDashboardPage() {
             />
           </div>
 
-          {/* БЛОК 2: СПИСКИ */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Найбільш вільні */}
             <Card className="border-slate-200 overflow-hidden py-0 gap-0">
               <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-4">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -149,7 +146,6 @@ export function ManagerDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Найбільш завантажені */}
             <Card className="border-slate-200 overflow-hidden py-0 gap-0">
               <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-4">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -176,7 +172,6 @@ export function ManagerDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Топ проєктів */}
             <Card className="border-slate-200 overflow-hidden py-0 gap-0">
               <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-4">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -232,8 +227,6 @@ export function ManagerDashboardPage() {
     </div>
   );
 }
-
-// --- КОМПОНЕНТИ ---
 
 interface KpiCardProps {
   title: string;

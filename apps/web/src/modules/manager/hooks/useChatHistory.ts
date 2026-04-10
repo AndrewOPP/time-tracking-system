@@ -34,7 +34,6 @@ export const useDeleteChat = () => {
   return useMutation({
     mutationFn: chatApi.deleteChat,
     onSuccess: () => {
-      // Просто инвалидируем список. Компонент сам поймет, что активный чат исчез, и переключится
       queryClient.invalidateQueries({ queryKey: ['chat-history'] });
     },
   });

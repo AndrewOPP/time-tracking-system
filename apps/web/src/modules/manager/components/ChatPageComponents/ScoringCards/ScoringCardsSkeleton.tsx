@@ -1,4 +1,4 @@
-import { Skeleton } from '@components/ui/skeleton'; // Перевір шлях до твого Skeleton
+import { Skeleton } from '@components/ui/skeleton';
 
 export const ScoringCardsSkeleton = () => {
   const skeletons = [1];

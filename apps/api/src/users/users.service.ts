@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@time-tracking-app/database/index';
-import { subDays } from 'date-fns'; // <-- Добавили импорт для работы с датами
+import { PrismaService, UserWorkFormat } from '@time-tracking-app/database/index';
+import { subDays, eachDayOfInterval, isWeekend } from 'date-fns';
 
 @Injectable()
 export class UserService {
@@ -10,43 +10,28 @@ export class UserService {
     const endDate = new Date();
     const startDate = subDays(endDate, 14);
 
+    const daysInterval = eachDayOfInterval({ start: startDate, end: endDate });
+    const workingDaysCount = daysInterval.filter(day => !isWeekend(day)).length;
+    const standardHoursPerDay = 8;
+    const periodWorkingHours = workingDaysCount * standardHoursPerDay;
+
     const user = await this.prisma.user.findUnique({
       where: { username: requestedUsername },
       include: {
         technologies: {
-          include: {
-            technology: true,
-          },
+          include: { technology: true },
           orderBy: { rating: 'desc' },
         },
         projects: {
-          include: {
-            project: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-                status: true,
-                type: true,
-              },
-            },
-          },
+          include: { project: true },
           orderBy: { status: 'asc' },
         },
         timeLogs: {
-          // Убрали take: 20 и добавили фильтр за 14 дней
           where: { date: { gte: startDate, lte: endDate } },
-          orderBy: { date: 'desc' },
-          include: {
-            project: {
-              select: { name: true },
-            },
-          },
+          include: { project: { select: { name: true } } },
         },
         ptoLogs: {
-          // Убрали take: 10 и добавили фильтр за 14 дней
           where: { date: { gte: startDate, lte: endDate } },
-          orderBy: { date: 'desc' },
         },
       },
     });
@@ -55,7 +40,16 @@ export class UserService {
       throw new NotFoundException(`User with ${requestedUsername} username is not found`);
     }
 
-    const profileResponse = {
+    const totalTracked = user.timeLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+    const totalPto = user.ptoLogs.reduce((sum, log) => sum + Number(log.hours), 0);
+    const totalHours = totalTracked + totalPto;
+
+    const normHours =
+      user.workFormat === UserWorkFormat.PART_TIME ? periodWorkingHours * 0.5 : periodWorkingHours;
+
+    const loadPercent = normHours > 0 ? Math.round((totalHours / normHours) * 100) : 0;
+
+    return {
       email: user.email,
       username: user.username,
       fullName: user.realName || user.username,
@@ -65,6 +59,12 @@ export class UserService {
       workFormat: user.workFormat,
       createdAt: user.createdAt,
 
+      stats: {
+        totalHours: Math.round(totalHours * 10) / 10,
+        normHours: Math.round(normHours * 10) / 10,
+        loadPercent,
+      },
+
       technologies: user.technologies.map(t => ({
         id: t.technology.id,
         name: t.technology.name,
@@ -72,7 +72,6 @@ export class UserService {
         image: t.technology.image,
         rating: t.rating,
       })),
-
       projects: user.projects.map(p => ({
         id: p.project.id,
         name: p.project.name,
@@ -82,7 +81,6 @@ export class UserService {
         userPosition: p.position,
         userProjectStatus: p.status,
       })),
-
       recentTimeLogs: user.timeLogs.map(log => ({
         id: log.id,
         date: log.date,
@@ -90,14 +88,6 @@ export class UserService {
         description: log.description,
         projectName: log.project.name,
       })),
-
-      recentPtoLogs: user.ptoLogs.map(pto => ({
-        id: pto.id,
-        date: pto.date,
-        hours: Number(pto.hours),
-      })),
     };
-
-    return profileResponse;
   }
 }

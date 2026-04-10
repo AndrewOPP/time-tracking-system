@@ -44,7 +44,6 @@ export class AichatService {
 
       const lastMessage = messages[messages.length - 1];
       if (lastMessage && lastMessage.role === 'user') {
-        // Точно так же достаем текст из последнего сообщения
         const lastUserTextPart = lastMessage.parts?.find(p => p.type === 'text') as
           | { text: string }
           | undefined;

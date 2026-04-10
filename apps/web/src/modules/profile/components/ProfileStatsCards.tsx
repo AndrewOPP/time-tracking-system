@@ -12,17 +12,14 @@ interface ProfileStatsCardsProps {
 }
 
 export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user, theme }) => {
-  const totalLoggedHours = user.recentTimeLogs.reduce((sum, log) => sum + log.hours, 0);
-  const normHours = user.workFormat === 'FULL_TIME' ? 8 * 10 : 4 * 10;
-
-  const hoursPercent = Math.round((totalLoggedHours / normHours) * 100);
+  const { totalHours, normHours, loadPercent } = user.stats;
 
   const activeProjects = user.projects.filter(p => p.userProjectStatus === 'ACTIVE');
 
   const cardClasses = 'bg-white rounded-2xl p-6 flex flex-col gap-4 border border-gray-200 w-full';
 
   return (
-    <div className="flex flex-col gap-6  w-full">
+    <div className="flex flex-col gap-6 w-full">
       <div className={cardClasses}>
         <h3 className="text-gray-900 font-semibold text-sm">Technology Stack</h3>
         <div className="flex flex-wrap gap-2">
@@ -100,23 +97,21 @@ export const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({ user, them
         <h3 className="text-gray-900 font-semibold text-sm">Logged Hours Summary</h3>
         <div className="flex justify-between items-end mt-1">
           <div className="text-2xl font-bold text-gray-900">
-            {totalLoggedHours.toFixed(1)}{' '}
+            {totalHours.toFixed(1)}{' '}
             <span className="text-xs font-medium text-gray-400">/ {normHours.toFixed(1)}h</span>
           </div>
-          {/* Текст теперь может показывать хоть 150% */}
           <div
-            className={`text-sm font-semibold mb-1 ${hoursPercent > 100 ? 'text-red-500' : 'text-gray-500'}`}
+            className={`text-sm font-semibold mb-1 ${loadPercent > 100 ? 'text-red-500' : 'text-gray-500'}`}
           >
-            {hoursPercent}%
+            {loadPercent}%
           </div>
         </div>
         <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mt-1">
           <div
             className={`h-full rounded-full transition-all duration-1000 ease-out ${
-              hoursPercent > 100 ? 'bg-red-500' : theme.progress
+              loadPercent > 100 ? 'bg-red-500' : theme.progress
             }`}
-            /* А ширина полоски не может превысить 100%, чтобы не сломать CSS */
-            style={{ width: `${Math.min(hoursPercent, 100)}%` }}
+            style={{ width: `${Math.min(loadPercent, 100)}%` }}
           />
         </div>
       </div>

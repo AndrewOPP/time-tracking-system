@@ -32,6 +32,12 @@ export interface EmployeeProfileResponse {
   workFormat: UserWorkFormat;
   createdAt: string;
 
+  stats: {
+    totalHours: number;
+    normHours: number;
+    loadPercent: number;
+  };
+
   technologies: {
     id: string;
     name: string;

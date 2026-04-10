@@ -23,7 +23,6 @@ export const CandidateProgressBar = ({
 
   const hasOvertime = label === 'Availability' && !!overtimePercent && overtimePercent > 0;
 
-  // Изменили логику progressValue: если есть овертайм, заливка бара равна 0
   const progressValue = hasOvertime ? 0 : Math.max(0, score);
 
   const barColor = !isActive ? 'bg-slate-300' : hasOvertime ? 'bg-red-500' : getBarColor(score);

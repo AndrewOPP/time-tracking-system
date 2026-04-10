@@ -28,7 +28,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 }) => {
   return (
     <div className="w-72 border-r border-slate-100 bg-white flex flex-col h-full shadow-[2px_0_8px_rgba(0,0,0,0,02)]">
-      {/* Кнопка создания чата */}
       <div className="p-4">
         <button
           onClick={handleNewChat}
@@ -45,7 +44,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </button>
       </div>
 
-      {/* Список чатов */}
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5 custom-scrollbar">
         {chats?.map(chat => (
           <div
@@ -58,7 +56,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             }`}
           >
             <div className="flex items-center gap-3 overflow-hidden">
-              {/* Иконка сообщения (опционально для минимализма) */}
               <svg
                 width="16"
                 height="16"

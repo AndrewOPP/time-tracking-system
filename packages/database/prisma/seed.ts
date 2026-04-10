@@ -247,7 +247,6 @@ async function addUsersToProjects(projects: Project[], users: User[]) {
 async function createTimeLogs() {
   const userProjects = await prisma.userProject.findMany();
 
-  // Собираем маппинг: у какого юзера какие есть проекты
   const userProjectsMap = new Map<string, string[]>();
   for (const up of userProjects) {
     if (!userProjectsMap.has(up.userId)) {
@@ -263,14 +262,11 @@ async function createTimeLogs() {
 
   const timeLogsData = [];
 
-  // === НОВАЯ ЛОГИКА ДАТ ===
   const now = new Date();
 
-  // 1. Прошлый месяц (от 1-го числа до последнего дня месяца)
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-  // 2. Текущий месяц (от 1-го числа до СЕГОДНЯШНЕЙ даты/времени)
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const currentMonthEnd = now;
 
@@ -286,13 +282,11 @@ async function createTimeLogs() {
 
     for (const period of periods) {
       const isCurrentMonth = period.end === now;
-      // Считаем сколько дней доступно в периоде (важно для начала текущего месяца)
       const daysInPeriod = Math.max(
         1,
         Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24))
       );
 
-      // Максимально возможное кол-во логов = кол-во дней * кол-во проектов у юзера
       const maxLogs = isCurrentMonth ? Math.max(1, Math.floor(daysInPeriod * 0.8)) : 12;
 
       const numLogs = faker.number.int({
@@ -306,7 +300,6 @@ async function createTimeLogs() {
         let logDate = faker.date.between({ from: period.start, to: period.end });
         let dateString = logDate.toISOString().split('T')[0];
 
-        // Защита от бесконечного цикла (пробуем найти уникальную дату 10 раз)
         let attempts = 0;
         while (usedDates.has(`${projectId}-${dateString}`) && attempts < 10) {
           logDate = faker.date.between({ from: period.start, to: period.end });
@@ -314,7 +307,7 @@ async function createTimeLogs() {
           attempts++;
         }
 
-        if (attempts >= 10) continue; // Если свободная дата так и не нашлась, пропускаем
+        if (attempts >= 10) continue;
 
         usedDates.add(`${projectId}-${dateString}`);
 

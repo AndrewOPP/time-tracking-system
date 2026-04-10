@@ -71,7 +71,6 @@ export const searchEmployeesSchema = jsonSchema<SearchEmployeesArgs>({
       description: AI_SCHEMA_DESCRIPTIONS.SYSTEM_ROLE_DESC,
     },
 
-    // === НОВІ ПОЛЯ ДЛЯ ДАТ ===
     startDate: {
       type: 'string',
       description:

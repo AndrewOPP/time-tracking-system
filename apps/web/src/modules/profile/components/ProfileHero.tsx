@@ -1,5 +1,5 @@
 import React from 'react';
-import { format } from 'date-fns'; // Добавили импорт
+import { format } from 'date-fns';
 import type { EmployeeProfileResponse } from '../types/employee.types';
 import type { UserTheme } from '../utils/getUserTheme';
 import { capitalize } from '@/shared/utils/firstCharToUpperCase';
@@ -78,7 +78,6 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, theme }) => {
             </span>
           </div>
 
-          {/* Заменили дубликат на дату регистрации */}
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Joined</span>
             <span className="text-gray-900 font-medium pr-1">
