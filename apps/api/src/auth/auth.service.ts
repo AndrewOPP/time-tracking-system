@@ -322,8 +322,10 @@ export class AuthService {
   private setRefreshCookie(res: Response, refreshToken: string) {
     res.cookie(CookieName.REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      // secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: JWT_CONFIG.REFRESH_MAX_AGE,
     });
   }
