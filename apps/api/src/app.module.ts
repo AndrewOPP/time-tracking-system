@@ -9,6 +9,8 @@ import { AichatModule } from './aichat/aichat.module';
 import { TimeLogsModule } from './timeLogs/timeLogs.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from './common/logger/logger.module';
+import { UserModule } from './users/users.module';
+import { ManagerDashboardModule } from './manager-dashboard/manager-dashboard.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { LoggerModule } from './common/logger/logger.module';
     AichatModule,
     TimeLogsModule,
     LoggerModule,
+    UserModule,
+    ManagerDashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

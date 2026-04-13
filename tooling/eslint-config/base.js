@@ -9,30 +9,27 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
   globalIgnores(['dist']),
-  // 1. Базові конфіги (JS + TS)
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // 2. Конфіги плагінів
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
       turbo: turboPlugin,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      prettier: prettierPlugin, // Реєструємо плагін тут
+      prettier: prettierPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       'turbo/no-undeclared-env-vars': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      'prettier/prettier': 'error', // Вмикаємо Prettier як правило
+      'prettier/prettier': 'error',
     },
     languageOptions: {
       ecmaVersion: 2020,
     },
   },
 
-  // 3. ВИМКНЕННЯ КОНФЛІКТІВ (Обов'язково в кінці)
   eslintConfigPrettier,
 ]);

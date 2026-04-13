@@ -14,6 +14,7 @@ interface ProjectCardProps {
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   const currentStatus = statusConfig[project.status] || statusConfig.NOT_STARTED;
   const navigate = useNavigate();
+
   return (
     <Card
       onClick={() => navigate(`${ROUTES.DASHBOARD}/${project.id}`)}

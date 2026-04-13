@@ -15,25 +15,70 @@ import {
   getProjectTeamSchema,
   getPmPortfolioSchema,
 } from './schemas/ai.schemas';
+import { ChatHistoryService } from './aichatHistory.service';
 import { evaluateCandidatesSchema, validateResponseSchema } from './schemas/ai-validation.schema';
 
 @Injectable()
 export class AichatService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly dbToolsService: AichatToolsService
+    private readonly dbToolsService: AichatToolsService,
+    private readonly chatHistoryService: ChatHistoryService
   ) {}
 
-  // eslint-disable-next-line
-  async generateResponseStream(messages: UIMessage[]): Promise<any> {
+  async generateResponseStream(
+    messages: UIMessage[],
+    userId: string,
+    chatId?: string
+    // eslint-disable-next-line
+  ): Promise<any> {
     try {
+      const currentChatId = chatId;
+
+      if (!currentChatId) {
+        throw new InternalServerErrorException('Failed to find chat id');
+      }
+
+      const userMessages = messages.filter(m => m.role === 'user');
+      const lastUserMessage = userMessages[userMessages.length - 1];
+
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === 'user') {
+        const lastUserTextPart = lastMessage.parts?.find(p => p.type === 'text') as
+          | { text: string }
+          | undefined;
+
+        await this.chatHistoryService.saveMessage(
+          currentChatId,
+          'user',
+          lastUserTextPart?.text || ''
+        );
+      }
+
+      if (userMessages.length === 1 && lastUserMessage) {
+        const firstUserText = (
+          lastUserMessage.parts?.find(p => p.type === 'text') as { text?: string }
+        )?.text;
+
+        if (firstUserText) {
+          await this.chatHistoryService.updateChatTitle(chatId, firstUserText);
+        }
+      }
+
       const trimmedMessages = messages.slice(-AI_CONFIG.MAX_HISTORY_MESSAGES);
 
-      return streamText({
+      const result = streamText({
         model: openai(this.configService.getOrThrow('AI_MODEL')),
         messages: await convertToModelMessages(trimmedMessages),
         system: `${HR_SYSTEM_PROMPT}${AI_PROMPTS_ADDITIONS.CRITICAL_RULE}`,
         stopWhen: stepCountIs(AI_CONFIG.MAX_AI_STEPS),
+
+        onFinish: async ({ text }) => {
+          if (text) {
+            await this.chatHistoryService.saveMessage(currentChatId, 'assistant', text);
+          }
+        },
+
         tools: {
           getTechnologiesByCategory: tool({
             description: AI_TOOL_DESCRIPTIONS.GET_TECH_BY_CATEGORY,
@@ -86,6 +131,8 @@ export class AichatService {
           }),
         },
       });
+
+      return { result, chatId: currentChatId };
     } catch (error) {
       console.error('AI API Error:', error);
       throw new InternalServerErrorException('Failed to generate AI response');

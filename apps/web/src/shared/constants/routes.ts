@@ -5,6 +5,7 @@ export const ROUTES = {
   OAUTH_CALLBACK: '/oauth/callback',
 
   DASHBOARD: '/dashboard',
+  MY_PROJECTS: '/my-projects',
   HR_DASHBOARD: '/hr/dashboard',
   ACCOUNTANT_DASHBOARD: '/accountant/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',
@@ -18,6 +19,11 @@ export const ROUTES = {
     TIME_LOGS: 'my-time-logs',
     EMPLOYEE_PROFILE: '/employee/profile',
     EMPLOYEE_TIME_LOGS: '/employee/my-time-logs',
+  },
+  USER: {
+    ROOT: '/user',
+    PROFILE: '/profile',
+    USER_PROFILE: '/profile/:username',
   },
 
   MANAGER: {

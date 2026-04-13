@@ -30,7 +30,11 @@ export const getColumns = (weeksInfo: WeekInfo[]): ColumnDef<ManagerDashboardRow
       accessorKey: 'employeeName',
       header: HeaderEmployee,
       cell: ({ row }) => (
-        <CellEmployee name={row.original.employeeName} avatarUrl={row.original.avatarUrl} />
+        <CellEmployee
+          name={row.original.employeeName}
+          username={row.original.username}
+          avatarUrl={row.original.avatarUrl}
+        />
       ),
     },
     {

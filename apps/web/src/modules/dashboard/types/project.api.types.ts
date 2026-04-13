@@ -5,6 +5,7 @@ export interface TeamMember {
   name: string;
   position: string;
   avatarUrl: string;
+  username: string;
 }
 
 export interface Project {

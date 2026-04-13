@@ -110,6 +110,7 @@ export class TimeLogQueriesService {
         id: true,
         realName: true,
         email: true,
+        username: true,
         avatarUrl: true,
         workFormat: true,
         projects: {
@@ -207,6 +208,7 @@ export class TimeLogQueriesService {
         userId: user.id,
         employeeName: user.realName || user.email,
         avatarUrl: user.avatarUrl,
+        username: user.username,
         totalUserHours,
         ptoHours: totalPto,
         eployedPercent: calculateEmployedTimeData({

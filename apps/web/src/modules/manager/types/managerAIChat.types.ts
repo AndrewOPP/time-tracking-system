@@ -76,6 +76,7 @@ export interface ManagerDashboardRow {
   avatarUrl: string | null;
   totalUserHours: number;
   ptoHours: number;
+  username: string;
   eployedPercent: CalculatedEmployedTimeData;
   format: EmploymentFormatValue;
   allProjects: ProjectData[];

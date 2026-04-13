@@ -9,7 +9,7 @@ export const DashboardPage = () => {
   const { data: projects, isLoading, isError, refetch, isRefetching, error } = useProjects();
 
   return (
-    <div className="w-full">
+    <div className="w-full zoom-in-[0.98] animate-in fade-in duration-500">
       <PageHeader
         title="My Projects"
         description="Here are all the projects you are working on. Select the one you need to view details and log working hours."

@@ -57,6 +57,7 @@ export class AuthController {
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
         role: user.systemRole,
         isActive: user.isActive,
       },

@@ -39,6 +39,27 @@ export class ProjectsService {
         orderBy: { updatedAt: 'desc' },
       });
 
+      if (projects.length === 0) {
+        return [];
+      }
+
+      const projectIds = projects.map(p => p.id);
+
+      const timeLogAggregations = await this.prisma.timeLog.groupBy({
+        by: ['projectId'],
+        where: {
+          projectId: { in: projectIds },
+        },
+        _sum: {
+          hours: true,
+        },
+      });
+
+      const hoursMap = new Map<string, number>();
+      for (const agg of timeLogAggregations) {
+        hoursMap.set(agg.projectId, Number(agg._sum.hours || 0));
+      }
+
       const formattedProjects = projects.map(project => ({
         id: project.id,
         name: project.name,
@@ -46,14 +67,13 @@ export class ProjectsService {
         status: project.status,
         teamAvatars: project.users.map(u => u.user.avatarUrl),
         totalTeamMembers: project._count.users,
-        totalLoggedHours: 0,
+        totalLoggedHours: hoursMap.get(project.id) || 0,
       }));
 
       return formattedProjects;
     } catch (error) {
       console.error(error);
-
-      throw new InternalServerErrorException(ProjectError.LIST_FETCH_FAILED);
+      throw new InternalServerErrorException('LIST_FETCH_FAILED');
     }
   }
 
@@ -108,6 +128,7 @@ export class ProjectsService {
           : null,
         team: project.users.map(u => ({
           id: u.user.id,
+          username: u.user.username,
           name: u.user.realName || u.user.username,
           position: u.position,
           avatarUrl: u.user.avatarUrl || null,

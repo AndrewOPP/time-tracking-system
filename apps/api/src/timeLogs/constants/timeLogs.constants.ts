@@ -1,5 +1,3 @@
-// I will move that config for error to the frontend in the future.
-
 export const TIME_LOG_ERRORS = {
   PROJECT: {
     NOT_FOUND: 'Project not found',

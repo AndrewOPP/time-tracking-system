@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@components/PageHeader';
 import { useUsersData } from '../hooks/useUsersData';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -12,19 +13,28 @@ import { simpleTableFilter } from '../utils/tableDataFilter';
 import { ActiveFiltersBar } from '../components/TimeTrackingTableComponents/ActiveFiltersBar';
 import { useDebounceValue } from 'usehooks-ts';
 import { SearchInput } from '../components/TimeTrackingTableComponents/SearchInput';
+import { useMonthNavigation } from '../hooks/useMonthNavigationю';
+import { MonthNavigation } from '../components/TimeTrackingTableComponents/MonthNavigation';
 
-const CURRENT_MONTH_START = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-const CURRENT_MONTH_END = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 const DEBOUNCE_DELAY = 300;
 
 export function ManagerTimeTrachingPage() {
+  const [searchParams] = useSearchParams();
+  const dateParam = searchParams.get('date');
+
+  const activeDate = dateParam ? new Date(dateParam) : new Date();
+
+  const monthStart = format(startOfMonth(activeDate), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(activeDate), 'yyyy-MM-dd');
+
+  const monthText = format(activeDate, 'MMMM yyyy');
+
+  const { handlePrevMonth, handleNextMonth } = useMonthNavigation(activeDate);
+
   const [querySearch, setQuerySearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(querySearch, DEBOUNCE_DELAY);
 
-  const { data, isLoading, isError, refetch } = useUsersData(
-    CURRENT_MONTH_START,
-    CURRENT_MONTH_END
-  );
+  const { data, isLoading, isError, refetch } = useUsersData(monthStart, monthEnd);
 
   const flatTableData = useMemo(() => data?.tableData || [], [data?.tableData]);
   const weeksInfo = useMemo(() => data?.weeksInfo || [], [data?.weeksInfo]);
@@ -97,27 +107,37 @@ export function ManagerTimeTrachingPage() {
         description="Here you can view employee hours and quickly filter data by necessary criteria."
       />
 
-      <div className="flex flex-row gap-2 items-center mb-5 mt-4">
-        <FiltersPopover
-          weeksInfo={weeksInfo}
-          flatTableData={flatTableData}
-          selectedEmployees={selectedEmployees}
-          selectedProjects={selectedProjects}
-          selectedPms={selectedPms}
-          ranges={ranges}
-          selectedFormat={selectedFormat}
-          toggleEmployee={toggleEmployee}
-          toggleProject={toggleProject}
-          togglePm={togglePm}
-          setRangeValue={setRangeValue}
-          setFormat={setFormat}
-        />
+      <div className="flex flex-row  justify-between gap-2 items-center mb-4">
+        <div className="flex flex-row  gap-2 items-center w-full max-w-[550px]">
+          <FiltersPopover
+            weeksInfo={weeksInfo}
+            flatTableData={flatTableData}
+            selectedEmployees={selectedEmployees}
+            selectedProjects={selectedProjects}
+            selectedPms={selectedPms}
+            ranges={ranges}
+            selectedFormat={selectedFormat}
+            toggleEmployee={toggleEmployee}
+            toggleProject={toggleProject}
+            togglePm={togglePm}
+            setRangeValue={setRangeValue}
+            setFormat={setFormat}
+          />
 
-        <SearchInput
-          value={querySearch}
-          onChange={setQuerySearch}
-          placeholder="Search by employee, project, or PM..."
-        />
+          <SearchInput
+            value={querySearch}
+            onChange={setQuerySearch}
+            placeholder="Search by employee, project, or PM..."
+          />
+        </div>
+
+        <div>
+          <MonthNavigation
+            onPrevMonth={handlePrevMonth}
+            onNextMonth={handleNextMonth}
+            monthText={monthText}
+          />
+        </div>
       </div>
 
       <ActiveFiltersBar

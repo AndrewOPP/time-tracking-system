@@ -6,6 +6,19 @@ export const validateResponseSchema = z.object({
     .enum(AI_VALIDATION_FORMATS)
     .describe('CRITICAL: Choose the type of data you are trying to validate.'),
 
+  startDate: z
+    .string()
+    .optional()
+    .describe(
+      'Start date in ISO 8601 format. 🚨 CRITICAL: You MUST pass the exact same startDate that you used in the data retrieval tool (e.g., searchEmployees or getProjectTeam) to ensure validation matches. If you used the default timeframe (no dates passed), leave this undefined.'
+    ),
+  endDate: z
+    .string()
+    .optional()
+    .describe(
+      'End date in ISO 8601 format. 🚨 CRITICAL: You MUST pass the exact same endDate that you used in the retrieval tool. Leave undefined if you used the default timeframe.'
+    ),
+
   candidates: z
     .array(
       z.object({
@@ -75,6 +88,18 @@ export const evaluateCandidatesSchema = z.object({
     .describe(
       'Filter by workload status: "overload" (load > 100%), "available" (load < 90%), or empty string for all candidates'
     ),
+  startDate: z
+    .string()
+    .optional()
+    .describe(
+      'Start date of the evaluation period in ISO 8601 format (e.g., "2026-03-01T00:00:00.000Z"). 🚨 CRITICAL: If the user mentions a relative timeframe (e.g., "last 5 days", "last week"), YOU MUST CALCULATE the exact calendar date based on today\'s date and pass it here. Leave undefined ONLY if the user mentions NO timeframe at all.'
+    ),
+  endDate: z
+    .string()
+    .optional()
+    .describe(
+      'End date of the evaluation period in ISO 8601 format. 🚨 CRITICAL: If the user mentions a relative timeframe, calculate and pass the exact date (usually today). Leave undefined ONLY if no timeframe is specified.'
+    ),
   customWeights: z
     .object({
       skills: z.number().optional(),
@@ -87,7 +112,10 @@ export const evaluateCandidatesSchema = z.object({
       "Provide custom weights (0 to 100) to adapt scoring based on the user's intent:\n" +
         "- 'skills': Give highest weight if specific tech is requested. 🚨 CRITICAL: If no specific technologies/skills are mentioned in the prompt, you MUST set 'skills' to 0.\n" +
         "- 'availability': Give high weight if workload, capacity, urgency, free time, OR 'overloaded' status is mentioned. 🚨 CRITICAL: NEVER set 'availability' to 0 if the user asks for 'overloaded' candidates; give it a high weight so the system can rank them by their overload level. If workload is not mentioned at all, set a baseline of 20-30.\n" +
-        "- 'domain': Boost ONLY if a specific domain is explicitly requested. 🚨 CRITICAL: If no specific domain is mentioned in the prompt, you MUST set 'domain' to 0.\n" +
+        "- 'domain': Detect domain in ANY form (case-insensitive, including variations like 'foodtech', 'food tech', 'food-tech').\n" +
+        '  If ANY domain is present in the prompt, you MUST assign a non-zero weight (recommended 20-40).\n' +
+        "  🚨 CRITICAL: It is STRICTLY FORBIDDEN to set 'domain' to 0 when a domain is present.\n" +
+        "  🚨 ONLY set 'domain' to 0 if absolutely NO domain-related term exists in the prompt.\n" +
         "- 'risk': ALWAYS set to 15, never change it.\n" +
         'The tool will normalize these to equal 100%.'
     ),

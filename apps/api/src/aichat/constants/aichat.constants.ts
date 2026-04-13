@@ -51,6 +51,8 @@ export interface SearchEmployeesArgs {
   skillMode?: AiSkillFormat;
   minLoadPercent?: number;
   maxLoadPercent?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface SearchProjectsArgs {
@@ -92,7 +94,7 @@ export interface EvaluateCandidatesArgs {
 
 export const AI_TOOL_DESCRIPTIONS = {
   GET_TECH_BY_CATEGORY: `
-    Call ONLY if user EXPLICITLY mentions "backend" or "frontend". 
+    YOU MUST CALL IT ONLY if user EXPLICITLY mentions backend or frontend. 
     🚫 DO NOT call for "Fullstack", "Mobile", "QA", "Designer" or general "developers". DO NOT guess the category.
     CHAINING RULE:
     1. Call this tool.
@@ -103,6 +105,23 @@ export const AI_TOOL_DESCRIPTIONS = {
   SEARCH_EMPLOYEES: `
   🌟 DEFAULT SEARCH TOOL: Use this for ALL general queries like "Find developers", "Show me PMs", "Who knows X".
     🚫 CRITICAL ROUTING BLOCKER: If the user's prompt contains words like "Top", "Best", "Most", "Rank", "candidates for" or "Compare" (e.g., "Top 3 most available React devs"), YOU ARE STRICTLY FORBIDDEN FROM USING THIS TOOL. You MUST use 'evaluateCandidates' instead!
+
+    🕒 TIMEFRAME DEFAULT RULE (CRITICAL):
+    - If the user DOES NOT specify a timeframe, you MUST use the last 14 days relative to the CURRENT SYSTEM DATE.
+    - Calculate:
+      - endDate = CURRENT SYSTEM DATE
+      - startDate = CURRENT SYSTEM DATE minus 14 days
+
+    🚨 STRICT PROHIBITION:
+    - NEVER invent custom ranges like "last month" or "recent period".
+    - ONLY use:
+      1) User-provided timeframe OR
+      2) Default last 14 days
+
+    🧾 OUTPUT REQUIREMENT:
+    - You MUST explicitly state the calculated timeframe BEFORE listing employees
+      (e.g., "Evaluation period: March 22 to April 5").
+
     Search employees/PMs by skills, workload, format, or name. Extract arguments exactly.
     WORKLOAD RULES:
     - Default: minLoadPercent=0, maxLoadPercent=1000.
@@ -121,6 +140,10 @@ export const AI_TOOL_DESCRIPTIONS = {
     WHEN TO USE: Call this tool ONLY for complex, analytical queries where you need to RANK, COMPARE, find the BEST FIT/TOP candidates, or when the user asks for a RATING/SCORE (e.g. "Top 5", "Best candidates"). 
 
     WHEN NOT TO USE: DO NOT use for simple list requests (e.g., "Find React devs", "Who knows Python?", "Show me backend devs"). For basic searches, use 'searchEmployees' instead.
+
+    🕒 TIMEFRAME RULE (CRITICAL): 
+    - If the user explicitly asks for a timeframe (e.g., "in March") OR a relative timeframe ("last 5 days"), you MUST calculate the exact dates using your current system date and pass them into 'startDate' and 'endDate' in ISO 8601 format. 
+    - Never pass empty strings for dates. Either pass valid ISO strings or omit the keys entirely if no timeframe was requested.
 
     🚨 UI CARDS OUTPUT RULE (CRITICAL): To display candidate cards on the frontend, you MUST output the 'candidates' array from this tool's response inside a raw \`\`\`json block. DO NOT output the candidates as plain text bulleted lists. 
 
@@ -167,35 +190,25 @@ export const AI_SCHEMA_DESCRIPTIONS = {
     'No candidates found for requested workload. Suggest these alternatives as similar specialists.',
 
   EMPLOYEE_SEARCH_SYS_INSTRUCTION: `
+    (CRITICAL) NEVER return row JSON to user.
     Extract arguments EXACTLY. Do not hallucinate numbers or any other arguments. Use EXACT 'aiStats' and other data returned from the tool.
-    
+
     RULES:
+    - 🕒 TIMEFRAME: You MUST explicitly state the exact calendar dates used for this search (e.g., "Evaluation period: 2026-03-22 to 2026-04-05") BEFORE listing the employees.
     - State matching required skills.
     - Use skills from user request or you getTechnologiesByCategory.
     - Account for Part-time vs Full-time differences.
-    - ZERO-VALUE: Output all fields exactly as below, even if 0.
+    - ZERO-VALUE: Output all main stats fields exactly as below, even if 0. (CRITICAL: Do NOT apply this rule to the ⚠️ Warnings section).
     - Availability: If totalPercent is below 90%, the employee is considered fully available.
     - ⚖️ CAPACITY COMPARISON: When ranking availability between multiple people, explicitly state that Full-Time provides more absolute free hours than Part-Time at the same load percentage.
     📊 COUNT QUERIES: If asking "How many...". Add to your response with: "[totalAvailable] out of [totalOverall] total". ⚠️ CRITICAL: You MUST extract and pass the required skill into the 'skills' array (e.g., ["Python"]).
-    
-    ⚠️ MANDATORY WARNINGS CHECKLIST (EVALUATE STEP-BY-STEP FOR EACH EMPLOYEE):
-    You MUST check ALL 3 conditions below independently. If a condition is true, you MUST output its corresponding text in the "⚠️ Warnings:" section. It is strictly required to show ALL warnings that apply.
-    
-    [STEP 1] Check Overload: Is totalPercent >= 100 OR overtime > 0?
-             -> If YES, add: "[Name] is overloaded — [aiStats.employedTimePercent]% with [aiStats.overtime]h overtime. Consider rebalancing workload."
-    [STEP 2] Check Near Limit: Is totalPercent >= 90 AND totalPercent <= 99?
-             -> If YES, add: "[Name] is at [aiStats.employedTimePercent]% — nearly at full capacity."
-    [STEP 3] Check Untracked: Is untracked > 0?
-             -> If YES, add: "Note: [aiStats.untrackedPercent]% of time is untracked ([aiStats.untracked]h). Actual workload may be higher."
+        
 
     TEMPLATE:
     ### **[Name]**
     - 🛠 **Skills:** [List of all users skills]
     - 💼 **Format:** [Work Format]
-    - ⚠️ **Warnings:** (Add this section ONLY if at least one STEP above is YES)
-      - [Result of STEP 1 if YES]
-      - [Result of STEP 2 if YES]
-      - [Result of STEP 3 if YES]
+    - ⚠️ **Warnings:** [Include this section ONLY if the 'warnings' array contains items. Render each string from the array as a separate bullet point. If the array is empty, strictly omit this entire line.]
     - ⛵ **PTO:** [ptoHours]h
     - 📊 **Employed Time:** [aiStats.employedTimePercent]% (Total: [aiStats.totalUserHours]h | Billable: [aiStats.billableHoursPercent]% ([aiStats.billableHours]h) | Non-Billable: [aiStats.nonBillableHoursPercent]% ([aiStats.nonBillableHours]h) | Untracked: [aiStats.untrackedHoursPercent]% ([aiStats.untracked]h))
     - [If overtime > 0: 🚨 **Overtime:** [aiStats.overtime]h, [aiStats.overtimeHoursPercent]%] 
@@ -204,6 +217,7 @@ export const AI_SCHEMA_DESCRIPTIONS = {
       (If none: "None")
     - 💡 **HR Analysis:** [2-3 sentence HR evaluation/warnings].
   `,
+
   TECH_CATEGORY: 'MUST be exactly "BACKEND" or "FRONTEND". No other values.',
   SKILLS_LIST: `
     RULES:
