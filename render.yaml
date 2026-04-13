@@ -11,6 +11,7 @@ services:
   - type: web
     name: viso-api
     env: node
+    plan: free
     buildCommand: npm install -g pnpm@9.0.0 && pnpm install && pnpm run db:generate && pnpm turbo run build --filter=@time-tracking-app/api
     startCommand: pnpm run db:migrate && cd apps/api && pnpm run start:prod
     envVars:
