@@ -12,7 +12,7 @@ services:
     name: viso-api
     env: node
     plan: free
-    buildCommand: npm install -g pnpm@9.0.0 && pnpm install && pnpm run db:generate && pnpm turbo run build --filter=@time-tracking-app/api
+    buildCommand: npm install -g pnpm@9.0.0 && pnpm install --prod=false --ignore-scripts && pnpm run db:generate && pnpm turbo run build --filter=@time-tracking-app/api
     startCommand: pnpm run db:migrate && cd apps/api && pnpm run start:prod
     envVars:
       - key: DATABASE_URL
@@ -28,7 +28,7 @@ services:
   - type: web
     name: viso-web
     env: static
-    buildCommand: npm install -g pnpm@9.0.0 && pnpm install && pnpm turbo run build --filter=web
+    buildCommand: npm install -g pnpm@9.0.0 && pnpm install --prod=false --ignore-scripts && pnpm turbo run build --filter=web
     staticPublishPath: apps/web/dist
     routes:
       - type: rewrite
