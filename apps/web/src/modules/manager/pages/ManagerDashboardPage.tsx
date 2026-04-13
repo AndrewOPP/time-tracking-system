@@ -1,9 +1,5 @@
 import { PageHeader } from '@components/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
-import { Skeleton } from '@components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
-import { Badge } from '@components/ui/badge';
-import { cn } from '@lib/utils';
 import { Link } from 'react-router-dom';
 import { useManagerDashboardOverview } from '../hooks/useManagerDashboard';
 
@@ -17,6 +13,10 @@ import {
   Palmtree,
   GaugeCircle,
 } from 'lucide-react';
+import { KpiCard } from '../components/ManagerDashboardComponents/KpiCard';
+import { EmployeeListItem } from '../components/ManagerDashboardComponents/EmployeeListItem';
+import { NoDataMessage } from '../components/ManagerDashboardComponents/NoDataMessage';
+import { DashboardSkeleton } from '../components/ManagerDashboardComponents/DashboardSkeleton';
 
 export function ManagerDashboardPage() {
   const { data, isLoading, isError } = useManagerDashboardOverview();
@@ -224,179 +224,6 @@ export function ManagerDashboardPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-interface KpiCardProps {
-  title: string;
-  value: string | number;
-  description: string;
-  icon: React.ElementType;
-  iconColor?: string;
-  iconBg?: string;
-  className?: string;
-}
-
-function KpiCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  iconColor,
-  iconBg,
-  className,
-}: KpiCardProps) {
-  return (
-    <Card
-      className={cn('border-slate-200 transition-all flex flex-col justify-center py-0', className)}
-    >
-      <CardContent className="p-5 flex justify-between items-center gap-4 h-full">
-        <div className="space-y-1">
-          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            {title}
-          </p>
-          <div className="text-2xl font-bold tracking-tight text-slate-900">{value}</div>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">{description}</p>
-        </div>
-
-        <div className={cn('p-3 rounded-xl shrink-0', iconBg)}>
-          <Icon className={cn('w-5 h-5', iconColor)} strokeWidth={2} />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface EmployeeListItemProps {
-  employee: {
-    id: string;
-    username: string;
-    name: string;
-    avatarUrl: string;
-    workFormat: string;
-    loadPercent: number;
-  };
-  subtitle: string;
-}
-
-function EmployeeListItem({ employee, subtitle }: EmployeeListItemProps) {
-  const safePercent = Math.min(Math.max(employee.loadPercent, 0), 100);
-
-  let barColor = 'bg-emerald-500';
-  let textColor = 'text-emerald-600';
-
-  if (employee.loadPercent >= 80 && employee.loadPercent <= 100) {
-    barColor = 'bg-amber-400';
-    textColor = 'text-amber-600';
-  } else if (employee.loadPercent > 100) {
-    barColor = 'bg-red-500';
-    textColor = 'text-red-600';
-  }
-
-  return (
-    <Link
-      to={`/profile/${employee.username}`}
-      className="block p-4 hover:bg-slate-50 transition-colors group"
-    >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border-2 border-white shrink-0">
-            <AvatarImage src={employee.avatarUrl} alt={employee.name} />
-            <AvatarFallback className="text-xs bg-slate-100 font-semibold text-slate-600">
-              {employee.name
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-                .substring(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-medium text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-              {employee.name}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
-              <Badge
-                variant="outline"
-                className="text-[9px] px-1.5 py-0 font-medium uppercase text-slate-500 border-slate-200"
-              >
-                {employee.workFormat.replace('_', '-')}
-              </Badge>
-              <span>•</span>
-              <span>{subtitle}</span>
-            </div>
-          </div>
-        </div>
-        <div className={cn('font-semibold text-sm shrink-0 mt-1', textColor)}>
-          {employee.loadPercent}%
-        </div>
-      </div>
-
-      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-3">
-        <div
-          className={cn('h-full rounded-full transition-all duration-500 ease-out', barColor)}
-          style={{ width: `${safePercent}%` }}
-        />
-      </div>
-    </Link>
-  );
-}
-
-function NoDataMessage({ message }: { message: string }) {
-  return (
-    <div className="p-8 text-center flex flex-col items-center justify-center text-slate-400">
-      <div className="w-12 h-12 rounded-full bg-slate-50 border border-dashed border-slate-200 flex items-center justify-center mb-3">
-        <Activity className="w-5 h-5 opacity-20" />
-      </div>
-      <p className="text-sm">{message}</p>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i} className="border-slate-200">
-            <CardContent className="p-5 flex justify-between items-center h-full">
-              <div className="space-y-3 w-full">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-2 w-32" />
-              </div>
-              <Skeleton className="h-11 w-11 rounded-xl shrink-0" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className="border-slate-200">
-            <CardHeader className="bg-slate-50/50 pb-4">
-              <Skeleton className="h-5 w-1/2 mb-2" />
-              <Skeleton className="h-3 w-3/4" />
-            </CardHeader>
-            <CardContent className="p-0">
-              {Array.from({ length: 4 }).map((_, j) => (
-                <div key={j} className="p-4 border-b border-slate-100">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex gap-3 items-center">
-                      <Skeleton className="h-9 w-9 rounded-full shrink-0" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-5 w-10 shrink-0 mt-1" />
-                  </div>
-                  <Skeleton className="h-1.5 w-full rounded-full" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }

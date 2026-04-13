@@ -169,15 +169,7 @@ async function createTechnologies() {
 async function createProject(count: number, managers: User[]) {
   const projectsData = [];
 
-  const colors = [
-    '64748B', // Slate
-    '4E916B', // Muted Emerald
-    '6366F1', // Soft Indigo
-    'D97706', // Warm Amber
-    'BE185D', // Dusty Rose
-    '84A59D', // Sage
-    'A44A3F', // Terracotta
-  ];
+  const colors = ['64748B', '4E916B', '6366F1', 'D97706', 'BE185D', '84A59D', 'A44A3F'];
 
   for (let i = 0; i < count; i++) {
     const manager = i < CONFIG.PM_PROJECTS_COUNT ? faker.helpers.arrayElement(managers) : null;
