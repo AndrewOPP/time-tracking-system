@@ -22,13 +22,13 @@ services:
         value: production
 
   # ==========================================
-  # 2. VITE + REACT
+  # 2. VITE + REACT ФРОНТЕНД
   # ==========================================
   - type: web
     name: viso-web
     env: static
     buildCommand: npm install -g pnpm@9.0.0 && pnpm install && pnpm turbo run build --filter=web
-    publishPath: apps/web/dist
+    staticPublishPath: apps/web/dist
     routes:
       - type: rewrite
         source: /*
