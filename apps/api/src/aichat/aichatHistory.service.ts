@@ -6,7 +6,7 @@ export class ChatHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserChats(userId: string) {
-    return this.prisma.chatSession.findMany({
+    const chats = await this.prisma.chatSession.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
       select: {
@@ -15,6 +15,20 @@ export class ChatHistoryService {
         updatedAt: true,
       },
     });
+
+    if (chats.length === 0) {
+      const newChat = await this.createChatSession(userId, 'New Chat');
+
+      return [
+        {
+          id: newChat.id,
+          title: newChat.title,
+          updatedAt: newChat.updatedAt,
+        },
+      ];
+    }
+
+    return chats;
   }
 
   async getChatMessages(sessionId: string, userId: string) {

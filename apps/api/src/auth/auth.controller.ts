@@ -20,6 +20,11 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get('guest')
+  async guestLogin(@Res({ passthrough: true }) res: Response) {
+    return await this.authService.loginAsGuest(res);
+  }
+
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {

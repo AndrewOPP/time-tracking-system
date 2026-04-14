@@ -20,12 +20,14 @@ import { logOut } from '../../modules/auth/api/auth.api';
 import { cn } from '@/shared/lib/utils';
 import { UserSystemRole } from '../types/user';
 import type { navItem } from '../types/navigationTypes';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const Navigation = () => {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleLogout = async () => {
     const { error } = await logOut();
@@ -33,6 +35,9 @@ export const Navigation = () => {
       console.error('Server logout error:', error);
     }
     clearAuth();
+    localStorage.removeItem('viso_guest_id');
+    sessionStorage.removeItem('manager_active_chat_id');
+    queryClient.clear();
     navigate(ROUTES.LOGIN, {
       replace: true,
       state: { from: null },
