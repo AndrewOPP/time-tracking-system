@@ -20,7 +20,12 @@ import {
   AUTH_ERROR_MESSAGES,
 } from './types/oauth.types';
 import { Response } from 'express';
-import { PrismaService } from '@time-tracking-app/database/index';
+import {
+  PrismaService,
+  ProjectStatus,
+  ProjectType,
+  UserRole,
+} from '@time-tracking-app/database/index';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -311,8 +316,10 @@ export class AuthService {
     } finally {
       res.clearCookie(CookieName.REFRESH_TOKEN, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
       });
     }
 
@@ -328,5 +335,90 @@ export class AuthService {
       sameSite: 'none',
       maxAge: JWT_CONFIG.REFRESH_MAX_AGE,
     });
+  }
+
+  async loginAsGuest(res: Response) {
+    const uniqueSuffix = Math.random().toString(36).substring(2, 10);
+    const guestEmail = `guest_${uniqueSuffix}@demo.com`;
+    const guestUsername = `guest_${uniqueSuffix}`;
+
+    const guestCount = await this.prisma.user.count({
+      where: {
+        email: { startsWith: 'guest_' },
+      },
+    });
+
+    const guestNumber = guestCount + 1;
+
+    const user = await this.prisma.$transaction(async tx => {
+      const newUser = await tx.user.create({
+        data: {
+          email: guestEmail,
+          realName: `Guest Manager #${guestNumber}`,
+          username: guestUsername,
+          provider: AuthProviders.GOOGLE,
+          providerId: `guest_id_${uniqueSuffix}`,
+          isActive: true,
+          status: 'ACTIVE',
+          workFormat: 'FULL_TIME',
+          systemRole: UserRole.MANAGER,
+        },
+      });
+
+      const project1 = await tx.project.create({
+        data: {
+          name: `Development VISO Time #${guestNumber}`,
+          description: 'The main project is to create a time tracking system.',
+          status: ProjectStatus.IN_PROGRESS,
+          type: ProjectType.BILLABLE,
+          projectManagerId: newUser.id,
+          avatarUrl: `https://ui-avatars.com/api/?name=Development+VISO+Time+${guestNumber}&background=D97706&color=fff&size=32&bold=true`,
+        },
+      });
+
+      const project2 = await tx.project.create({
+        data: {
+          name: `AI Agent Selection #${guestNumber}`,
+          description: 'Implementation of LLM for employee productivity analysis.',
+          status: ProjectStatus.IN_PROGRESS,
+          type: ProjectType.NON_BILLABLE,
+          projectManagerId: newUser.id,
+          avatarUrl: `https://ui-avatars.com/api/?name=AI+Agent+Selection+${guestNumber}&background=D97706&color=fff&size=32&bold=true`,
+        },
+      });
+
+      await tx.userProject.createMany({
+        data: [
+          {
+            userId: newUser.id,
+            projectId: project1.id,
+            status: 'ACTIVE',
+            position: 'PROJECT_MANAGER',
+          },
+          {
+            userId: newUser.id,
+            projectId: project2.id,
+            status: 'ACTIVE',
+            position: 'PROJECT_MANAGER',
+          },
+        ],
+      });
+
+      return newUser;
+    });
+
+    const tokens = await this.getTokens(user.id, user.email, user.systemRole, res);
+    await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+
+    return {
+      accessToken: tokens.accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.systemRole,
+        isActive: user.isActive,
+      },
+    };
   }
 }

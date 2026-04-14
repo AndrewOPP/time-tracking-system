@@ -68,7 +68,7 @@ export class AichatService {
       const trimmedMessages = messages.slice(-AI_CONFIG.MAX_HISTORY_MESSAGES);
 
       const result = streamText({
-        model: openai(this.configService.getOrThrow('AI_MODEL')),
+        model: openai(this.configService.getOrThrow('AI_MODEL').trim()),
         messages: await convertToModelMessages(trimmedMessages),
         system: `${HR_SYSTEM_PROMPT}${AI_PROMPTS_ADDITIONS.CRITICAL_RULE}`,
         stopWhen: stepCountIs(AI_CONFIG.MAX_AI_STEPS),

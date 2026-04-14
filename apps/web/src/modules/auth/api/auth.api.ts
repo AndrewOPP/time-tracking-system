@@ -14,6 +14,17 @@ export const loginWithProvider = async (provider: AuthProvider, payload: AuthPay
   }
 };
 
+export const loginAsGuest = async () => {
+  try {
+    const { data } = await axiosPublic.get(`/auth/guest`);
+    return { data, error: null };
+  } catch (err: unknown) {
+    console.log(err);
+
+    return { data: null, error: err };
+  }
+};
+
 export const logOut = async () => {
   try {
     const { data } = await axiosPrivate.post(`/auth/logout`);

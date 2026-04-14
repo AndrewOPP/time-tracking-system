@@ -38,7 +38,7 @@ export function ManagerAIChatPage() {
     if (savedChatId) {
       setSearchParams({ chatId: savedChatId }, { replace: true });
     }
-  }, [activeChatId, setSearchParams]);
+  });
 
   useEffect(() => {
     if (activeChatId) {
@@ -47,19 +47,21 @@ export function ManagerAIChatPage() {
   }, [activeChatId]);
 
   useEffect(() => {
-    if (activeChatId) {
+    if (!chats) return;
+
+    const chatExistsInDb = chats.some((c: chat) => c.id === activeChatId);
+
+    if (activeChatId && chatExistsInDb) {
       // eslint-disable-next-line
       setOpenedChats(prev => {
         if (prev.includes(activeChatId)) return prev;
         return [...prev, activeChatId];
       });
     }
-  }, [activeChatId]);
+  }, [activeChatId, chats]);
 
   useEffect(() => {
-    if (isChatsLoading || !chats || deleteChatMutation.isPending || createChatMutation.isPending) {
-      return;
-    }
+    if (isChatsLoading || !chats || chats.length === 0) return;
 
     const isCurrentChatValid = activeChatId && chats.some((c: chat) => c.id === activeChatId);
 
@@ -69,23 +71,11 @@ export function ManagerAIChatPage() {
 
       if (isSavedValid) {
         setSearchParams({ chatId: savedChatId! }, { replace: true });
-        return;
-      }
-
-      if (chats.length > 0) {
-        setSearchParams({ chatId: chats[0].id }, { replace: true });
       } else {
-        createChatMutation.mutate();
+        setSearchParams({ chatId: chats[0].id }, { replace: true });
       }
-    } // eslint-disable-next-line
-  }, [
-    chats,
-    isChatsLoading,
-    activeChatId,
-    setSearchParams,
-    deleteChatMutation.isPending,
-    createChatMutation.isPending,
-  ]);
+    }
+  }, [chats, isChatsLoading, activeChatId, setSearchParams]);
 
   const handleNewChat = () => {
     if (!createChatMutation.isPending) {

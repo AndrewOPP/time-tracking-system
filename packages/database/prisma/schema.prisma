@@ -36,6 +36,7 @@ enum AuthProvider {
   GITHUB
   DISCORD
   LINKEDIN
+  GUEST
 }
 
 enum UserRole {
