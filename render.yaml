@@ -36,7 +36,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: viso-api
-          property: host
+        value: https://viso-api.onrender.com
