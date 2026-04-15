@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -21,8 +22,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('guest')
-  async guestLogin(@Res({ passthrough: true }) res: Response) {
-    return await this.authService.loginAsGuest(res);
+  async guestLogin(@Res({ passthrough: true }) res: Response, @Query('guestId') guestId: string) {
+    return await this.authService.loginAsGuest(res, guestId);
   }
 
   @Post('logout')

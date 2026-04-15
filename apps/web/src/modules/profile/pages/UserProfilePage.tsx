@@ -18,7 +18,7 @@ export default function UserProfilePage() {
   if (error || !data) return <div className="p-6 text-center text-red-500">User not found</div>;
 
   return (
-    <div className="flex flex-col w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
+    <div className="flex flex-col w-full animate-in fade-in duration-500 ease-out">
       <PageHeader
         title="Employee Profile"
         description={`Overview of ${data.fullName}'s activities and projects.`}

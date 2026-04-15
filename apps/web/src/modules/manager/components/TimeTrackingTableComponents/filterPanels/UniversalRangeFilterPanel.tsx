@@ -16,7 +16,7 @@ export const UniversalRangeFilterPanel = ({
   toggleMax,
 }: UniversalRangeFilterPanelProps) => {
   return (
-    <div className="flex flex-col h-full animate-in fade-in zoom-in-[0.98] duration-500 p-5">
+    <div className="flex flex-col h-full animate-in fade-in duration-500 p-5">
       <h3 className="text-base font-semibold mb-6 text-[#1F1F1F]">{name}</h3>
 
       <div className="grid grid-cols-2 gap-4">

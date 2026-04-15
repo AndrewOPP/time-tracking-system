@@ -147,7 +147,7 @@ export const Navigation = () => {
 
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full justify-start text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
           onClick={handleLogout}
         >
           <LogOut className="mr-3 h-4 w-4" />

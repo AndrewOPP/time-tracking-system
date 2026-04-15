@@ -53,7 +53,7 @@ export default function MyTimeLogsPage() {
   const totalWeekHours = groupedLogsByDays.reduce((sum, day) => sum + day.totalHours, 0);
 
   return (
-    <div className="w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out custom-scrollbar">
+    <div className="w-full animate-in fade-in  duration-500 ease-out custom-scrollbar">
       <PageHeader
         title="My Time Logs"
         description="Your work week is displayed here. Record your daily hours to easily monitor your performance."

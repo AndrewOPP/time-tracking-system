@@ -109,7 +109,7 @@ export function ManagerAIChatPage() {
   };
 
   const renderSidebarContent = (isMobile: boolean = false) => (
-    <div className={`flex flex-col h-full bg-transparent ${isMobile ? 'p-4' : 'pb-0 pl-0 pr-7'}`}>
+    <div className={`flex flex-col h-full bg-transparent ${isMobile ? 'p-4' : 'pb-0 pl-0 pr-4'}`}>
       <div className={`pb-3 ${!isMobile && 'p-4 pr-0 pl-0'}`}>
         <button
           onClick={handleNewChat}
@@ -120,7 +120,7 @@ export function ManagerAIChatPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-4 space-y-1 custom-scrollbar animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
+      <div className="flex-1 overflow-y-auto pb-4 space-y-1 custom-scrollbar animate-in fade-in duration-500 ease-out">
         {chats?.map((chat: chat) => (
           <div
             key={chat.id}
@@ -132,7 +132,7 @@ export function ManagerAIChatPage() {
     min-h-[38px] 
     ${
       activeChatId === chat.id
-        ? 'bg-white border-slate-200 text-slate-800 font-medium'
+        ? 'bg-white border-slate-200 text-slate-800'
         : 'border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:text-slate-800'
     }`}
           >

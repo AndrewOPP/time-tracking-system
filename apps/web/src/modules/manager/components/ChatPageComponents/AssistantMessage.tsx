@@ -80,7 +80,7 @@ export const AssistantMessage = memo(
             >
               {isCopied ? (
                 <>
-                  <Check className="w-4 h-4 animate-in zoom-in duration-200" />
+                  <Check className="w-4 h-4 animate-in duration-200" />
                   <span>Copied!</span>
                 </>
               ) : (

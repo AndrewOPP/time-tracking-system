@@ -12,7 +12,7 @@ export const ScoringCardsSkeleton = () => {
             animationFillMode: 'backwards',
           }}
           key={i}
-          className="p-6 rounded-xl border bg-card text-card-foreground w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out"
+          className="p-6 rounded-xl border bg-card text-card-foreground w-full animate-in fade-in duration-500 ease-out"
         >
           <div className="flex justify-between items-start mb-6">
             <div className="space-y-2 w-1/3">

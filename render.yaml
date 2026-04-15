@@ -6,7 +6,7 @@ databases:
 
 services:
   # ==========================================
-  # 1. NESTJS БЭКЕНД
+  # 1. NESTJS
   # ==========================================
   - type: web
     name: viso-api
@@ -23,7 +23,7 @@ services:
         value: production
 
   # ==========================================
-  # 2. VITE + REACT ФРОНТЕНД
+  # 2. VITE + REACT
   # ==========================================
   - type: web
     name: viso-web

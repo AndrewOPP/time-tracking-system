@@ -19,7 +19,7 @@ export const WorkFormatFilterPanel = ({
   setFormat,
 }: WorkFormatFilterPanelProps) => {
   return (
-    <div className="flex flex-col h-full animate-in fade-in zoom-in-[0.98] duration-500 p-5 ">
+    <div className="flex flex-col h-full animate-in fade-in duration-500 p-5 ">
       <h3 className="text-base font-semibold mb-6 text-[#1F1F1F]">Employment Format</h3>
 
       <div className="w-full flex flex-col gap-1.5">

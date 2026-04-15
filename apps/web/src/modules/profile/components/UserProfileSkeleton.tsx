@@ -2,7 +2,7 @@ import { Skeleton } from '@components/ui/skeleton';
 
 export const UserProfileSkeleton = () => {
   return (
-    <div className="flex flex-col w-full animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
+    <div className="flex flex-col w-full animate-in fade-in duration-500 ease-out">
       <div className="flex flex-col gap-2 p-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-96" />

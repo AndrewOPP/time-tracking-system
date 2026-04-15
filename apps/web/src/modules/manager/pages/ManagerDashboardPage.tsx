@@ -40,7 +40,7 @@ export function ManagerDashboardPage() {
   const hasOverloaded = data && data.kpis.overloadedEmployeesCount > 0;
 
   return (
-    <div className="space-y-8 pb-1 min-h-screen  animate-in fade-in zoom-in-[0.98] duration-500 ease-out">
+    <div className="space-y-8 pb-1 min-h-screen  animate-in fade-in duration-500 ease-out">
       <PageHeader
         title="Manager Dashboard"
         description={`Capacity and resource distribution for the last 2 weeks.`}

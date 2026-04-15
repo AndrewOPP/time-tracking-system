@@ -37,7 +37,7 @@ export const UniversalFilterPanel = <T extends Record<string, unknown>>({
   }, [items, searchQuery, nameKey]);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in zoom-in-[0.98] duration-500">
+    <div className="flex flex-col h-full animate-in fade-in duration-500">
       <FilterSearchInput
         value={searchQuery}
         onChange={setSearchQuery}

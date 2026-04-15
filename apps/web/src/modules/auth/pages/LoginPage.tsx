@@ -15,8 +15,14 @@ export function LoginPage() {
 
   const handleGuestLogin = async () => {
     setIsGuestLoading(true);
-    const { data } = await loginAsGuest();
+    const savedGuestId = localStorage.getItem('guestId');
+
+    const { data } = await loginAsGuest(savedGuestId);
     localStorage.setItem('accessToken', data.accessToken);
+
+    if (data.user?.id) {
+      localStorage.setItem('guestId', data.user.id);
+    }
 
     setAuth(data.user, data.accessToken);
     navigate('/manager/dashboard');
@@ -34,15 +40,15 @@ export function LoginPage() {
         </div>
         <span className="text-3xl font-bold tracking-tight text-[#1a1a1a]">Viso Time Tracker</span>
       </div>
-      <div className="w-full max-w-[400px] bg-white p-10 rounded-[32px] border border-[#f0f0f0] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-        <div className="text-center mb-10">
+      <div className="w-full max-w-[400px] bg-white p-8 rounded-[32px] border border-[#f0f0f0] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="text-center mb-8">
           <h1 className="text-[28px] font-bold text-[#1a1a1a] mb-3">Welcome</h1>
           <p className="text-[#808080] text-[18px]">
             Focus on — <span className="text-[#4b7c52] font-medium">What matters</span>
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 mb-3">
+        <div className="flex flex-col gap-3">
           {OAUTH_LIST.map(({ provider, icon }) => (
             <OAuthLoginButton
               setGlobalLoading={setIsOAuthLoading}
@@ -67,7 +73,7 @@ export function LoginPage() {
         <button
           onClick={handleGuestLogin}
           disabled={isLoading}
-          className={`w-full py-3.5 bg-[#4b7c52] text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center
+          className={`w-full py-3.5 bg-[#4b7c52] text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center cursor-pointer
             ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#3a5f3f] active:scale-[0.98]'}`}
         >
           {isGuestLoading ? (

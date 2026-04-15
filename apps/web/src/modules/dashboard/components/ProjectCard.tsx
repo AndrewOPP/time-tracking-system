@@ -18,9 +18,9 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card
       onClick={() => navigate(`${ROUTES.DASHBOARD}/${project.id}`)}
-      className="w-full max-w-[320px] py-4 rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+      className="w-full max-w-[320px]  py-3 flex gap-3 rounded-2xl border-gray-200 shadow-none hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
     >
-      <CardContent className="px-5">
+      <CardContent className="px-3">
         <div className="flex gap-4 items-center">
           <div className="w-[68px] h-[68px]  rounded-[14px] flex items-center justify-center shrink-0">
             {project.logo ? (
@@ -54,11 +54,11 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
         </div>
       </CardContent>
 
-      <div className="px-5">
+      <div className="px-3">
         <hr className="border-gray-200" />
       </div>
 
-      <CardFooter className="flex justify-between items-center px-5">
+      <CardFooter className="flex justify-between items-center px-3">
         <div className="flex -space-x-2">
           {project.teamAvatars.length > 0 ? (
             <>

@@ -337,7 +337,35 @@ export class AuthService {
     });
   }
 
-  async loginAsGuest(res: Response) {
+  async loginAsGuest(res: Response, guestId?: string) {
+    if (guestId) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: guestId },
+      });
+
+      if (existingUser && existingUser.email.startsWith('guest_')) {
+        const tokens = await this.getTokens(
+          existingUser.id,
+          existingUser.email,
+          existingUser.systemRole,
+          res
+        );
+        await this.updateRefreshTokenHash(existingUser.id, tokens.refreshToken);
+
+        return {
+          accessToken: tokens.accessToken,
+          user: {
+            id: existingUser.id,
+            email: existingUser.email,
+            username: existingUser.username,
+            role: existingUser.systemRole,
+            isActive: existingUser.isActive,
+          },
+        };
+      } else {
+        throw new UnauthorizedException('Non guest id');
+      }
+    }
     const uniqueSuffix = Math.random().toString(36).substring(2, 10);
     const guestEmail = `guest_${uniqueSuffix}@demo.com`;
     const guestUsername = `guest_${uniqueSuffix}`;

@@ -14,9 +14,11 @@ export const loginWithProvider = async (provider: AuthProvider, payload: AuthPay
   }
 };
 
-export const loginAsGuest = async () => {
+export const loginAsGuest = async (savedGuestId: string | null) => {
+  const url = savedGuestId ? `/auth/guest?guestId=${savedGuestId}` : `/auth/guest`;
+
   try {
-    const { data } = await axiosPublic.get(`/auth/guest`);
+    const { data } = await axiosPublic.get(url);
     return { data, error: null };
   } catch (err: unknown) {
     console.log(err);

@@ -18,7 +18,7 @@ export const ScoringCards = ({ candidates }: ScoringCardsProps) => {
         {candidates.map((c, i) => (
           <div
             key={c.name}
-            className="animate-in fade-in zoom-in-[0.98] duration-500 ease-out"
+            className="animate-in fade-in duration-500 ease-out"
             style={{
               animationDelay: `${i * 100}ms`,
               animationFillMode: 'backwards',
