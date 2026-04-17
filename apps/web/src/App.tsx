@@ -13,7 +13,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-
       retry: 1,
     },
   },
@@ -21,24 +20,44 @@ const queryClient = new QueryClient({
 
 export function App() {
   const { setAuth } = useAuthStore();
-  const [isLoading, setIsthLoading] = useState(true);
+
+  const [appStatus, setAppStatus] = useState<'loading' | 'waking_up' | 'ready'>('loading');
 
   useEffect(() => {
     const init = async () => {
-      const { data } = await tokenRefresh();
+      const wakeUpTimeout = setTimeout(() => {
+        setAppStatus('waking_up');
+      }, 3500);
 
-      if (data) {
-        setAuth(data.user, data.accessToken);
+      try {
+        const { data } = await tokenRefresh();
+
+        if (data) {
+          setAuth(data.user, data.accessToken);
+        }
+      } catch (error) {
+        console.error('Init error:', error);
+      } finally {
+        clearTimeout(wakeUpTimeout);
+        setAppStatus('ready');
       }
-
-      setIsthLoading(false);
     };
 
     init();
   }, []);
 
-  if (isLoading) {
+  if (appStatus === 'loading') {
     return <Loader />;
+  }
+
+  if (appStatus === 'waking_up') {
+    return (
+      <Loader
+        title="The server is waking up..."
+        description="The free server on Render goes to sleep after 15 minutes of inactivity. Startup usually takes 2–3 minutes."
+        showBackendLink={true}
+      />
+    );
   }
 
   return (
