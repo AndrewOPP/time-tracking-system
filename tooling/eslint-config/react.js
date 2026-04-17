@@ -5,12 +5,10 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 
 export default defineConfig([
-  ...baseConfig, // Базовий конфіг (включаючи Prettier, якщо він там в кінці)
+  ...baseConfig,
 
-  // Додаємо конфіг React Hooks
   reactHooks.configs.flat.recommended,
 
-  // Додаємо налаштування для React Refresh та специфічні правила
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {

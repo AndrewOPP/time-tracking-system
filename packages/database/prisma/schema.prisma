@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -20,18 +18,89 @@ enum UserStatus {
   INACTIVE
 }
 
+enum ProjectType {
+  BILLABLE
+  NON_BILLABLE
+}
+
+enum TechnologyType {
+  BACKEND
+  FRONTEND
+  GENERAL
+  DESIGN
+  AI
+}
+
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+  DISCORD
+  LINKEDIN
+  GUEST
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  HR
+  ACCOUNTANT
+  ADMIN
+}
+
+enum ProjectDomain {
+  FINTECH
+  HEALTHCARE
+  E_COMMERCE
+  FOODTECH
+  EDTECH
+}
+
+model Technology {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  type            TechnologyType
+  image           String? 
+  users           UserTechnology[]
+  projects        Project[]
+}
+
+model UserTechnology {
+  userId          String         @map("user_id")
+  technologyId    String         @map("technology_id")
+  rating          Int            @default(0) @db.SmallInt
+  user            User           @relation(fields: [userId], references: [id])
+  technology      Technology     @relation(fields: [technologyId], references: [id])
+
+  @@id([userId, technologyId])
+  @@map("user_technology")
+}
+
 model User {
-  id              String         @id @default(uuid())
-  email           String?        @unique
-  realName        String?        @map("real_name")
-  username        String?
-  discordId       String?        @map("discord_id")
+  id               String         @id @default(uuid())
+  email            String         @unique
+  realName         String?        @map("real_name")
+  username         String         @unique
+  avatarUrl        String?        @map("avatar_url")
+
+    // 🔐 AUTH FIELDS
+  systemRole       UserRole       @default(EMPLOYEE)
+  isActive         Boolean        @default(false)
+  refreshTokenHash String?        @map("refresh_token_hash")
+  provider         AuthProvider 
+  providerId       String?        @unique 
+
   status          UserStatus
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
   workFormat      UserWorkFormat @map("work_format")
   projects        UserProject[]
   managedProjects Project[]      @relation("ProjectManager")
+  technologies    UserTechnology[]
+
+  timeLogs        TimeLog[]
+  ptoLogs         PtoLog[]
+
+  chatSessions    ChatSession[]
 
   @@map("user")
 }
@@ -47,8 +116,11 @@ enum ProjectStatus {
 model Project {
   id               String        @id @default(uuid())
   name             String
+  description      String?
+  domain           ProjectDomain?
   emoji            String?
   status           ProjectStatus
+  type             ProjectType   @default(BILLABLE)
   startDate        DateTime?     @map("start_date")
   endDate          DateTime?     @map("end_date")
   createdAt        DateTime      @default(now()) @map("created_at")
@@ -58,6 +130,9 @@ model Project {
 
   projectManager User?         @relation("ProjectManager", fields: [projectManagerId], references: [id], onDelete: SetNull)
   users          UserProject[]
+  technologies   Technology[]
+
+  timeLogs       TimeLog[]
 
   @@map("project")
 }
@@ -93,4 +168,71 @@ model UserProject {
 
   @@unique([userId, projectId])
   @@map("user_project")
+}
+
+model TimeLog {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date 
+  hours       Decimal  @db.Decimal(3, 1) 
+  description String   @db.Text
+
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId   String   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, date])
+  @@index([projectId, date])
+
+  @@unique([userId, projectId, date])
+
+  @@map("time_log")
+}
+
+model PtoLog {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date 
+  hours       Decimal  @db.Decimal(3, 1) 
+
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, date])
+  
+  @@unique([userId, date])
+
+  @@map("pto_log")
+}
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  title     String        @default("Новый чат")
+  userId    String        @map("user_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+  
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@map("chat_session")
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String      @map("session_id")
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String      // Сюда будет записываться 'user', 'assistant' или 'system'
+  content   String      @db.Text
+  
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("chat_message")
 }

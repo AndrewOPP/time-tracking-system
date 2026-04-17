@@ -29,6 +29,7 @@
     "dotenv": "^17.2.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@time-tracking-app/eslint-config": "workspace:*",
     "@time-tracking-app/typescript-config": "workspace:*",
     "@types/node": "^24.10.11",

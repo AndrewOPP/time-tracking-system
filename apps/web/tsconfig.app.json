@@ -10,5 +10,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "src/shared/components/ui/calendar.tsx", "src/shared/components/ui/button.tsx"]
 }

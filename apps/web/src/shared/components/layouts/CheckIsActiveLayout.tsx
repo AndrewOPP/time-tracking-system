@@ -1,0 +1,23 @@
+import { logOut } from '@/modules/auth/api/auth.api';
+import { useAuthStore } from '@/modules/auth/stores/auth.store';
+import { UserIsNotActive } from '@components/UserIsNotActive';
+
+import { Outlet } from 'react-router-dom';
+
+export function CheckIsActiveLayout() {
+  const { user, clearAuth } = useAuthStore();
+
+  const logout = async () => {
+    const { error } = await logOut();
+    if (error) {
+      console.error('Server logout error:', error);
+    }
+    clearAuth();
+  };
+
+  if (user && !user.isActive) {
+    return <UserIsNotActive onLogout={logout} />;
+  }
+
+  return <Outlet />;
+}

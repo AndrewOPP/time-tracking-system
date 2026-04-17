@@ -41,5 +41,21 @@
       "cache": false
     }
   },
-  "globalEnv": ["NODE_ENV", "PORT"]
+  "globalEnv": [
+    "NODE_ENV",
+    "VITE_API_URL",
+    "FRONTEND_URL",
+    "PORT",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "DISCORD_CLIENT_ID",
+    "DISCORD_CLIENT_SECRET",
+    "LINKEDIN_CLIENT_SECRET",
+    "LINKEDIN_CLIENT_ID",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "OAUTH_REDIRECT_URI",
+    "JWT_ACCESS_SECRET",
+    "JWT_REFRESH_SECRET"
+  ]
 }

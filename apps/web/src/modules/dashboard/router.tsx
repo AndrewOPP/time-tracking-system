@@ -1,0 +1,37 @@
+import { Route, Routes, Navigate } from 'react-router-dom';
+import { ROUTES } from '@/shared/constants/routes';
+import { useAuthStore } from '@/modules/auth/stores/auth.store';
+import { UserSystemRole } from '@/shared/types/user';
+import { DashboardPage } from './pages/DashboardPage';
+import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
+import { HomePage } from './pages/HomePage';
+import UserProfilePage from '../profile/pages/UserProfilePage';
+
+export const GeneralRoutes = () => {
+  const { user } = useAuthStore();
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to={
+              user?.role === UserSystemRole.MANAGER
+                ? ROUTES.MANAGER.MANAGER_DASHBOARD
+                : ROUTES.DASHBOARD
+            }
+            replace
+          />
+        }
+      />
+
+      <Route path={ROUTES.MY_PROJECTS} element={<DashboardPage />} />
+      <Route path={ROUTES.USER.USER_PROFILE} element={<UserProfilePage />} />
+      <Route path={ROUTES.DASHBOARD_PROJECTS} element={<ProjectDetailsPage />} />
+      <Route path={'/home'} element={<HomePage />} />
+
+      <Route path="*" element={<Navigate to={ROUTES.MY_PROJECTS} replace />} />
+    </Routes>
+  );
+};
