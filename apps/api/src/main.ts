@@ -17,15 +17,15 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.enableCors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-  });
-
   // app.enableCors({
-  //   origin: 'https://viso-web.onrender.com',
+  //   origin: 'http://localhost:5173',
   //   credentials: true,
   // });
+
+  app.enableCors({
+    origin: 'https://viso-web.onrender.com',
+    credentials: true,
+  });
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

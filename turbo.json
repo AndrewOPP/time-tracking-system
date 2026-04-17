@@ -44,6 +44,7 @@
   "globalEnv": [
     "NODE_ENV",
     "VITE_API_URL",
+    "FRONTEND_URL",
     "PORT",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
