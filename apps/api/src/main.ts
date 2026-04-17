@@ -23,7 +23,7 @@ async function bootstrap() {
   // });
 
   app.enableCors({
-    origin: 'https://viso-web.onrender.com',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
 
