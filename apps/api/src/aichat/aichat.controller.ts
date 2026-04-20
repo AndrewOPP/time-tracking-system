@@ -4,13 +4,14 @@ import { AiChatRequestDto } from './dto/ai-chat.dto';
 import { AichatService } from './aichat.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/auth/types/oauth.types';
+import { StreamRateLimitGuard } from './guards/StreamRateLimitGuard';
 
 @Controller('/chat')
 export class AichatController {
   constructor(private readonly aichatService: AichatService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, StreamRateLimitGuard)
   async root(@Req() req: RequestWithUser, @Res() res: Response, @Body() body: AiChatRequestDto) {
     const userId = req.user.sub;
 

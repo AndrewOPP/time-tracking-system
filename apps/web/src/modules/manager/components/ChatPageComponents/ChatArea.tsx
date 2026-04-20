@@ -76,6 +76,7 @@ function ChatAreaInner({
       invalidateChatList();
     },
   });
+  console.dir(error, 'error');
 
   const isLoading = status === 'submitted' || status === 'streaming';
   const isReady = status === 'ready';
@@ -133,6 +134,15 @@ function ChatAreaInner({
 
                 {error && (
                   <ErrorMessage
+                    text={(() => {
+                      if (!error.message) return 'An unexpected error occurred.';
+                      try {
+                        const parsedError = JSON.parse(error.message);
+                        return parsedError.message || error.message;
+                      } catch {
+                        return error.message;
+                      }
+                    })()}
                     onRetry={() => {
                       regenerate();
                     }}
