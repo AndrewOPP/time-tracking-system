@@ -1,10 +1,16 @@
 import { RefreshCw } from 'lucide-react';
 
-export function ErrorMessage({ onRetry }: { onRetry: () => void }) {
+export function ErrorMessage({
+  onRetry,
+  text = 'I cannot access the system data right now.',
+}: {
+  onRetry: () => void;
+  text: string;
+}) {
   return (
     <div className="bg-red-50 text-red-800 p-4 rounded-xl border border-red-200 mt-4 flex flex-col items-start gap-3">
       <div>
-        ⚠️ <strong>Sorry, an error occurred.</strong> I cannot access the system data right now.
+        ⚠️ <strong>Sorry, an error occurred.</strong> {text}
       </div>
       <button
         onClick={onRetry}
