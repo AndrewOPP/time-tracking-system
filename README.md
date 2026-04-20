@@ -32,7 +32,7 @@ pnpm db:seed
 pnpm db:studio
 
 # Start dev servers
-pnpm dev
+pnpm turbo run dev
 ```
 
 - Frontend: http://localhost:5173

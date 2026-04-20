@@ -11,6 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from './common/logger/logger.module';
 import { UserModule } from './users/users.module';
 import { ManagerDashboardModule } from './manager-dashboard/manager-dashboard.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -18,6 +19,12 @@ import { ManagerDashboardModule } from './manager-dashboard/manager-dashboard.mo
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 3600000,
+        limit: 30,
+      },
+    ]),
     PrismaModule,
     AuthModule,
     ProjectsModule,

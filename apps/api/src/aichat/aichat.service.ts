@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { streamText, convertToModelMessages, UIMessage, tool, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
@@ -48,6 +53,11 @@ export class AichatService {
           | { text: string }
           | undefined;
 
+        const messageText = lastUserTextPart?.text || '';
+
+        if (messageText.length > 500) {
+          throw new BadRequestException('The message must not exceed 500 characters.');
+        }
         await this.chatHistoryService.saveMessage(
           currentChatId,
           'user',
@@ -135,6 +145,11 @@ export class AichatService {
       return { result, chatId: currentChatId };
     } catch (error) {
       console.error('AI API Error:', error);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException('Failed to generate AI response');
     }
   }
